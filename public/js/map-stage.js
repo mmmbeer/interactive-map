@@ -64,29 +64,44 @@ export class MapStage {
     this.scale = this.min;
     this.center(this.data.width/2,this.data.height/2);
   }
-  center(x,y) {
+  center(x,y,animate = true) {
     this.tx = this.w/2-x*this.scale; this.ty = this.h/2-y*this.scale;
-    this.render();
+    this.render(animate);
   }
   focus(place) {
     this.scale = Math.min(this.max,Math.max(this.scale,1.8));
     this.center(place.x,place.y);
   }
-  zoom(factor, point = {x:this.w/2,y:this.h/2}) {
+  zoom(factor, point = {x:this.w/2,y:this.h/2}, animate = false) {
+    this.stopNavigation();
     const old = this.scale;
     this.scale = Math.max(this.min,Math.min(this.max,old*factor));
     this.tx = point.x-(point.x-this.tx)*this.scale/old;
     this.ty = point.y-(point.y-this.ty)*this.scale/old;
-    this.callbacks.hover(null); this.render();
+    this.callbacks.hover(null); this.render(animate);
   }
   constrain() {
     const sw = this.data.width*this.scale, sh = this.data.height*this.scale;
     this.tx = sw < this.w ? (this.w-sw)/2 : Math.max(this.w-sw-35,Math.min(35,this.tx));
     this.ty = sh < this.h ? (this.h-sh)/2 : Math.max(this.h-sh-35,Math.min(35,this.ty));
   }
-  render() {
+  stopNavigation() {
+    if (!this.world.classList.contains('navigating')) return;
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(this.world).transform);
+    this.tx=matrix.e;this.ty=matrix.f;this.scale=matrix.a;
+    this.world.classList.remove('navigating');
+    clearTimeout(this.navigationTimer);
+    this.render();
+  }
+  render(animate = false) {
     if (!this.w) return;
     this.constrain();
+    if (animate && this.hasRendered && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.world.classList.add('navigating');
+      clearTimeout(this.navigationTimer);
+      this.navigationTimer=setTimeout(()=>this.world.classList.remove('navigating'),500);
+    }
+    this.hasRendered = true;
     this.world.style.transform = `translate(${this.tx}px,${this.ty}px) scale(${this.scale})`;
     this.world.style.setProperty('--inverse-scale',1/this.scale);
     this.callbacks.view?.({scale:this.scale,min:this.min,tx:this.tx,ty:this.ty,w:this.w,h:this.h});
@@ -94,6 +109,7 @@ export class MapStage {
   down(event) {
     if (event.button !== 0 && event.pointerType !== 'touch') return;
     if (event.target.closest('.map-load-error')) return;
+    this.stopNavigation();
     const p = this.local(event);
     this.pointers.set(event.pointerId,p);
     this.start = p; this.dragged = false;
@@ -145,7 +161,7 @@ export class MapStage {
   key(event) {
     if (event.target.closest('.map-pin')) return;
     const actions = {
-      '+':()=>this.zoom(1.4),'=':()=>this.zoom(1.4),'-':()=>this.zoom(1/1.4),'0':()=>this.fit(),
+      '+':()=>this.zoom(1.4,undefined,true),'=':()=>this.zoom(1.4,undefined,true),'-':()=>this.zoom(1/1.4,undefined,true),'0':()=>this.fit(),
       ArrowLeft:()=>{this.tx+=70;this.render();},ArrowRight:()=>{this.tx-=70;this.render();},
       ArrowUp:()=>{this.ty+=70;this.render();},ArrowDown:()=>{this.ty-=70;this.render();}
     };
@@ -182,5 +198,5 @@ export class MapStage {
     this.selected=place; this.highlight(null);
     this.pinEls.forEach(el=>el.classList.toggle('selected',el.dataset.id===place?.id));
   }
-  destroy() { this.resizeObserver.disconnect(); this.callbacks.hover(null); }
+  destroy() { clearTimeout(this.navigationTimer); this.resizeObserver.disconnect(); this.callbacks.hover(null); }
 }

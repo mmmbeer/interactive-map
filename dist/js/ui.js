@@ -1,12 +1,12 @@
 export const categories = {
-  landmark: { label: 'Landmarks', singular: 'Landmark', color: '#a95135', icon: 'castle' },
-  tavern: { label: 'Taverns & inns', singular: 'Tavern & inn', color: '#b17a2b', icon: 'cup' },
-  shop: { label: 'Shops', singular: 'Shop', color: '#477860', icon: 'shop' },
-  workshop: { label: 'Workshops', singular: 'Workshop', color: '#795745', icon: 'tools' },
-  temple: { label: 'Temples', singular: 'Temple', color: '#7d678a', icon: 'spark' },
-  guild: { label: 'Guilds', singular: 'Guild', color: '#657984', icon: 'shield' },
-  harbor: { label: 'Harbor', singular: 'Harbor', color: '#367d8d', icon: 'anchor' },
-  home: { label: 'Homes', singular: 'Home', color: '#7a8260', icon: 'home' }
+  landmark: { label: 'Landmarks', singular: 'Landmark', color: '#ff9f1c', icon: 'castle' },
+  tavern: { label: 'Taverns & inns', singular: 'Tavern & inn', color: '#ffc15e', icon: 'cup' },
+  shop: { label: 'Shops', singular: 'Shop', color: '#d6ffb7', icon: 'shop' },
+  workshop: { label: 'Workshops', singular: 'Workshop', color: '#ffc15e', icon: 'tools' },
+  temple: { label: 'Temples', singular: 'Temple', color: '#f5ff90', icon: 'spark' },
+  guild: { label: 'Guilds', singular: 'Guild', color: '#d6ffb7', icon: 'shield' },
+  harbor: { label: 'Harbor', singular: 'Harbor', color: '#d6ffb7', icon: 'anchor' },
+  home: { label: 'Homes', singular: 'Home', color: '#f5ff90', icon: 'home' }
 };
 const paths = {
   compass: '<path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5Z"/><circle cx="12" cy="12" r="2"/>',
@@ -41,7 +41,7 @@ export function escape(value = '') {
   return String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 }
 export function brand() {
-  return `<a class="brand" href="#" aria-label="The Wandering Atlas home"><img src="assets/compass.svg" width="38" height="38" alt=""><span>The Wandering <em>Atlas</em><small>PLACES TO GET LOST IN</small></span></a>`;
+  return `<a class="brand" href="#" aria-label="The Wandering Atlas home"><img src="assets/compass.svg" width="38" height="38" alt=""><span>The Wandering <em>Atlas</em><small>INTERACTIVE WORLDS</small></span></a>`;
 }
 let toastTimer;
 export function toast(message) {

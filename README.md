@@ -42,7 +42,10 @@ See [docs/adding-maps.md](docs/adding-maps.md) for the format and complete workf
 
 ## Viewer
 
-- Map collection and hash links that work on static hosting.
+- Compact map collection with search and a live pan-and-zoom preview.
+- Deep twilight interface with tea green, lime, gold and amber accents.
+- Animated map navigation, controls and story panels with reduced-motion support.
+- Map and place hash links that work on static hosting.
 - Desktop hover previews and click-to-open place stories.
 - Touch drag, pinch zoom and tap-to-open stories.
 - Mouse-wheel zoom, zoom buttons, full-map fit and overview navigation.
@@ -58,7 +61,8 @@ The source map is an unlabeled raster. Its black building-like footprints were u
 
 ```text
 public/index.html           Collection and viewer entry point
-public/js/app.js            Collection and routing
+public/js/app.js            Static route handling
+public/js/library.js        Map selection, search and interactive previews
 public/js/map-stage.js      Pan, zoom, touch, markers and overlays
 public/js/viewer.js         Directory, filters, details and sharing
 public/js/spatial.js        Building hit detection and search

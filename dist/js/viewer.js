@@ -50,7 +50,7 @@ export class AtlasViewer {
     if(target.classList.contains('sidebar-close')) return this.closeDirectory(true);
     if(target.classList.contains('detail-share')) return this.share();
     const handlers={
-      'zoom-in':()=>this.stage.zoom(1.4),'zoom-out':()=>this.stage.zoom(1/1.4),
+      'zoom-in':()=>this.stage.zoom(1.4,undefined,true),'zoom-out':()=>this.stage.zoom(1/1.4,undefined,true),
       'fit-map':()=>this.stage.fit(),'reset-map':()=>this.stage.reset(),
       'toggle-markers':()=>target.setAttribute('aria-pressed',this.stage.toggleMarkers()),
       'open-directory':()=>this.openDirectory(),'show-more':()=>{this.limit+=45;this.renderList();},
