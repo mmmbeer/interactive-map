@@ -1,0 +1,20 @@
+[
+  {
+    "id": "dragonsgate",
+    "name": "Dragonsgate",
+    "subtitle": "The city between two shores",
+    "description": "Follow the tide through a walled island, crowded quays and the neighborhoods across the channel. Every door has a story.",
+    "image": "assets/maps/dragonsgate/map.webp",
+    "thumbnail": "assets/maps/dragonsgate/thumbnail.webp",
+    "theme": "Coastal city",
+    "region": "The Shattered Coast",
+    "tags": [
+      "City",
+      "Harbor",
+      "Fantasy"
+    ],
+    "locationCount": 7085,
+    "featuredCount": 54,
+    "data": "data/maps/dragonsgate.json"
+  }
+]
