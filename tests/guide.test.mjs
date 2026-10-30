@@ -63,3 +63,18 @@ test('long site content spans pages without losing its final text or link destin
   assert.ok(streams.some(s=>s.includes(embeddedFonts[0].encode('END OF LONG ENTRY'))));
   assert.ok(pages>4);assert.match(text,/site-small-house/);assert.ok(status.some(s=>s.startsWith('Compressing')));
 });
+test('compact entries preserve full fields and escape authored text and map attributes',async()=>{
+  const {guideEntryHTML}=await import('../public/js/guide-entry.js');
+  const place={...locations[0],name:'<img src=x onerror=alert(1)>',rumor:'<script>alert(1)</script>',extra:{history:{label:'<History>',text:'A complete custom account.'}}};
+  const html=guideEntryHTML(place,2,{image:'map.webp" onload="alert(1)',width:600,height:800});
+  assert.ok(html.includes('A complete custom account.'));assert.ok(html.includes('&lt;History&gt;'));assert.ok(html.includes('3 residents'));
+  assert.ok(html.includes('&lt;script&gt;'));assert.ok(html.includes('map.webp&quot; onload=&quot;alert(1)'));
+  assert.ok(!html.includes('<script>'));assert.ok(!html.includes('<img src=x'));assert.ok(html.includes('data-entry="small-house"'));
+});
+test('inline PDF facts fit the first-line label and preserve long tokens',async()=>{
+  const {fieldLines}=await import('../public/js/guide-pdf-entries.js');
+  const pdf=new PdfDocument(...await fonts()),text='Élodie works here. '+('long'.repeat(100));
+  const lines=fieldLines(pdf,'PEOPLE',text,246,9);
+  for(const line of lines)assert.ok(pdf.font.measure(line.text,line.size)+(line.offset||0)<=246);
+  assert.ok(lines.map(l=>l.text).join('').includes('long'.repeat(100)));
+});

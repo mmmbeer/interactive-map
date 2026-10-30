@@ -1,5 +1,6 @@
+import { writeGuideEntries } from './guide-pdf-entries.js';
 import { categories } from './ui.js';
-import { entrySections, siteNumbers } from './site-index.js';
+import { siteNumbers } from './site-index.js';
 import { PdfDocument, loadPdfFonts } from './pdf-writer.js';
 import { drawMap, mapBadge, mapSheets } from './guide-maps.js';
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0));
@@ -58,30 +59,7 @@ export async function createGuidePdf(data,places,{fonts,image,baseURL='',signal,
     pdf.link(index,x,y-10,244,height,entryDest(p));y+=height+6;
     if(i%80===0){onProgress(`Indexing sites ${i+1} / ${entries.length}…`);await pause();check(signal);}
   }
-  // Flow complete entries across pages. Never truncate a long field.
-  let detail,yDetail=800;
-  const nextDetail=()=>{detail=page(`${data.name} / Entries`);yDetail=92;};
-  const ensure=height=>{if(yDetail+height>724)nextDetail();};
-  const paragraph=(text,size=10,bold=false)=>{
-    for(const line of pdf.wrap(text,516,size,bold)){ensure(size*1.5);pdf.text(detail,line,48,yDetail,size,bold);yDetail+=size*1.5;}
-  };
-  for(const [i,p] of entries.entries()) {
-    const title=`${numbers.get(p.id)}. ${p.name}`,titleLines=pdf.wrap(title,516,15,true);
-    ensure(Math.min(200,titleLines.length*22+90));pdf.destination(entryDest(p),detail,yDetail-20);
-    paragraph(title,15,true);paragraph(`${p.district} · ${categories[p.category].singular}`,9);
-    if(p.address)paragraph(p.address,9);
-    yDetail+=5;
-    for(const [label,text] of entrySections(p)) {ensure(42);paragraph(label.toUpperCase(),8,true);paragraph(String(text));yDetail+=8;}
-    ensure(26);
-    pdf.text(detail,'Back to map',48,yDetail,8,true);pdf.link(detail,48,yDetail-10,85,17,mapDest.get(p.id));
-    pdf.text(detail,'Back to index',158,yDetail,8,true);pdf.link(detail,158,yDetail-10,85,17,indexDest.get(p.id));
-    if(baseURL) {
-      const url=new URL(baseURL);url.hash=`map/${data.id}/${p.id}`;
-      pdf.text(detail,'Open interactive site',278,yDetail,8,true);pdf.link(detail,278,yDetail-10,125,17,url.href,true);
-    }
-    yDetail+=16;pdf.line(detail,48,yDetail,564,yDetail);yDetail+=26;
-    if(i%20===0){onProgress(`Writing full entries ${i+1} / ${entries.length}…`);await pause();check(signal);}
-  }
+  await writeGuideEntries(pdf,entries,{data,numbers,page,entryDest,mapDest,indexDest,baseURL,image,signal,onProgress});
   onProgress('Finishing PDF…');await pause();check(signal);
   return pdf.finish(`${data.name} - Site guide`,image,{signal,onProgress});
 }

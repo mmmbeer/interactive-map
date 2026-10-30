@@ -17,3 +17,4 @@ export { mapSheets } from './guide-maps.js';
 export { createGuidePdf, mapImage } from './guide-pdf.js';
 export { PdfDocument, loadPdfFonts } from './pdf-writer.js';
 export { PdfFont } from './pdf-font.js';
+export { guideCrop, guideEntryHTML } from './guide-entry.js';
