@@ -1,5 +1,5 @@
 /* Location callouts share the map's coordinate space, with a fixed-size reading surface. */
-.detail-panel{inset:auto;width:min(360px,calc(100% - 24px));display:flex;flex-direction:column;overflow:hidden;max-height:560px;border:1px solid #b8c5a65c;background:var(--paper-light);box-shadow:0 12px 36px #11161066;z-index:8;animation:callout-in .16s ease-out;isolation:isolate;border-radius:8px;overscroll-behavior:contain}
+.detail-panel{position:absolute;inset:auto;width:min(360px,calc(100% - 24px));display:flex;flex-direction:column;overflow:hidden;max-height:560px;border:1px solid #b8c5a65c;background:var(--paper-light);box-shadow:0 12px 36px #11161066;z-index:8;animation:callout-in .16s ease-out;isolation:isolate;border-radius:8px;overscroll-behavior:contain}
 .callout-connector{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:7;filter:drop-shadow(0 1px 2px #0008)}
 .callout-connector line{stroke:var(--lime-cream);stroke-width:2}
 .callout-connector circle{fill:var(--paper);stroke:var(--lime-cream);stroke-width:2}
@@ -35,8 +35,7 @@
 .detail-actions .button{width:auto;flex:1;margin:0;min-height:34px;padding:7px 9px;font-size:10px;gap:7px}
 .detail-actions .detail-share{color:var(--tea-green)}
 .detail-actions .icon{width:13px;height:13px}
-.editor-preview .detail-grip,.editor-preview .story-hook .icon{width:13px;height:13px}
-.detail-actions{display:none}
+.editor-preview .detail-grip,.editor-preview .detail-actions{display:none}
 .editor-preview .detail-body{overflow:visible}
 @keyframes callout-in{from{opacity:0}to{opacity:1}}
 @media(max-width:760px){.detail-panel{width:min(320px,calc(100% - 24px));bottom:auto;right:auto;z-index:8}.detail-content{padding:14px 16px}.detail-content h2{font-size:23px}.detail-close{width:38px;height:38px}.detail-banner{display:flex;align-items:center;height:46px;min-height:46px}.detail-actions .button{min-height:40px}.detail-grip{min-height:40px}}
