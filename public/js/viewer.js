@@ -1,12 +1,19 @@
+import { openEditor } from './authoring/editor.js';
 import { categories, escape, icon, number, toast } from './ui.js';
 import { viewerHTML, listItem, detailHTML, tooltipHTML } from './places.js';
 import { MapStage } from './map-stage.js';
-import { matches } from './spatial.js';
+import { matches, searchPlaces } from './spatial.js';
 export class AtlasViewer {
-  constructor(root,data) {
+  constructor(root,data,options={}) {
+    this.staleDraft=options.stale;this.source=options.source || data;this.published=options.published || this.source;this.onChange=options.onChange;
     this.root=root;this.data=data;this.controller=new AbortController();this.signal=this.controller.signal;
     this.filters={query:'',category:'',district:''};this.scope='highlights';this.limit=45;
     root.innerHTML=viewerHTML(data);
+    if(options.local || options.stale) {
+      const note=document.createElement('div');note.className='local-draft-note';
+      note.innerHTML=options.local ? 'Local draft · Changes are saved on this device.<button id="draft-tools">Export or restore</button>' : 'A draft from an older published map is stored on this device. Export it before restoring.<button id="draft-tools">Open draft tools</button>';
+      root.querySelector('.atlas-header').after(note);
+    }
     this.sidebar=root.querySelector('.place-sidebar');
     this.detail=root.querySelector('#detail-panel');this.tooltip=root.querySelector('#map-tooltip');
     this.stage=new MapStage(root.querySelector('#map-stage'),data,{
@@ -49,6 +56,8 @@ export class AtlasViewer {
     if(target.classList.contains('detail-close')) return this.closeDetail(true);
     if(target.classList.contains('sidebar-close')) return this.closeDirectory(true);
     if(target.classList.contains('detail-share')) return this.share();
+    if(target.classList.contains('detail-edit')) return openEditor(this,this.selected);
+    if(target.id==='edit-map' || target.id==='draft-tools') return openEditor(this);
     const handlers={
       'zoom-in':()=>this.stage.zoom(1.4,undefined,true),'zoom-out':()=>this.stage.zoom(1/1.4,undefined,true),
       'fit-map':()=>this.stage.fit(),'reset-map':()=>this.stage.reset(),
@@ -67,9 +76,18 @@ export class AtlasViewer {
     });
     if(refresh)this.refresh();
   }
-  refresh() {
-    this.predicate=p=>matches(p,this.filters);
-    this.results=this.data.locations.filter(p=>this.predicate(p)&&(this.scope==='all'||p.featured));
+  async refresh() {
+    const version=this.searchVersion=(this.searchVersion || 0)+1;
+    const filters={...this.filters},scope=this.scope;
+    const places=this.data.locations.filter(p=>scope==='all'||p.featured);
+    if(filters.query) {
+      this.root.querySelector('#results-count').textContent='Searching places…';
+      this.root.querySelector('#random-place').disabled=true;
+    }
+    const results=await searchPlaces(places,filters,{signal:this.signal,current:()=>this.searchVersion===version});
+    if(!results || this.signal.aborted || this.searchVersion!==version)return;
+    this.predicate=p=>matches(p,filters);
+    this.results=results;
     this.limit=45;this.renderList();
     this.root.querySelector('#place-list').scrollTop=0;
     this.stage.filter(this.predicate,this.scope==='all');

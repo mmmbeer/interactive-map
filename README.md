@@ -1,6 +1,6 @@
 # The Wandering Atlas
 
-A static interactive map collection for Cloudflare Pages. The first map is **Dragonsgate**, using the supplied city map, 54 authored landmarks and 7,031 additional named building entries. All place data is committed JSON. Nothing is generated during a visit.
+A static interactive map collection for Cloudflare Pages. The first map is **Dragonsgate**, using the supplied city map, 54 authored landmarks and 7,031 generated building entries. Location JSON stores compact geometry and generation inputs. A versioned, seeded browser generator supplies names, residents, lore, hooks and services. The 54 authored landmarks keep their original text as overrides.
 
 ## Run and build
 
@@ -8,7 +8,7 @@ Requires Node.js 22 or newer. There are no third-party runtime or build dependen
 
 ```sh
 npm run dev    # Local preview on port 3000
-npm test       # Data integrity, search, hit detection and escaping
+npm test       # Determinism, inheritance, migration, drafts, shapes, search and escaping
 npm run build # Validate source and copy public/ to dist/
 ```
 
@@ -49,7 +49,11 @@ See [docs/adding-maps.md](docs/adding-maps.md) for the format and complete workf
 - Desktop hover previews and click-to-open place stories.
 - Touch drag, pinch zoom and tap-to-open stories.
 - Mouse-wheel zoom, zoom buttons, full-map fit and overview navigation.
-- Search across names, descriptions, residents, addresses and neighborhoods.
+- Search across generated names, descriptions, residents, demographics, custom sections, addresses and neighborhoods.
+- Location editor with demographic inputs, hit shapes, live preview and local drafts.
+- Map, region, district and location generation settings with weighted demographics.
+- Extensible name pools, location types, template tables and content sections.
+- Compact JSON import/export, legacy migration and authored text overrides.
 - Category and neighborhood filters, highlights and a full directory.
 - Individual map/place links, clipboard sharing and a copyable-link fallback.
 - Keyboard controls: `/` search, arrows pan, `+`/`-` zoom, `0` fit, Escape close.
@@ -65,13 +69,22 @@ public/js/app.js            Static route handling
 public/js/library.js        Map selection, search and interactive previews
 public/js/map-stage.js      Pan, zoom, touch, markers and overlays
 public/js/viewer.js         Directory, filters, details and sharing
-public/js/spatial.js        Building hit detection and search
+public/js/spatial.js        Shape-aware hit detection and search
+public/js/generation/       Versioned generator, naming pools and validation
+public/js/authoring/        Location editor, compact export and local drafts
+public/js/map-contract.js   Shared browser/build map validator
 public/js/places.js         Viewer and place markup
 public/js/ui.js             Icons, categories and HTML escaping
 public/css/                 Base, map and responsive styles
 public/data/maps.json       Collection index
-public/data/maps/*.json     Map metadata and all location content
+public/data/maps/*.json     Map metadata, geometry, generation inputs and authored overrides
 public/assets/maps/         Maps and thumbnails
 scripts/                    Build, preview and validation tools
 sources/                    Original supplied map, excluded from deployment
 ```
+
+## Generation and browser edits
+
+See [docs/generation.md](docs/generation.md) for seeds, inheritance, race/culture inputs, custom content and legacy migration. Use **Edit map** to add locations and **Edit location** on a place to update it. Saves create a draft on the current device. Export JSON, register the updated map, rebuild and commit to publish through Cloudflare. Generated results are never persisted in map JSON.
+
+Dragonsgate’s map data dropped from 2,103,891 to about 813,000 bytes while preserving every location id, coordinate, hit box and authored highlight.

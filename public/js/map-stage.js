@@ -1,3 +1,4 @@
+import { traceShape } from './geometry.js';
 import { categories, icon, escape } from './ui.js';
 import { buildSpatialIndex, hitTest } from './spatial.js';
 export class MapStage {
@@ -146,9 +147,13 @@ export class MapStage {
   }
   up(event) {
     if (!this.pointers.has(event.pointerId)) return;
-    if (!this.dragged && !event.target.closest('.map-pin')) {
-      const place = this.at(this.local(event));
-      if (place) this.callbacks.select(place);
+    if (!this.dragged) {
+      const point=this.local(event);
+      const consumed=this.callbacks.point?.({x:(point.x-this.tx)/this.scale,y:(point.y-this.ty)/this.scale});
+      if (consumed) this.dragged=true;
+      else if (!event.target.closest('.map-pin')) {
+        const place=this.at(point);if(place)this.callbacks.select(place);
+      }
     }
     this.pointers.delete(event.pointerId);
     if (this.pointers.size) this.start = [...this.pointers.values()][0];
@@ -184,14 +189,13 @@ export class MapStage {
       for (const p of this.data.locations) {
         if (!this.visible(p) || p.featured) continue;
         ctx.fillStyle = categories[p.category].color+'55';
-        const b=p.bounds||[p.x-2,p.y-2,4,4]; ctx.fillRect(...b);
+        traceShape(ctx,p); ctx.fill();
       }
     }
     for (const p of [this.selected,place]) {
       if (!p || !this.visible(p)) continue;
-      const b=p.bounds||[p.x-4,p.y-4,8,8];
-      ctx.fillStyle=categories[p.category].color+'99';ctx.fillRect(...b);
-      ctx.strokeStyle='#fff9e9';ctx.lineWidth=2/this.scale;ctx.strokeRect(b[0]-1,b[1]-1,b[2]+2,b[3]+2);
+      ctx.fillStyle=categories[p.category].color+'99';traceShape(ctx,p);ctx.fill();
+      ctx.strokeStyle='#fff9e9';ctx.lineWidth=2/this.scale;ctx.stroke();
     }
   }
   select(place) {
