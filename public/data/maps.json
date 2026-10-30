@@ -16,5 +16,23 @@
     "locationCount": 10030,
     "featuredCount": 71,
     "data": "data/maps/dragonsgate.json"
+  },
+  {
+    "id": "grayhaven",
+    "name": "Grayhaven",
+    "subtitle": "A city of crossings and quays",
+    "description": "Explore a coastal town of quays and avenues surrounded by farms, orchards and pastures. This fantasy map interprets the supplied street plan.",
+    "image": "assets/maps/grayhaven/map.webp",
+    "thumbnail": "assets/maps/grayhaven/thumbnail.webp",
+    "theme": "Fantasy city",
+    "region": "The Gray Coast",
+    "tags": [
+      "City",
+      "Coast",
+      "Fantasy"
+    ],
+    "locationCount": 135,
+    "featuredCount": 5,
+    "data": "data/maps/grayhaven.json"
   }
 ]

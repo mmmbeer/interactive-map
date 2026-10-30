@@ -1,0 +1,2481 @@
+{
+  "schemaVersion": 2,
+  "id": "grayhaven",
+  "name": "Grayhaven",
+  "subtitle": "A city of crossings and quays",
+  "description": "Explore a coastal town of quays and avenues surrounded by farms, orchards and pastures. This fantasy map interprets the supplied street plan.",
+  "image": "assets/maps/grayhaven/map.webp",
+  "thumbnail": "assets/maps/grayhaven/thumbnail.webp",
+  "width": 1774,
+  "height": 887,
+  "theme": "Fantasy city",
+  "region": "The Gray Coast",
+  "tags": [
+    "City",
+    "Coast",
+    "Fantasy"
+  ],
+  "credit": "Fantasy map generated from a user-supplied Google Maps screenshot and styled with the Dragonsgate map as a visual reference. Original map data \u00a9 Google. Buildings and stories are fictional.",
+  "generator": {
+    "version": 2,
+    "seed": "grayhaven-2026-v1",
+    "defaults": {
+      "demographics": {
+        "races": {
+          "human": 6,
+          "elf": 2,
+          "dwarf": 2,
+          "halfling": 2,
+          "orc": 1,
+          "gnome": 1
+        }
+      },
+      "fields": [
+        "name",
+        "description",
+        "person",
+        "rumor",
+        "address",
+        "services"
+      ]
+    }
+  },
+  "regions": [
+    {
+      "id": "gray-coast",
+      "name": "The Gray Coast"
+    }
+  ],
+  "districts": [
+    {
+      "id": "westhaven",
+      "name": "Westhaven",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              330,
+              0
+            ],
+            [
+              330,
+              310
+            ],
+            [
+              0,
+              310
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 160,
+        "y": 160
+      }
+    },
+    {
+      "id": "garden-ward",
+      "name": "Garden Ward",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              330,
+              0
+            ],
+            [
+              665,
+              0
+            ],
+            [
+              665,
+              310
+            ],
+            [
+              330,
+              310
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 500,
+        "y": 170
+      }
+    },
+    {
+      "id": "north-market",
+      "name": "North Market",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              665,
+              0
+            ],
+            [
+              950,
+              0
+            ],
+            [
+              950,
+              310
+            ],
+            [
+              665,
+              310
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 790,
+        "y": 170
+      }
+    },
+    {
+      "id": "western-commons",
+      "name": "Western Commons",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              0,
+              310
+            ],
+            [
+              330,
+              310
+            ],
+            [
+              330,
+              625
+            ],
+            [
+              0,
+              625
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 150,
+        "y": 450
+      }
+    },
+    {
+      "id": "craft-quarter",
+      "name": "Craft Quarter",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              330,
+              310
+            ],
+            [
+              665,
+              310
+            ],
+            [
+              665,
+              625
+            ],
+            [
+              330,
+              625
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 490,
+        "y": 470
+      }
+    },
+    {
+      "id": "south-gate",
+      "name": "South Gate",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              0,
+              625
+            ],
+            [
+              665,
+              625
+            ],
+            [
+              665,
+              887
+            ],
+            [
+              0,
+              887
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 360,
+        "y": 735
+      }
+    },
+    {
+      "id": "crossroads",
+      "name": "Crossroads",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              665,
+              310
+            ],
+            [
+              950,
+              310
+            ],
+            [
+              950,
+              625
+            ],
+            [
+              665,
+              625
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 790,
+        "y": 460
+      }
+    },
+    {
+      "id": "south-wharves",
+      "name": "South Wharves",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              665,
+              625
+            ],
+            [
+              950,
+              625
+            ],
+            [
+              1100,
+              800
+            ],
+            [
+              1050,
+              887
+            ],
+            [
+              665,
+              887
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 800,
+        "y": 740
+      }
+    },
+    {
+      "id": "crown-ward",
+      "name": "Crown Ward",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              950,
+              0
+            ],
+            [
+              1774,
+              0
+            ],
+            [
+              1774,
+              145
+            ],
+            [
+              1510,
+              430
+            ],
+            [
+              950,
+              430
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 1270,
+        "y": 150
+      }
+    },
+    {
+      "id": "diamond-ward",
+      "name": "Diamond Ward",
+      "region": "gray-coast",
+      "boundaries": [
+        {
+          "kind": "polygon",
+          "points": [
+            [
+              950,
+              430
+            ],
+            [
+              1510,
+              430
+            ],
+            [
+              1300,
+              665
+            ],
+            [
+              1100,
+              800
+            ],
+            [
+              950,
+              625
+            ]
+          ]
+        }
+      ],
+      "label": {
+        "x": 1140,
+        "y": 520
+      }
+    }
+  ],
+  "locations": [
+    {
+      "id": "east-west-way",
+      "category": "street",
+      "type": "road",
+      "district": "crossroads",
+      "x": 550,
+      "y": 356,
+      "shape": {
+        "kind": "polyline",
+        "width": 8,
+        "points": [
+          [
+            10,
+            269
+          ],
+          [
+            130,
+            275
+          ],
+          [
+            329,
+            352
+          ],
+          [
+            550,
+            356
+          ],
+          [
+            660,
+            357
+          ],
+          [
+            900,
+            360
+          ],
+          [
+            951,
+            324
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "Crossing Way"
+      }
+    },
+    {
+      "id": "south-crossing",
+      "category": "street",
+      "type": "road",
+      "district": "craft-quarter",
+      "x": 660,
+      "y": 626,
+      "shape": {
+        "kind": "polyline",
+        "width": 8,
+        "points": [
+          [
+            10,
+            625
+          ],
+          [
+            335,
+            625
+          ],
+          [
+            660,
+            626
+          ],
+          [
+            850,
+            630
+          ],
+          [
+            910,
+            654
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "South Crossing"
+      }
+    },
+    {
+      "id": "central-avenue",
+      "category": "street",
+      "type": "road",
+      "district": "crossroads",
+      "x": 660,
+      "y": 625,
+      "shape": {
+        "kind": "polyline",
+        "width": 8,
+        "points": [
+          [
+            665,
+            112
+          ],
+          [
+            665,
+            310
+          ],
+          [
+            660,
+            625
+          ],
+          [
+            660,
+            875
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "Stonegate Avenue"
+      }
+    },
+    {
+      "id": "crown-road",
+      "category": "street",
+      "type": "road",
+      "district": "crown-ward",
+      "x": 1110,
+      "y": 171,
+      "shape": {
+        "kind": "polyline",
+        "width": 8,
+        "points": [
+          [
+            955,
+            319
+          ],
+          [
+            1015,
+            265
+          ],
+          [
+            1110,
+            171
+          ],
+          [
+            1200,
+            78
+          ],
+          [
+            1268,
+            10
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "Crown Road"
+      }
+    },
+    {
+      "id": "crown-square",
+      "category": "street",
+      "type": "square",
+      "district": "crown-ward",
+      "x": 1347,
+      "y": 233,
+      "shape": {
+        "kind": "ellipse",
+        "rx": 38,
+        "ry": 36
+      },
+      "featured": true,
+      "overrides": {
+        "name": "Crown Square",
+        "description": "The octagonal heart of the eastern wards, where broad avenues meet around a central monument."
+      }
+    },
+    {
+      "id": "building-1276-0006-09-07",
+      "category": "workshop",
+      "type": "workshop",
+      "district": "crown-ward",
+      "x": 1280.5,
+      "y": 9.5,
+      "bounds": [
+        1276,
+        6,
+        9,
+        7
+      ]
+    },
+    {
+      "id": "building-1296-0014-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1299.0,
+      "y": 17.0,
+      "bounds": [
+        1296,
+        14,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-0103-0022-10-07",
+      "category": "home",
+      "type": "home",
+      "district": "westhaven",
+      "x": 108.0,
+      "y": 25.5,
+      "bounds": [
+        103,
+        22,
+        10,
+        7
+      ]
+    },
+    {
+      "id": "building-1212-0023-09-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1216.5,
+      "y": 26.5,
+      "bounds": [
+        1212,
+        23,
+        9,
+        7
+      ]
+    },
+    {
+      "id": "building-1183-0026-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1186.0,
+      "y": 29.0,
+      "bounds": [
+        1183,
+        26,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1192-0029-07-06",
+      "category": "workshop",
+      "type": "workshop",
+      "district": "crown-ward",
+      "x": 1195.5,
+      "y": 32.0,
+      "bounds": [
+        1192,
+        29,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-0179-0033-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "westhaven",
+      "x": 182.5,
+      "y": 36.0,
+      "bounds": [
+        179,
+        33,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-0235-0033-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "westhaven",
+      "x": 238.5,
+      "y": 36.5,
+      "bounds": [
+        235,
+        33,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1050-0039-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1053.0,
+      "y": 42.0,
+      "bounds": [
+        1050,
+        39,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1502-0040-07-08",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1505.5,
+      "y": 44.0,
+      "bounds": [
+        1502,
+        40,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1566-0041-06-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1569.0,
+      "y": 44.5,
+      "bounds": [
+        1566,
+        41,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-0153-0044-13-06",
+      "category": "home",
+      "type": "home",
+      "district": "westhaven",
+      "x": 159.5,
+      "y": 47.0,
+      "bounds": [
+        153,
+        44,
+        13,
+        6
+      ]
+    },
+    {
+      "id": "building-1109-0047-06-07",
+      "category": "tavern",
+      "type": "tavern",
+      "district": "crown-ward",
+      "x": 1112.0,
+      "y": 50.5,
+      "bounds": [
+        1109,
+        47,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1314-0048-06-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1317.0,
+      "y": 51.5,
+      "bounds": [
+        1314,
+        48,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1505-0050-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1508.0,
+      "y": 53.0,
+      "bounds": [
+        1505,
+        50,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-0174-0051-08-06",
+      "category": "home",
+      "type": "home",
+      "district": "westhaven",
+      "x": 178.0,
+      "y": 54.0,
+      "bounds": [
+        174,
+        51,
+        8,
+        6
+      ]
+    },
+    {
+      "id": "building-1330-0053-08-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1334.0,
+      "y": 56.5,
+      "bounds": [
+        1330,
+        53,
+        8,
+        7
+      ]
+    },
+    {
+      "id": "building-1438-0055-09-06",
+      "category": "shop",
+      "type": "shop",
+      "district": "crown-ward",
+      "x": 1442.5,
+      "y": 58.0,
+      "bounds": [
+        1438,
+        55,
+        9,
+        6
+      ]
+    },
+    {
+      "id": "building-1592-0059-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1595.5,
+      "y": 62.0,
+      "bounds": [
+        1592,
+        59,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-0375-0065-09-06",
+      "category": "home",
+      "type": "home",
+      "district": "garden-ward",
+      "x": 379.5,
+      "y": 68.0,
+      "bounds": [
+        375,
+        65,
+        9,
+        6
+      ]
+    },
+    {
+      "id": "building-1327-0065-06-07",
+      "category": "shop",
+      "type": "shop",
+      "district": "crown-ward",
+      "x": 1330.0,
+      "y": 68.5,
+      "bounds": [
+        1327,
+        65,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1443-0067-07-07",
+      "category": "temple",
+      "type": "temple",
+      "district": "crown-ward",
+      "x": 1446.5,
+      "y": 70.5,
+      "bounds": [
+        1443,
+        67,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1306-0071-06-08",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1309.0,
+      "y": 75.0,
+      "bounds": [
+        1306,
+        71,
+        6,
+        8
+      ]
+    },
+    {
+      "id": "building-0980-0072-06-08",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 983.0,
+      "y": 76.0,
+      "bounds": [
+        980,
+        72,
+        6,
+        8
+      ]
+    },
+    {
+      "id": "building-0973-0078-09-08",
+      "category": "temple",
+      "type": "temple",
+      "district": "crown-ward",
+      "x": 977.5,
+      "y": 82.0,
+      "bounds": [
+        973,
+        78,
+        9,
+        8
+      ]
+    },
+    {
+      "id": "building-0377-0080-09-08",
+      "category": "home",
+      "type": "home",
+      "district": "garden-ward",
+      "x": 381.5,
+      "y": 84.0,
+      "bounds": [
+        377,
+        80,
+        9,
+        8
+      ]
+    },
+    {
+      "id": "building-0989-0080-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 992.0,
+      "y": 83.0,
+      "bounds": [
+        989,
+        80,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-0957-0081-09-06",
+      "category": "shop",
+      "type": "shop",
+      "district": "crown-ward",
+      "x": 961.5,
+      "y": 84.0,
+      "bounds": [
+        957,
+        81,
+        9,
+        6
+      ]
+    },
+    {
+      "id": "building-0392-0082-08-07",
+      "category": "home",
+      "type": "home",
+      "district": "garden-ward",
+      "x": 396.0,
+      "y": 85.5,
+      "bounds": [
+        392,
+        82,
+        8,
+        7
+      ]
+    },
+    {
+      "id": "building-1684-0082-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1687.0,
+      "y": 85.0,
+      "bounds": [
+        1684,
+        82,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1471-0086-06-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1474.0,
+      "y": 89.5,
+      "bounds": [
+        1471,
+        86,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-0955-0089-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 958.0,
+      "y": 92.0,
+      "bounds": [
+        955,
+        89,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-0974-0092-08-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 978.0,
+      "y": 95.5,
+      "bounds": [
+        974,
+        92,
+        8,
+        7
+      ]
+    },
+    {
+      "id": "building-0963-0096-08-07",
+      "category": "workshop",
+      "type": "blacksmith",
+      "district": "crown-ward",
+      "x": 967.0,
+      "y": 99.5,
+      "bounds": [
+        963,
+        96,
+        8,
+        7
+      ]
+    },
+    {
+      "id": "building-1336-0097-08-08",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1340.0,
+      "y": 101.0,
+      "bounds": [
+        1336,
+        97,
+        8,
+        8
+      ]
+    },
+    {
+      "id": "building-1716-0098-08-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1720.0,
+      "y": 101.0,
+      "bounds": [
+        1716,
+        98,
+        8,
+        6
+      ]
+    },
+    {
+      "id": "building-1275-0119-06-06",
+      "category": "workshop",
+      "type": "blacksmith",
+      "district": "crown-ward",
+      "x": 1278.0,
+      "y": 122.0,
+      "bounds": [
+        1275,
+        119,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1000-0147-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1003.5,
+      "y": 150.0,
+      "bounds": [
+        1000,
+        147,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-1625-0151-06-08",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1628.0,
+      "y": 155.0,
+      "bounds": [
+        1625,
+        151,
+        6,
+        8
+      ]
+    },
+    {
+      "id": "building-1488-0171-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1491.0,
+      "y": 174.0,
+      "bounds": [
+        1488,
+        171,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1589-0196-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1592.5,
+      "y": 199.5,
+      "bounds": [
+        1589,
+        196,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1531-0200-07-08",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1534.5,
+      "y": 204.0,
+      "bounds": [
+        1531,
+        200,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1515-0212-10-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1520.0,
+      "y": 215.5,
+      "bounds": [
+        1515,
+        212,
+        10,
+        7
+      ]
+    },
+    {
+      "id": "building-1436-0213-06-09",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1439.0,
+      "y": 217.5,
+      "bounds": [
+        1436,
+        213,
+        6,
+        9
+      ]
+    },
+    {
+      "id": "building-1068-0215-11-09",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1073.5,
+      "y": 219.5,
+      "bounds": [
+        1068,
+        215,
+        11,
+        9
+      ]
+    },
+    {
+      "id": "building-1529-0220-06-07",
+      "category": "tavern",
+      "type": "tavern",
+      "district": "crown-ward",
+      "x": 1532.0,
+      "y": 223.5,
+      "bounds": [
+        1529,
+        220,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-0967-0223-13-10",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 973.5,
+      "y": 228.0,
+      "bounds": [
+        967,
+        223,
+        13,
+        10
+      ]
+    },
+    {
+      "id": "building-1473-0225-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1476.5,
+      "y": 228.0,
+      "bounds": [
+        1473,
+        225,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-0989-0229-07-09",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 992.5,
+      "y": 233.5,
+      "bounds": [
+        989,
+        229,
+        7,
+        9
+      ]
+    },
+    {
+      "id": "building-1135-0230-12-08",
+      "category": "workshop",
+      "type": "blacksmith",
+      "district": "crown-ward",
+      "x": 1141.0,
+      "y": 234.0,
+      "bounds": [
+        1135,
+        230,
+        12,
+        8
+      ]
+    },
+    {
+      "id": "building-0963-0237-09-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 967.5,
+      "y": 240.5,
+      "bounds": [
+        963,
+        237,
+        9,
+        7
+      ]
+    },
+    {
+      "id": "building-1471-0248-08-09",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1475.0,
+      "y": 252.5,
+      "bounds": [
+        1471,
+        248,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "building-0160-0252-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "westhaven",
+      "x": 163.0,
+      "y": 255.0,
+      "bounds": [
+        160,
+        252,
+        6,
+        6
+      ],
+      "featured": true,
+      "overrides": {
+        "name": "Westhaven Farmstead",
+        "description": "A farmstead beside the western fields."
+      }
+    },
+    {
+      "id": "building-1243-0262-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1246.0,
+      "y": 265.0,
+      "bounds": [
+        1243,
+        262,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1028-0266-06-08",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1031.0,
+      "y": 270.0,
+      "bounds": [
+        1028,
+        266,
+        6,
+        8
+      ]
+    },
+    {
+      "id": "building-1238-0268-08-06",
+      "category": "shop",
+      "type": "shop",
+      "district": "crown-ward",
+      "x": 1242.0,
+      "y": 271.0,
+      "bounds": [
+        1238,
+        268,
+        8,
+        6
+      ]
+    },
+    {
+      "id": "building-1249-0268-06-06",
+      "category": "tavern",
+      "type": "tavern",
+      "district": "crown-ward",
+      "x": 1252.0,
+      "y": 271.0,
+      "bounds": [
+        1249,
+        268,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-0019-0272-16-18",
+      "category": "home",
+      "type": "home",
+      "district": "westhaven",
+      "x": 27.0,
+      "y": 281.0,
+      "bounds": [
+        19,
+        272,
+        16,
+        18
+      ]
+    },
+    {
+      "id": "building-1323-0275-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1326.0,
+      "y": 278.0,
+      "bounds": [
+        1323,
+        275,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-0488-0278-06-09",
+      "category": "home",
+      "type": "home",
+      "district": "garden-ward",
+      "x": 491.0,
+      "y": 282.5,
+      "bounds": [
+        488,
+        278,
+        6,
+        9
+      ]
+    },
+    {
+      "id": "building-1553-0283-06-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1556.0,
+      "y": 286.5,
+      "bounds": [
+        1553,
+        283,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1436-0287-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1439.5,
+      "y": 290.5,
+      "bounds": [
+        1436,
+        287,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1387-0295-06-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1390.0,
+      "y": 298.5,
+      "bounds": [
+        1387,
+        295,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1076-0296-06-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1079.0,
+      "y": 299.5,
+      "bounds": [
+        1076,
+        296,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1491-0298-07-08",
+      "category": "shop",
+      "type": "shop",
+      "district": "crown-ward",
+      "x": 1494.5,
+      "y": 302.0,
+      "bounds": [
+        1491,
+        298,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1222-0306-08-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1226.0,
+      "y": 309.5,
+      "bounds": [
+        1222,
+        306,
+        8,
+        7
+      ]
+    },
+    {
+      "id": "building-1077-0308-09-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1081.5,
+      "y": 311.0,
+      "bounds": [
+        1077,
+        308,
+        9,
+        6
+      ]
+    },
+    {
+      "id": "building-1461-0323-08-08",
+      "category": "workshop",
+      "type": "blacksmith",
+      "district": "crown-ward",
+      "x": 1465.0,
+      "y": 327.0,
+      "bounds": [
+        1461,
+        323,
+        8,
+        8
+      ]
+    },
+    {
+      "id": "building-1509-0326-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1512.5,
+      "y": 329.0,
+      "bounds": [
+        1509,
+        326,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-0396-0332-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "craft-quarter",
+      "x": 399.5,
+      "y": 335.0,
+      "bounds": [
+        396,
+        332,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-0887-0341-10-10",
+      "category": "home",
+      "type": "home",
+      "district": "crossroads",
+      "x": 892.0,
+      "y": 346.0,
+      "bounds": [
+        887,
+        341,
+        10,
+        10
+      ]
+    },
+    {
+      "id": "building-0395-0344-09-08",
+      "category": "home",
+      "type": "home",
+      "district": "craft-quarter",
+      "x": 399.5,
+      "y": 348.0,
+      "bounds": [
+        395,
+        344,
+        9,
+        8
+      ],
+      "featured": true,
+      "overrides": {
+        "name": "Crossing Farm",
+        "description": "A small farmstead near the crossing road."
+      }
+    },
+    {
+      "id": "building-0611-0346-09-10",
+      "category": "home",
+      "type": "home",
+      "district": "craft-quarter",
+      "x": 615.5,
+      "y": 351.0,
+      "bounds": [
+        611,
+        346,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "building-1557-0352-08-10",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1561.0,
+      "y": 357.0,
+      "bounds": [
+        1557,
+        352,
+        8,
+        10
+      ]
+    },
+    {
+      "id": "building-0868-0353-09-20",
+      "category": "home",
+      "type": "home",
+      "district": "crossroads",
+      "x": 872.5,
+      "y": 363.0,
+      "bounds": [
+        868,
+        353,
+        9,
+        20
+      ]
+    },
+    {
+      "id": "building-1332-0357-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1335.5,
+      "y": 360.5,
+      "bounds": [
+        1332,
+        357,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1325-0370-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1328.5,
+      "y": 373.0,
+      "bounds": [
+        1325,
+        370,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-1002-0394-06-10",
+      "category": "workshop",
+      "type": "workshop",
+      "district": "crown-ward",
+      "x": 1005.0,
+      "y": 399.0,
+      "bounds": [
+        1002,
+        394,
+        6,
+        10
+      ]
+    },
+    {
+      "id": "building-1432-0398-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1435.5,
+      "y": 401.5,
+      "bounds": [
+        1432,
+        398,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1503-0405-06-06",
+      "category": "temple",
+      "type": "temple",
+      "district": "crown-ward",
+      "x": 1506.0,
+      "y": 408.0,
+      "bounds": [
+        1503,
+        405,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1292-0411-08-07",
+      "category": "home",
+      "type": "home",
+      "district": "crown-ward",
+      "x": 1296.0,
+      "y": 414.5,
+      "bounds": [
+        1292,
+        411,
+        8,
+        7
+      ]
+    },
+    {
+      "id": "building-1145-0428-07-08",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1148.5,
+      "y": 432.0,
+      "bounds": [
+        1145,
+        428,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1183-0430-06-07",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1186.0,
+      "y": 433.5,
+      "bounds": [
+        1183,
+        430,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1193-0430-11-09",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1198.5,
+      "y": 434.5,
+      "bounds": [
+        1193,
+        430,
+        11,
+        9
+      ]
+    },
+    {
+      "id": "building-1278-0431-07-06",
+      "category": "shop",
+      "type": "tailor",
+      "district": "diamond-ward",
+      "x": 1281.5,
+      "y": 434.0,
+      "bounds": [
+        1278,
+        431,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-1487-0433-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1490.5,
+      "y": 436.5,
+      "bounds": [
+        1487,
+        433,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1128-0440-10-09",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1133.0,
+      "y": 444.5,
+      "bounds": [
+        1128,
+        440,
+        10,
+        9
+      ]
+    },
+    {
+      "id": "building-1267-0443-07-08",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1270.5,
+      "y": 447.0,
+      "bounds": [
+        1267,
+        443,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1256-0445-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1259.0,
+      "y": 448.0,
+      "bounds": [
+        1256,
+        445,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1257-0455-06-06",
+      "category": "shop",
+      "type": "bakery",
+      "district": "diamond-ward",
+      "x": 1260.0,
+      "y": 458.0,
+      "bounds": [
+        1257,
+        455,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1163-0475-09-06",
+      "category": "workshop",
+      "type": "blacksmith",
+      "district": "diamond-ward",
+      "x": 1167.5,
+      "y": 478.0,
+      "bounds": [
+        1163,
+        475,
+        9,
+        6
+      ]
+    },
+    {
+      "id": "building-1227-0476-06-10",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1230.0,
+      "y": 481.0,
+      "bounds": [
+        1227,
+        476,
+        6,
+        10
+      ]
+    },
+    {
+      "id": "building-0996-0485-08-06",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1000.0,
+      "y": 488.0,
+      "bounds": [
+        996,
+        485,
+        8,
+        6
+      ]
+    },
+    {
+      "id": "building-1347-0505-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1350.5,
+      "y": 508.0,
+      "bounds": [
+        1347,
+        505,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-1185-0507-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1188.5,
+      "y": 510.5,
+      "bounds": [
+        1185,
+        507,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-0140-0508-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "western-commons",
+      "x": 143.0,
+      "y": 511.0,
+      "bounds": [
+        140,
+        508,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1209-0514-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1212.5,
+      "y": 517.0,
+      "bounds": [
+        1209,
+        514,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-1199-0515-06-06",
+      "category": "temple",
+      "type": "temple",
+      "district": "diamond-ward",
+      "x": 1202.0,
+      "y": 518.0,
+      "bounds": [
+        1199,
+        515,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1091-0524-07-07",
+      "category": "shop",
+      "type": "shop",
+      "district": "diamond-ward",
+      "x": 1094.5,
+      "y": 527.5,
+      "bounds": [
+        1091,
+        524,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-1311-0550-08-08",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1315.0,
+      "y": 554.0,
+      "bounds": [
+        1311,
+        550,
+        8,
+        8
+      ]
+    },
+    {
+      "id": "building-1112-0551-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1115.5,
+      "y": 554.0,
+      "bounds": [
+        1112,
+        551,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-1171-0565-09-06",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1175.5,
+      "y": 568.0,
+      "bounds": [
+        1171,
+        565,
+        9,
+        6
+      ]
+    },
+    {
+      "id": "building-0951-0571-07-08",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 954.5,
+      "y": 575.0,
+      "bounds": [
+        951,
+        571,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-0956-0600-07-09",
+      "category": "shop",
+      "type": "tailor",
+      "district": "diamond-ward",
+      "x": 959.5,
+      "y": 604.5,
+      "bounds": [
+        956,
+        600,
+        7,
+        9
+      ]
+    },
+    {
+      "id": "building-0620-0601-06-09",
+      "category": "home",
+      "type": "home",
+      "district": "craft-quarter",
+      "x": 623.0,
+      "y": 605.5,
+      "bounds": [
+        620,
+        601,
+        6,
+        9
+      ]
+    },
+    {
+      "id": "building-1163-0609-06-07",
+      "category": "tavern",
+      "type": "tavern",
+      "district": "diamond-ward",
+      "x": 1166.0,
+      "y": 612.5,
+      "bounds": [
+        1163,
+        609,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "building-1250-0613-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1253.5,
+      "y": 616.0,
+      "bounds": [
+        1250,
+        613,
+        7,
+        6
+      ]
+    },
+    {
+      "id": "building-1156-0629-07-08",
+      "category": "tavern",
+      "type": "tavern",
+      "district": "diamond-ward",
+      "x": 1159.5,
+      "y": 633.0,
+      "bounds": [
+        1156,
+        629,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1217-0630-08-09",
+      "category": "workshop",
+      "type": "workshop",
+      "district": "diamond-ward",
+      "x": 1221.0,
+      "y": 634.5,
+      "bounds": [
+        1217,
+        630,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "building-1137-0634-07-07",
+      "category": "home",
+      "type": "home",
+      "district": "diamond-ward",
+      "x": 1140.5,
+      "y": 637.5,
+      "bounds": [
+        1137,
+        634,
+        7,
+        7
+      ]
+    },
+    {
+      "id": "building-0954-0637-15-07",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 961.5,
+      "y": 640.5,
+      "bounds": [
+        954,
+        637,
+        15,
+        7
+      ]
+    },
+    {
+      "id": "building-0988-0637-09-07",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 992.5,
+      "y": 640.5,
+      "bounds": [
+        988,
+        637,
+        9,
+        7
+      ]
+    },
+    {
+      "id": "building-0166-0641-08-09",
+      "category": "home",
+      "type": "home",
+      "district": "south-gate",
+      "x": 170.0,
+      "y": 645.5,
+      "bounds": [
+        166,
+        641,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "building-0453-0644-07-06",
+      "category": "home",
+      "type": "home",
+      "district": "south-gate",
+      "x": 456.5,
+      "y": 647.0,
+      "bounds": [
+        453,
+        644,
+        7,
+        6
+      ],
+      "featured": true,
+      "overrides": {
+        "name": "Southgate Farm",
+        "description": "A farmstead among the southern pastures."
+      }
+    },
+    {
+      "id": "building-1260-0646-08-07",
+      "category": "shop",
+      "type": "bakery",
+      "district": "diamond-ward",
+      "x": 1264.0,
+      "y": 649.5,
+      "bounds": [
+        1260,
+        646,
+        8,
+        7
+      ]
+    },
+    {
+      "id": "building-0957-0651-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 960.0,
+      "y": 654.0,
+      "bounds": [
+        957,
+        651,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1158-0658-06-06",
+      "category": "shop",
+      "type": "shop",
+      "district": "diamond-ward",
+      "x": 1161.0,
+      "y": 661.0,
+      "bounds": [
+        1158,
+        658,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1096-0663-07-08",
+      "category": "workshop",
+      "type": "blacksmith",
+      "district": "south-wharves",
+      "x": 1099.5,
+      "y": 667.0,
+      "bounds": [
+        1096,
+        663,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1069-0670-06-06",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 1072.0,
+      "y": 673.0,
+      "bounds": [
+        1069,
+        670,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1045-0676-08-09",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 1049.0,
+      "y": 680.5,
+      "bounds": [
+        1045,
+        676,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "building-0960-0701-06-06",
+      "category": "workshop",
+      "type": "blacksmith",
+      "district": "south-wharves",
+      "x": 963.0,
+      "y": 704.0,
+      "bounds": [
+        960,
+        701,
+        6,
+        6
+      ]
+    },
+    {
+      "id": "building-1092-0728-07-08",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 1095.5,
+      "y": 732.0,
+      "bounds": [
+        1092,
+        728,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1078-0762-06-10",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 1081.0,
+      "y": 767.0,
+      "bounds": [
+        1078,
+        762,
+        6,
+        10
+      ]
+    },
+    {
+      "id": "building-1014-0765-07-08",
+      "category": "home",
+      "type": "home",
+      "district": "south-wharves",
+      "x": 1017.5,
+      "y": 769.0,
+      "bounds": [
+        1014,
+        765,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "building-1101-0784-06-08",
+      "category": "shop",
+      "type": "bakery",
+      "district": "diamond-ward",
+      "x": 1104.0,
+      "y": 788.0,
+      "bounds": [
+        1101,
+        784,
+        6,
+        8
+      ]
+    },
+    {
+      "id": "west-pasture",
+      "category": "terrain",
+      "type": "field",
+      "district": "westhaven",
+      "x": 194,
+      "y": 110,
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            165,
+            76
+          ],
+          [
+            230,
+            84
+          ],
+          [
+            213,
+            144
+          ],
+          [
+            168,
+            137
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "West Pasture"
+      },
+      "featured": true
+    },
+    {
+      "id": "garden-fields",
+      "category": "terrain",
+      "type": "field",
+      "district": "garden-ward",
+      "x": 380,
+      "y": 120,
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            345,
+            87
+          ],
+          [
+            418,
+            96
+          ],
+          [
+            403,
+            150
+          ],
+          [
+            353,
+            145
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "Garden Fields"
+      }
+    },
+    {
+      "id": "commons-fields",
+      "category": "terrain",
+      "type": "field",
+      "district": "western-commons",
+      "x": 44,
+      "y": 357,
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            10,
+            320
+          ],
+          [
+            80,
+            327
+          ],
+          [
+            78,
+            392
+          ],
+          [
+            8,
+            390
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "Commons Fields"
+      }
+    },
+    {
+      "id": "southern-pasture",
+      "category": "terrain",
+      "type": "field",
+      "district": "south-gate",
+      "x": 520,
+      "y": 678,
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            485,
+            650
+          ],
+          [
+            560,
+            650
+          ],
+          [
+            545,
+            710
+          ],
+          [
+            490,
+            701
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "South Pasture"
+      }
+    },
+    {
+      "id": "crossroads-fields",
+      "category": "terrain",
+      "type": "field",
+      "district": "crossroads",
+      "x": 817,
+      "y": 519,
+      "shape": {
+        "kind": "polygon",
+        "points": [
+          [
+            780,
+            487
+          ],
+          [
+            848,
+            485
+          ],
+          [
+            851,
+            545
+          ],
+          [
+            790,
+            560
+          ]
+        ]
+      },
+      "overrides": {
+        "name": "Crossroads Fields"
+      }
+    }
+  ]
+}
