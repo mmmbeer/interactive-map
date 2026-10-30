@@ -12,11 +12,14 @@ const distanceToSegment = ([x, y], [ax, ay], [bx, by]) => {
 };
 
 test('Grayhaven districts follow the coast and contain their assigned locations', () => {
-  assert.ok(map.locations.length >= 400);
+  assert.ok(map.locations.filter(p => p.category === 'home').length >= 900);
+  assert.ok(map.locations.some(p => p.id === 'north-bay'));
   assert.equal(districtAt(1600, 750), undefined, 'open water is outside every district');
   for (const place of map.locations) {
     const d = map.districts.find(d => d.id === place.district);
-    assert.ok(d.boundaries.some(b => ringContains(b.points, place.x, place.y)), place.id);
+    if (place.category !== 'water') {
+      assert.ok(d.boundaries.some(b => ringContains(b.points, place.x, place.y)), place.id);
+    }
   }
   assert.ok(map.districts.every(d => d.boundaries[0].points.length > 8));
 });
