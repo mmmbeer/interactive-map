@@ -14,11 +14,10 @@ export class MapLabels {
   layout(stage) {
     const {scale,tx,ty,w,h}=stage;
     if(!scale)return;
-    this.el.hidden=!stage.markers;
-    if(!stage.markers)return;
-    const occupied=stage.pinEls.filter(el=>!el.hidden).map(el=>{
+    this.el.hidden=false;
+    const occupied=[...(stage.numberRects || []),...stage.pinEls.filter(el=>!el.hidden).map(el=>{
       const p=stage.placeIndex.get(el.dataset.id);return {x:p.x*scale+tx-17,y:p.y*scale+ty-17,w:34,h:34};
-    });
+    })];
     const visible=[];
     const placeLabel=(key,text,x,y,className,shiftable=true)=>{
       let el=this.cache.get(key);
@@ -40,6 +39,8 @@ export class MapLabels {
     }
     let count=0;
     for(const p of this.ordered) {
+      if(p.category==='street'?!stage.streetLayer.enabled:!stage.markers)continue;
+      if(stage.numberLayer.enabled && !feature(p))continue;
       const min=p.labelMinScale ?? (p.featured?1.2:feature(p)?(p.category==='street'?.8:.35):p.category==='home'?3.5:2.4);
       if(scale<min || !stage.visible(p))continue;
       const x=p.x*scale+tx,y=p.y*scale+ty;

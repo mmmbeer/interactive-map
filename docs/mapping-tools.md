@@ -96,3 +96,13 @@ The `rebuild.py` entry script includes Dragonsgate's specific masks, thresholds,
 A future JavaScript mapper can reuse the existing JS geometry and editor model directly. The recognition algorithms would need a JavaScript or WASM port for browser execution, or a separately implemented Python service. The current static Cloudflare Pages build loads authored JSON and generates text locally.
 
 For the data contract and complete survey workflow, see [adding-maps.md](adding-maps.md), [generation.md](generation.md) and [dragonsgate-survey.md](dragonsgate-survey.md).
+
+## Numbered guides and PDF export
+
+Import `siteNumbers` to assign the same ID-based numbering in an editor, directory and map overlay. Pass the complete location list once and retain its `Map<id, number>` when filtering. `entrySections` supplies the complete reader-facing fields, including custom sections. Neither helper changes the source map.
+
+`StreetLayer` and `NumberLayer` render the independently controlled overlays used by `MapStage`. `mapSheets(data, places)` partitions dense selections into printable detail maps. Each selected site belongs to exactly one detail sheet.
+
+`createGuidePdf(data, places, options)` returns a Promise of a PDF Blob. Pass materialized data and the chosen subset. Options accept an embedded JPEG map (`{width, height, bytes}`), two `PdfFont` instances or browser-loaded bundled fonts, an optional `baseURL` for interactive map links, an `AbortSignal`, and `onProgress(text)`. `mapImage(image, signal)` converts a loaded browser map image to that JPEG representation. Include `assets/fonts/` and its license in another mapper, or pass compatible normal and bold TrueType buffers through `PdfFont`.
+
+The PDF modules use standard browser APIs and do not require a package or backend. Text stays selectable and Unicode-mapped. The generator creates named destinations for map sheets, index rows and full entries. Page content is compressed where `CompressionStream` is available. The full map raster is embedded once and reused by clipping it for each detail sheet.

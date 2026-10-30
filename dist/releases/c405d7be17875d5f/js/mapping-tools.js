@@ -10,3 +10,10 @@ export { streams, choose, distribution, integer, sample, bank, words, combine } 
 export { migrateMap, serializeMap, newLocation, saveLocation } from './authoring/model.js';
 export { MapStage } from './map-stage.js';
 export { MapLabels } from './map-labels.js';
+
+export { siteNumbers, entrySections, isGeography } from './site-index.js';
+export { StreetLayer, NumberLayer } from './map-overlays.js';
+export { mapSheets } from './guide-maps.js';
+export { createGuidePdf, mapImage } from './guide-pdf.js';
+export { PdfDocument, loadPdfFonts } from './pdf-writer.js';
+export { PdfFont } from './pdf-font.js';

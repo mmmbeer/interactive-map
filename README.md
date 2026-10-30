@@ -103,3 +103,15 @@ The error screen’s Reload atlas button reloads the document so a tab left open
 ## Reuse the mapping tools
 
 See [mapping-tools.md](docs/mapping-tools.md) for the browser ES-module entry point, geometry, spatial selection, compact authoring, deterministic generation and Python recognition helpers. The source for roof extraction, contour tracing, lane skeletons and route alignment is committed with the map.
+
+## Map layers and site guides
+
+Use **Districts**, **Streets**, **Labels** and **Numbers** independently in the map's upper-right corner. Numbers identify small sites without long name labels. Zoom in to reveal numbers hidden by collision avoidance. The directory and detail panel show the same numbers. Hover outlines geometry. Selecting a site adds a persistent ring and moves to its location with a smooth transition. Reduced-motion settings disable animations.
+
+Choose **Site guide** in the header to read full numbered entries. Export the current directory results, including the active district, category, search and Highlights/All places scope, or choose the entire map. The preview initially shows 30 entries; **Show more full entries** expands it. PDF export always includes every entry in the chosen scope, including entries beyond the preview limit.
+
+**Download linked PDF** creates a real PDF locally in the browser. It contains an overview, automatically divided detail map sheets, a linked number index and full descriptions, residents, rumors, services, demographics and custom sections. Numbered map markers and index rows link to entries. Entry links return to the correct map sheet and index position, or open the corresponding interactive site. Unicode fonts are bundled with their license. No PDF service or runtime package is required. **Cancel export** stops a large job. **Save PDF** lets you save the completed file again. **Open PDF** opens it in a PDF viewer.
+
+Site numbers are assigned by stable location ID order across the complete map. Filtering, zooming, directory order and export scope do not renumber sites. Adding or deleting IDs can change later numbers, so keep the map and its exported guide from the same map revision together. A complete Dragonsgate guide has thousands of pages. Use district or category filters to produce smaller guides.
+
+The reusable modules are `site-index.js`, `guide-maps.js`, `guide-pdf.js`, `pdf-writer.js` and `pdf-font.js`. PDF generation never writes resolved content back into compact map data.

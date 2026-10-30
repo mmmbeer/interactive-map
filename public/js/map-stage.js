@@ -1,3 +1,5 @@
+import { StreetLayer, NumberLayer } from './map-overlays.js';
+import { siteNumbers } from './site-index.js';
 import { DistrictLayer } from './districts.js';
 import { MapLabels } from './map-labels.js';
 import { boundsFor, fillShape } from './geometry.js';
@@ -14,10 +16,14 @@ export class MapStage {
     this.canvas = element.querySelector('canvas');
     this.canvas.width = data.width; this.canvas.height = data.height;
     this.context = this.canvas.getContext('2d');
+    this.baseCanvas=document.createElement('canvas');this.baseCanvas.className='map-overlay';this.baseCanvas.width=data.width;this.baseCanvas.height=data.height;this.canvas.before(this.baseCanvas);
     this.pins = element.querySelector('.map-pins');
     this.pins.innerHTML = data.locations.filter(p => p.featured).map(p => `<button class="map-pin" data-id="${escape(p.id)}" aria-label="${escape(p.name)}: ${categories[p.category].singular}" style="left:${p.x}px;top:${p.y}px;--category:${categories[p.category].color}">${icon(categories[p.category].icon)}</button>`).join('');
     this.pinEls = [...this.pins.children];
     this.districtLayer=new DistrictLayer(this.world,data);
+    this.streetLayer=new StreetLayer(this.world,data);
+    this.numberLayer=new NumberLayer(this.world,siteNumbers(data.locations));
+    this.selectionRing=document.createElement('span');this.selectionRing.className='map-selection-ring';this.selectionRing.hidden=true;this.world.append(this.selectionRing);
     this.labelLayer=new MapLabels(this.world,data,this.districtLayer);
     this.placeIndex=new Map(data.locations.map(p=>[p.id,p]));
     this.image = element.querySelector('.map-image');
@@ -26,22 +32,23 @@ export class MapStage {
       element.querySelector('.map-load-error').hidden = true;
       this.image.src = data.image + '?retry=' + Date.now();
     }, {signal});
-    element.addEventListener('wheel', e => { e.preventDefault(); this.zoom(Math.exp(-e.deltaY * .0015), this.local(e)); }, {passive:false,signal});
+    element.addEventListener('wheel', e => { e.preventDefault(); this.zoom(Math.exp(-e.deltaY * .0015), this.local(e),true); }, {passive:false,signal});
     element.addEventListener('pointerdown', e => this.down(e), {signal});
     element.addEventListener('pointermove', e => this.move(e), {signal});
     element.addEventListener('pointerup', e => this.up(e), {signal});
     element.addEventListener('pointercancel', e => this.cancel(e), {signal});
     element.addEventListener('pointerleave', () => {this.callbacks.hover(null);this.highlight(null);}, {signal});
     element.addEventListener('click', e => {
-      const pin = e.target.closest('.map-pin');
+      const pin = e.target.closest('.map-pin,.site-number');
       if (pin && !this.dragged) callbacks.select(data.locations.find(p => p.id === pin.dataset.id));
     }, {signal});
     element.addEventListener('focusin', e => {
-      const pin = e.target.closest('.map-pin');
+      const pin = e.target.closest('.map-pin,.site-number');
       if (!pin) return;
       const place = data.locations.find(p => p.id === pin.dataset.id);
-      this.center(place.x, place.y);
+      this.center(place.x, place.y);this.highlight(place);
     }, {signal});
+    element.addEventListener('focusout',()=>this.highlight(null),{signal});
     element.addEventListener('keydown', e => this.key(e), {signal});
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(element);
@@ -62,11 +69,13 @@ export class MapStage {
     else { this.scale = Math.max(this.min,this.scale); this.center(previous.x,previous.y); }
   }
   reset() {
+    this.stopNavigation();
     const view = this.data.initialView;
     if (view) { this.scale = Math.max(this.min,Math.min(this.max,this.w/view.width)); this.center(view.x,view.y); }
     else this.fit();
   }
   fit() {
+    this.stopNavigation();
     this.scale = this.min;
     this.center(this.data.width/2,this.data.height/2);
   }
@@ -74,11 +83,13 @@ export class MapStage {
     this.tx = this.w/2-x*this.scale; this.ty = this.h/2-y*this.scale;
     this.render(animate);
   }
-  focus(place) {
+  focus(place,offset=0) {
+    this.stopNavigation();
     const [x,y,w,h]=boundsFor(place);
     const span=Math.max(w,h);
     this.scale = span>100 ? Math.max(this.min,Math.min(this.w/(w+100),this.h/(h+100),2)) : Math.min(this.max,Math.max(this.scale,2.8));
-    this.center(span>100?x+w/2:place.x,span>100?y+h/2:place.y);
+    this.tx=this.w/2-(span>100?x+w/2:place.x)*this.scale-offset;
+    this.ty=this.h/2-(span>100?y+h/2:place.y)*this.scale;this.render(true);
   }
   zoom(factor, point = {x:this.w/2,y:this.h/2}, animate = false) {
     this.stopNavigation();
@@ -113,7 +124,8 @@ export class MapStage {
     this.world.style.transform = `translate(${this.tx}px,${this.ty}px) scale(${this.scale})`;
     this.world.style.setProperty('--inverse-scale',1/this.scale);
     this.districtLayer.draw(this.scale,this.districtFilter);
-    this.layoutLabels();
+    this.streetLayer.draw(this.scale,this.visible);
+    this.layoutLabels();this.highlight(this.hovered);
     this.callbacks.view?.({scale:this.scale,min:this.min,tx:this.tx,ty:this.ty,w:this.w,h:this.h});
   }
   down(event) {
@@ -123,15 +135,16 @@ export class MapStage {
     const p = this.local(event);
     this.pointers.set(event.pointerId,p);
     this.start = p; this.dragged = false;
-    (event.target.closest('.map-pin')||this.el).setPointerCapture(event.pointerId);
-    this.callbacks.hover(null);
+    (event.target.closest('.map-pin,.site-number')||this.el).setPointerCapture(event.pointerId);
+    this.callbacks.hover(null);this.highlight(null);
     if (this.pointers.size>1) this.dragged = true;
   }
   move(event) {
     const next = this.local(event);
     if (!this.pointers.has(event.pointerId)) {
       if (event.pointerType==='touch') return;
-      const place = this.at(next);
+      const id=event.target.closest('.map-pin,.site-number')?.dataset.id;
+      const place = id?this.placeIndex.get(id):this.at(next);
       this.el.classList.toggle('over-place',Boolean(place));
       this.callbacks.hover(place,event);
       this.highlight(place);
@@ -160,7 +173,7 @@ export class MapStage {
       const point=this.local(event);
       const consumed=this.callbacks.point?.({x:(point.x-this.tx)/this.scale,y:(point.y-this.ty)/this.scale});
       if (consumed) this.dragged=true;
-      else if (!event.target.closest('.map-pin')) {
+      else if (!event.target.closest('.map-pin,.site-number')) {
         const place=this.at(point);if(place)this.callbacks.select(place);
       }
     }
@@ -170,25 +183,28 @@ export class MapStage {
   }
   cancel(event) { this.pointers.delete(event.pointerId); this.dragged=true; this.el.classList.remove('dragging'); }
   at(point) {
-    return hitTest(this.index,this.data.locations,(point.x-this.tx)/this.scale,(point.y-this.ty)/this.scale,this.scale,this.visible,this.markers,p=>this.visiblePinIds?.has(p.id));
+    const m=new DOMMatrixReadOnly(getComputedStyle(this.world).transform);
+    return hitTest(this.index,this.data.locations,(point.x-m.e)/m.a,(point.y-m.f)/m.a,m.a,this.visible,this.markers && !this.numberLayer.enabled,p=>this.visiblePinIds?.has(p.id));
   }
   key(event) {
-    if (event.target.closest('.map-pin')) return;
+    if (event.target.closest('.map-pin,.site-number')) return;
     const actions = {
       '+':()=>this.zoom(1.4,undefined,true),'=':()=>this.zoom(1.4,undefined,true),'-':()=>this.zoom(1/1.4,undefined,true),'0':()=>this.fit(),
       ArrowLeft:()=>{this.tx+=70;this.render();},ArrowRight:()=>{this.tx-=70;this.render();},
       ArrowUp:()=>{this.ty+=70;this.render();},ArrowDown:()=>{this.ty-=70;this.render();}
     };
-    if (actions[event.key]) {event.preventDefault();actions[event.key]();}
+    if (actions[event.key]) {event.preventDefault();this.stopNavigation();actions[event.key]();}
   }
   filter(predicate, showAll = false, district = '') {
     this.districtFilter=district;this.districtLayer.draw(this.scale,district);
     this.visible = predicate; this.showAll=showAll;
     this.pinEls.forEach(el => el.hidden = !this.markers || !predicate(this.data.locations.find(p=>p.id===el.dataset.id)));
-    this.layoutLabels();
-    this.highlight(null);
+    this.streetLayer.draw(this.scale,predicate);this.layoutLabels();
+    this.drawSites();this.highlight(null);
   }
-  layoutLabels() { this.layoutPins();this.labelLayer.layout(this); }
+  layoutLabels() { this.layoutPins();this.numberRects=this.numberLayer.layout(this);this.labelLayer.layout(this); }
+  toggleStreets() {this.streetLayer.enabled=!this.streetLayer.enabled;this.streetLayer.draw(this.scale,this.visible);this.layoutLabels();return this.streetLayer.enabled;}
+  toggleNumbers() {this.numberLayer.enabled=!this.numberLayer.enabled;this.layoutLabels();return this.numberLayer.enabled;}
   layoutPins() {
     if(!this.scale)return;
     const occupied=[];this.visiblePinIds=new Set();
@@ -201,7 +217,7 @@ export class MapStage {
     for(const el of pins) {
       const p=this.placeIndex.get(el.dataset.id),x=p.x*this.scale+this.tx,y=p.y*this.scale+this.ty;
       const crowded=p.id!==this.selected?.id && occupied.some(q=>q.district?Math.abs(q.x-x)<65 && Math.abs(q.y-y)<24:Math.hypot(q.x-x,q.y-y)<32);
-      el.hidden=!this.markers || !this.visible(p) || x<0 || x>this.w || y<0 || y>this.h || crowded || shown>=limit;
+      el.hidden=this.numberLayer.enabled || !this.markers || (!this.visible(p) && p.id!==this.selected?.id) || x<0 || x>this.w || y<0 || y>this.h || crowded || shown>=limit;
       if(!el.hidden){occupied.push({x,y});shown++;this.visiblePinIds.add(p.id);}
     }
   }
@@ -213,24 +229,32 @@ export class MapStage {
     this.filter(this.visible,this.showAll,this.districtFilter);
     return this.markers;
   }
-  highlight(place) {
-    const ctx = this.context;
-    ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+  drawSites() {
+    const ctx=this.baseCanvas.getContext('2d');ctx.clearRect(0,0,this.data.width,this.data.height);
     if (this.showAll && this.markers) {
       for (const p of this.data.locations) {
-        if (!this.visible(p) || p.featured) continue;
+        if (!this.visible(p) || p.featured || p.category==='street') continue;
         ctx.fillStyle = categories[p.category].color+(['water','terrain'].includes(p.category)?'18':p.category==='street'?'66':'55');
         fillShape(ctx,p);
       }
     }
+  }
+  highlight(place) {
+    this.hovered=place;
+    this.pinEls.forEach(el=>el.classList.toggle('hovered',el.dataset.id===place?.id));
+    const ctx = this.context;
+    ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
     for (const p of [this.selected,place]) {
-      if (!p || !this.visible(p)) continue;
-      ctx.fillStyle=categories[p.category].color+'99';fillShape(ctx,p);
-      ctx.strokeStyle='#fff9e9';ctx.lineWidth=2/this.scale;ctx.stroke();
+      if (!p) continue;
+      ctx.save();ctx.shadowColor=categories[p.category].color;ctx.shadowBlur=5/this.scale;
+      ctx.fillStyle=categories[p.category].color+(p===this.selected?'88':'55');fillShape(ctx,p);
+      ctx.shadowBlur=0;ctx.strokeStyle=p===this.selected?'#ffffff':'#f5ff90';ctx.lineWidth=(p===this.selected?2.5:1.5)/this.scale;ctx.stroke();ctx.restore();
     }
   }
   select(place) {
-    this.selected=place; this.highlight(null);this.layoutLabels();
+    this.selected=place;this.selectionRing.hidden=!place;
+    if(place){this.selectionRing.style.left=`${place.x}px`;this.selectionRing.style.top=`${place.y}px`;}
+    this.highlight(null);this.layoutLabels();
     this.pinEls.forEach(el=>el.classList.toggle('selected',el.dataset.id===place?.id));
   }
   destroy() { clearTimeout(this.navigationTimer); this.resizeObserver.disconnect(); this.callbacks.hover(null); }

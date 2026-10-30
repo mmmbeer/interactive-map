@@ -12,6 +12,7 @@ export const categories = {
   home: { label: 'Homes', singular: 'Home', color: '#f5ff90', icon: 'home' }
 };
 const paths = {
+  index:'<path d="M9 5h12M9 12h12M9 19h12M2 4h2v3M2 11h3l-3 3h3M2 18h3v4H2m1-2h2"/>',
   route:'<path d="m4 20 5-16m6 16 5-16M12 8l1-4m-3 12 1-4"/>',
   water:'<path d="M2 8q3-4 6 0t6 0 6 0M2 13q3-4 6 0t6 0 6 0M2 18q3-4 6 0t6 0 6 0"/>',
   terrain:'<path d="m2 20 7-14 5 9 3-5 5 10ZM6 12l3 2 3-2"/>',
