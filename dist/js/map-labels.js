@@ -19,9 +19,10 @@ export class MapLabels {
       const p=stage.placeIndex.get(el.dataset.id);return {x:p.x*scale+tx-17,y:p.y*scale+ty-17,w:34,h:34};
     })];
     const visible=[];
-    const placeLabel=(key,text,x,y,className,shiftable=true)=>{
+    const placeLabel=(key,text,x,y,className,shiftable=true,color='')=>{
       let el=this.cache.get(key);
       if(!el) {el=document.createElement('span');el.className=`map-feature-label ${className}`;el.innerHTML=escape(text);this.cache.set(key,el);this.el.append(el);}
+      if(color)el.style.setProperty('--district-color',color);
       el.hidden=false;el.size ||= {w:el.offsetWidth+6,h:el.offsetHeight+4};
       const size=el.size;
       const shift=(shiftable?[0,20,-20,36]:[0]).find(d=>{
@@ -35,7 +36,7 @@ export class MapLabels {
     };
     if(this.districts.enabled && scale<2) for(const d of this.districts.districts) {
       if(!d.label)continue;
-      placeLabel(`district:${d.id}`,d.name,d.label.x*scale+tx,d.label.y*scale+ty,'district',true);
+      placeLabel(`district:${d.id}`,d.name,d.label.x*scale+tx,d.label.y*scale+ty,'district',true,d.color);
     }
     let count=0;
     for(const p of this.ordered) {

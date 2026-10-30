@@ -108,3 +108,9 @@ Import `siteNumbers` to assign the same ID-based numbering in an editor, directo
 The PDF modules use standard browser APIs and do not require a package or backend. Text stays selectable and Unicode-mapped. The generator creates named destinations for map sheets, index rows and full entries. Page content is compressed where `CompressionStream` is available. The full map raster is embedded once and reused by clipping it for each detail sheet.
 
 `guideCrop(place)` computes the shared local map crop used in compact browser entries and PDF entries. `guideEntryHTML(place, number, map)` renders the escaped, complete browser entry with the same site number, locator, facts and custom sections. The PDF entry layout uses two columns and supports continued entries without dropping text or return links.
+
+## District palettes and fallback interaction
+
+`districtAdjacency(districts)` constructs a graph from polygon contacts, overlaps and near boundaries. `districtColors(districts)` first assigns distinct hues while enforcing contrast across graph edges. For graphs that cannot use that assignment within the search budget, it uses contrasting color families and unique shades. Adjacent Dragonsgate districts differ by at least 60 degrees of hue. Both helpers use geometry and stable IDs without resolving location text or changing source data.
+
+`hitTestDistrict(districts, x, y, {enabled, object})` returns a containing district only when the layer is enabled and `object` is absent. Pass the result of the regular location hit test as `object` to retain object priority. Multipart districts and polygon holes are supported. `MapStage` exposes `selectDistrict` and `hoverDistrict` callbacks separately from location callbacks, so district selection does not create a synthetic place or alter shared location URLs.

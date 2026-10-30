@@ -1,7 +1,7 @@
 import { rasterQuality } from './raster-quality.js';
 import { StreetLayer, NumberLayer } from './map-overlays.js';
 import { siteNumbers } from './site-index.js';
-import { DistrictLayer } from './districts.js';
+import { DistrictLayer, hitTestDistrict } from './districts.js';
 import { MapLabels } from './map-labels.js';
 import { boundsFor, fillShape } from './geometry.js';
 import { categories, icon, escape } from './ui.js';
@@ -39,7 +39,7 @@ export class MapStage {
     element.addEventListener('pointermove', e => this.move(e), {signal});
     element.addEventListener('pointerup', e => this.up(e), {signal});
     element.addEventListener('pointercancel', e => this.cancel(e), {signal});
-    element.addEventListener('pointerleave', () => {this.callbacks.hover(null);this.highlight(null);}, {signal});
+    element.addEventListener('pointerleave', () => {this.callbacks.hover(null);this.highlight(null);this.highlightDistrict(null);}, {signal});
     element.addEventListener('click', e => {
       const pin = e.target.closest('.map-pin,.site-number');
       if (pin && !this.dragged) callbacks.select(data.locations.find(p => p.id === pin.dataset.id));
@@ -133,7 +133,7 @@ export class MapStage {
     this.world.style.setProperty('--inverse-scale',1/this.scale);
     this.raster=rasterQuality(this.data.width,this.image.naturalWidth,this.scale,devicePixelRatio);
     this.image.classList.toggle('is-enlarged',this.raster.enlarged);
-    this.districtLayer.draw(this.scale,this.districtFilter);
+    this.districtLayer.draw(this.scale,this.districtFilter,this.hoveredDistrict?.id);
     this.streetLayer.draw(this.scale,this.visible);
     this.layoutLabels();this.highlight(this.hovered);
     this.callbacks.view?.({scale:this.scale,min:this.min,tx:this.tx,ty:this.ty,w:this.w,h:this.h,raster:this.raster});
@@ -146,7 +146,7 @@ export class MapStage {
     this.pointers.set(event.pointerId,p);
     this.start = p; this.dragged = false;
     (event.target.closest('.map-pin,.site-number')||this.el).setPointerCapture(event.pointerId);
-    this.callbacks.hover(null);this.highlight(null);
+    this.callbacks.hover(null);this.highlight(null);this.highlightDistrict(null);
     if (this.pointers.size>1) this.dragged = true;
   }
   move(event) {
@@ -155,9 +155,10 @@ export class MapStage {
       if (event.pointerType==='touch') return;
       const id=event.target.closest('.map-pin,.site-number')?.dataset.id;
       const place = id?this.placeIndex.get(id):this.at(next);
-      this.el.classList.toggle('over-place',Boolean(place));
-      this.callbacks.hover(place,event);
-      this.highlight(place);
+      const district=this.districtAt(next,place);
+      this.el.classList.toggle('over-place',Boolean(place||district));
+      if(district)this.callbacks.hoverDistrict?.(district,event);else this.callbacks.hover(place,event);
+      this.highlight(place);this.highlightDistrict(district);
       return;
     }
     const prev = this.pointers.get(event.pointerId);
@@ -184,7 +185,9 @@ export class MapStage {
       const consumed=this.callbacks.point?.({x:(point.x-this.tx)/this.scale,y:(point.y-this.ty)/this.scale});
       if (consumed) this.dragged=true;
       else if (!event.target.closest('.map-pin,.site-number')) {
-        const place=this.at(point);if(place)this.callbacks.select(place);
+        const place=this.at(point);
+        if(place)this.callbacks.select(place);
+        else {const district=this.districtAt(point,place);if(district)this.callbacks.selectDistrict?.(district);}
       }
     }
     this.pointers.delete(event.pointerId);
@@ -196,6 +199,15 @@ export class MapStage {
     const m=new DOMMatrixReadOnly(getComputedStyle(this.world).transform);
     return hitTest(this.index,this.data.locations,(point.x-m.e)/m.a,(point.y-m.f)/m.a,m.a,this.visible,this.markers && !this.numberLayer.enabled,p=>this.visiblePinIds?.has(p.id));
   }
+  districtAt(point,object=this.at(point)) {
+    if(object || !this.districtLayer.enabled || !this.callbacks.selectDistrict)return null;
+    const m=new DOMMatrixReadOnly(getComputedStyle(this.world).transform);
+    return hitTestDistrict(this.districtLayer.districts,(point.x-m.e)/m.a,(point.y-m.f)/m.a,{enabled:this.districtLayer.enabled,object});
+  }
+  highlightDistrict(district) {
+    if(this.hoveredDistrict?.id===district?.id)return;
+    this.hoveredDistrict=district;this.districtLayer.draw(this.scale,this.districtFilter,district?.id);
+  }
   key(event) {
     if (event.target.closest('.map-pin,.site-number')) return;
     const actions = {
@@ -206,7 +218,7 @@ export class MapStage {
     if (actions[event.key]) {event.preventDefault();this.stopNavigation();actions[event.key]();}
   }
   filter(predicate, showAll = false, district = '') {
-    this.districtFilter=district;this.districtLayer.draw(this.scale,district);
+    this.hoveredDistrict=null;this.districtFilter=district;this.districtLayer.draw(this.scale,district);
     this.visible = predicate; this.showAll=showAll;
     this.pinEls.forEach(el => el.hidden = !this.markers || !predicate(this.data.locations.find(p=>p.id===el.dataset.id)));
     this.streetLayer.draw(this.scale,predicate);this.layoutLabels();
@@ -232,6 +244,7 @@ export class MapStage {
     }
   }
   toggleDistricts() {
+    this.highlightDistrict(null);this.callbacks.hover(null);
     const enabled=this.districtLayer.toggle(this.scale,this.districtFilter);this.layoutLabels();return enabled;
   }
   toggleMarkers() {

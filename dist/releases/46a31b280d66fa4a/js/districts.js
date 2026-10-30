@@ -1,6 +1,10 @@
 import { check } from './generation/validate.js';
-import { traceShape } from './geometry.js';
-const colors=['#ffc15e','#89c8d7','#b3caa0','#d9b0ce','#b5b2e8','#f3c099','#85c6b8'];
+import { districtColors } from './district-colors.js';
+import { contains, traceShape } from './geometry.js';
+export function hitTestDistrict(districts,x,y,{enabled=true,object=null}={}) {
+  if(!enabled || object)return null;
+  return districts.find(d=>(d.boundaries||[]).some(shape=>contains({shape},x,y))) || null;
+}
 export function validateDistrictGeometry(d,map) {
   const point=p=>Array.isArray(p) && p.length===2 && p.every(Number.isFinite) && p[0]>=0 && p[0]<=map.width && p[1]>=0 && p[1]<=map.height;
   if(d.label!==undefined) check(d.label && point([d.label.x,d.label.y]),`${d.id}: invalid district label.`);
@@ -16,24 +20,25 @@ export class DistrictLayer {
   constructor(world,data) {
     this.data=data;this.enabled=true;
     this.districts=(data.districtAreas || data.districts || []).filter(d=>typeof d==='object' && d.boundaries?.length);
+    const palette=districtColors(this.districts);this.districts=this.districts.map(d=>({...d,...palette.get(d.id)}));
     this.canvas=document.createElement('canvas');this.canvas.className='map-district-overlay';
     this.canvas.width=data.width;this.canvas.height=data.height;world.querySelector('.map-image').after(this.canvas);
     this.ctx=this.canvas.getContext('2d');
   }
-  draw(scale,selected='') {
-    if(this.lastScale===scale && this.lastSelected===selected && this.lastEnabled===this.enabled)return;
-    this.lastScale=scale;this.lastSelected=selected;this.lastEnabled=this.enabled;
+  draw(scale,selected='',hovered='') {
+    if(this.lastScale===scale && this.lastSelected===selected && this.lastEnabled===this.enabled && this.lastHovered===hovered)return;
+    this.lastScale=scale;this.lastSelected=selected;this.lastEnabled=this.enabled;this.lastHovered=hovered;
     const ctx=this.ctx;
     this.canvas.classList.toggle('layer-off',!this.enabled);
     if(!this.enabled)return;
     ctx.clearRect(0,0,this.data.width,this.data.height);
-    this.districts.forEach((d,i)=>{
-      const active=selected===d.name,color=colors[i%colors.length];
+    this.districts.forEach(d=>{
+      const active=selected===d.name,color=d.color,over=hovered===d.id;
       for(const shape of d.boundaries) {
-        traceShape(ctx,{shape});ctx.fillStyle=color+(active?'44':'12');ctx.fill();
-        ctx.strokeStyle='#08035788';ctx.lineWidth=(active?4:2.5)/scale;
+        traceShape(ctx,{shape});ctx.fillStyle=color;ctx.globalAlpha=active ? .22 : over ? .20 : .14;ctx.fill('evenodd');ctx.globalAlpha=1;
+        ctx.strokeStyle='#08035750';ctx.lineWidth=(active||over?3:2)/scale;
         ctx.setLineDash([5/scale,3/scale]);ctx.stroke();
-        ctx.strokeStyle=active?'#080357':color;ctx.lineWidth=(active?2:1.2)/scale;
+        ctx.strokeStyle=color;ctx.lineWidth=(active||over?1.8:1)/scale;
         ctx.setLineDash([5/scale,3/scale]);ctx.stroke();
       }
     });ctx.setLineDash([]);

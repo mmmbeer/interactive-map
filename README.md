@@ -119,3 +119,9 @@ The reusable modules are `site-index.js`, `guide-maps.js`, `guide-pdf.js`, `pdf-
 ## Map image quality
 
 Dragonsgate now loads a lossless 948 x 1659 image from the supplied Reddit original. Enlarged pixels use sharp rendering. The **1:1** map control opens the native-resolution view within the map's zoom limits. About this map provides the image dimensions and a direct image link. More close-up detail requires a larger original raster or vector source. See [map-image-quality.md](docs/map-image-quality.md) for source information and the verified lossless conversion helper.
+
+## District fills and selection
+
+The Districts layer adds a mostly transparent color fill to each district. The normal fill is 14% opaque, hover is 20% and the selected neighborhood is 22%. District labels use the same color. Geometry-based adjacency coloring gives Dragonsgate fourteen distinct hues with strong separation between neighboring districts. The palette stays consistent across reloads and district input order.
+
+Districts are the last map hit target. Buildings, visible pins and number badges, streets, water and terrain retain click priority. A district responds only when no other currently clickable object occupies that point. Hidden district layers never respond. An unobstructed district click selects the neighborhood filter and opens its place directory on mobile. Existing search and category filters stay active.
