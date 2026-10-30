@@ -38,3 +38,17 @@ test('Grayhaven road overlays cross surveyed points on the roads', () => {
     }
   }
 });
+
+test('Grayhaven field entries select distinct visible parcels', () => {
+  const field = id => map.locations.find(p => p.id === id).shape.points;
+  for (const [left, right, a, b] of [
+    ['commons-fields', 'west-croft', [50, 350], [200, 375]],
+    ['garden-fields', 'garden-croft', [400, 130], [400, 190]],
+    ['crossroads-fields', 'east-croft', [800, 445], [820, 530]]
+  ]) {
+    assert.ok(ringContains(field(left), ...a), left);
+    assert.ok(!ringContains(field(right), ...a), right);
+    assert.ok(ringContains(field(right), ...b), right);
+    assert.ok(!ringContains(field(left), ...b), left);
+  }
+});

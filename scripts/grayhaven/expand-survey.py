@@ -26,6 +26,9 @@ RURAL_CLUSTERS = [(0,0,260,70),(275,35,455,110),(460,80,555,165),
                   (580,565,640,625),(700,465,755,535),(870,465,935,535),
                   (150,630,205,690),(425,630,475,700),(660,640,760,710),
                   (790,645,870,725),(850,690,930,755),(515,795,610,870)]
+# Exclude tree crowns rejected during the manual survey, including variants
+# produced at different thresholds.
+EXCLUDED_CENTERS = [(313.5,97.0),(331.0,96.5),(352.5,99.0),(370.5,99.0)]
 TYPES = [('home','home')]*15 + [('shop','bakery'),('shop','tailor'),
          ('shop','apothecary'),('shop','shop'),('workshop','blacksmith'),
          ('workshop','workshop'),('tavern','tavern'),('temple','temple'),
@@ -69,7 +72,7 @@ def roof_candidates(m):
             x, y = round(xs.start+bw/2,1), round(ys.start+bh/2,1)
             urban = ((x>960 and y<300) or (x>1100 and y<550) or (x>1200 and y<650))
             farm = x<950 and (any((x-fx)**2+(y-fy)**2 < 18**2 for fx,fy in FARMSTEADS) or any(x0<=x<=x1 and y0<=y<=y1 for x0,y0,x1,y1 in RURAL_CLUSTERS))
-            if not (urban or farm):
+            if not (urban or farm) or any((x-tx)**2+(y-ty)**2 < 6**2 for tx,ty in EXCLUDED_CENTERS):
                 continue
             district = district_at(m,x,y)
             if not district:
@@ -84,6 +87,7 @@ def roof_candidates(m):
 
 def add_buildings(m):
     old = [p for p in m['locations'] if p['id'].startswith(('building-','roof-'))]
+    existing_ids = {p['id'] for p in m['locations']}
     added=[]
     for c in roof_candidates(m):
         if any(near(c,p) for p in old+added):
@@ -91,6 +95,8 @@ def add_buildings(m):
         x,y,w,h = c['bounds']
         # Coordinate-based IDs remain stable when other entries are added.
         id = f'roof-{x:04d}-{y:04d}-{w:02d}-{h:02d}'
+        if id in existing_ids:
+            continue
         digest=hashlib.sha256(id.encode()).digest()
         category, typ = TYPES[digest[0] % len(TYPES)] if c['urban'] else ('home','home')
         place={'id':id,'category':category,'type':typ,'district':c['district'],
