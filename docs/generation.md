@@ -2,6 +2,18 @@
 
 The saved map stores geometry, identifiers and configuration. `materializeMap(source)` exposes generated names and text through cached getters. Nothing generated is written to the source. Search resolves content when needed. Opening the initial highlights does not generate thousands of ordinary stories.
 
+## Visitor settlement settings
+
+Open **Settlement** in the map header to select Human (the default), Orc, Elf, Dwarf, Halfling, Dragonborn, Gnome, Goblin, Tiefling, Half-elf or Half-orc. **As authored** restores the map's demographic inheritance and released naming catalogs. **Reset to Human** restores Human naming and the map's published or draft seed when you apply it.
+
+The seed accepts 1 to 128 characters, including `0`. **New seed** prepares a new random seed. Nothing regenerates until you apply the settings. The same map source, ancestry and seed reproduce the same generated content. Changing these settings preserves ids, geometry, authored overrides, enabled fields and geographic references. The current view, filters, layers and selected site survive an applied change.
+
+Visitor settings are separate from authoring drafts. `applySettings(source, settings)` creates a read-time snapshot with the chosen global seed and a fixed ancestry/culture on every location. Gender, age, wealth, population and other inherited configuration retain their normal precedence. Authored names and text stay literal. JSON export still exports authoring inputs, rather than the visitor's materialized map. These controls appear only on maps with a generator.
+
+Settings are remembered per map on the current device. `?ancestry=elf&seed=my-world#map/dragonsgate` is a reproducible link that takes priority over stored preferences. Place links and PDF links retain both query parameters. Returning to the collection clears them before choosing another map, so each map retains its own seed. If browser storage is blocked, the current visit and shared links still work.
+
+`settlement-pools-v1.js` supplies optional catalog inputs without editing the frozen v1/v2 engines or defaults. Every nonhuman tradition has at least 100 unique place roots, route roots, water roots and surnames. Each resident name pool has at least 100 entries per gender. Human uses the released v2 word banks. Half-elf and Half-orc combine the corresponding traditions with Human banks. These conventions affect naming, not occupation, wealth or personality. Custom author-supplied people pools and templates keep precedence. Future changes to these released optional banks require a new profile version.
+
 ## Stable output
 
 Maps declare `schemaVersion: 2` and `generator: {"version":1,"seed":"my-world"}`. Independent seeded streams derive from the map id/seed, location id, optional seed/variation and a field label. Demographics and local context feed text generation. The same version, catalogs and inputs produce the same output on every visit.
