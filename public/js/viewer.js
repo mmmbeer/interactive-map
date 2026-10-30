@@ -19,7 +19,7 @@ export class AtlasViewer {
     this.sidebar=root.querySelector('.place-sidebar');
     this.detail=root.querySelector('#detail-panel');this.tooltip=root.querySelector('#map-tooltip');
     this.stage=new MapStage(root.querySelector('#map-stage'),data,{
-      select:p=>this.select(p),hover:(p,e)=>this.hover(p,e),view:v=>this.updateOverview(v)
+      select:p=>this.select(p),selectDistrict:d=>this.selectDistrict(d),hoverDistrict:(d,e)=>this.hoverDistrict(d,e),hover:(p,e)=>this.hover(p,e),view:v=>this.updateOverview(v)
     },this.signal);
     this.listen(root.querySelector('#place-search'),'input',e=>{
       this.filters.query=e.target.value.trim();
@@ -108,6 +108,12 @@ export class AtlasViewer {
       `<div class="empty-results">${icon('search')}<h3>No places found</h3><p>Try another name or choose a different type or neighborhood.</p></div>`;
     this.root.querySelectorAll('[data-place]').forEach(el=>el.classList.toggle('selected',el.dataset.place===this.selected?.id));
   }
+  selectDistrict(district) {
+    this.closeDetail();this.hover(null);this.stage.highlightDistrict(null);
+    this.filters.district=district.name;this.root.querySelector('#district-filter').value=district.name;
+    this.setScope('all',false);this.refresh();
+    if(innerWidth<=760)this.openDirectory(false);
+  }
   selectById(id,focus=false) {
     const place=this.data.locations.find(p=>p.id===id);
     if(place)this.select(place,true,focus);
@@ -136,6 +142,18 @@ export class AtlasViewer {
     if(!place||this.sidebar.classList.contains('mobile-open')) {this.tooltip.hidden=true;this.hovered=null;return;}
     if(this.hovered?.id!==place.id) {this.tooltip.innerHTML=tooltipHTML(place);this.hovered=place;}
     this.tooltip.hidden=false;
+    this.positionTooltip(event);
+  }
+  hoverDistrict(district,event) {
+    if(!district || this.sidebar.classList.contains('mobile-open'))return this.hover(null);
+    const id=`district:${district.id}`;
+    if(this.hovered?.id!==id){
+      this.tooltip.innerHTML=`<span class="category-badge" style="--category:${district.color}">${icon('layers')}District</span><strong>${escape(district.name)}</strong><p>Explore the places in this neighborhood.</p><span class="tooltip-hint">Click to browse this district ${icon('arrow')}</span>`;
+      this.hovered={id};
+    }
+    this.tooltip.hidden=false;this.positionTooltip(event);
+  }
+  positionTooltip(event) {
     const w=this.tooltip.offsetWidth,h=this.tooltip.offsetHeight;
     let x=event.clientX+20,y=event.clientY+20;
     if(x+w>innerWidth-12)x=event.clientX-w-20;
@@ -150,7 +168,7 @@ export class AtlasViewer {
     const right=Math.min(this.data.width,(view.w-view.tx)/view.scale),bottom=Math.min(this.data.height,(view.h-view.ty)/view.scale);
     box.style.cssText=`left:${left/this.data.width*100}%;top:${top/this.data.height*100}%;width:${(right-left)/this.data.width*100}%;height:${(bottom-top)/this.data.height*100}%`;
   }
-  openDirectory() {this.sidebar.classList.add('mobile-open');this.syncDirectory();this.root.querySelector('#place-search').focus();}
+  openDirectory(focus=true) {this.sidebar.classList.add('mobile-open');this.syncDirectory();if(focus)this.root.querySelector('#place-search').focus();}
   closeDirectory(focus=false) {
     const wasOpen=this.sidebar.classList.contains('mobile-open');
     this.sidebar.classList.remove('mobile-open');this.syncDirectory();

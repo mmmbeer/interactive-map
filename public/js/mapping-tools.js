@@ -3,7 +3,7 @@
 export { boundsFor, contains, ringContains, distanceToPath, traceShape, fillShape } from './geometry.js';
 export { buildSpatialIndex, hitTest, matches, searchPlaces } from './spatial.js';
 export { validateMap, categoryKeys } from './map-contract.js';
-export { validateDistrictGeometry, DistrictLayer } from './districts.js';
+export { validateDistrictGeometry, hitTestDistrict, DistrictLayer } from './districts.js';
 export { materializeMap, resolveLocation } from './generation/locations.js';
 export { catalogFor, configFor, districtList, regionList, availableFields, versionFor } from './generation/config.js';
 export { streams, choose, distribution, integer, sample, bank, words, combine } from './generation/helpers-v2.js';
@@ -18,3 +18,4 @@ export { createGuidePdf, mapImage } from './guide-pdf.js';
 export { PdfDocument, loadPdfFonts } from './pdf-writer.js';
 export { PdfFont } from './pdf-font.js';
 export { guideCrop, guideEntryHTML } from './guide-entry.js';
+export { districtColors, districtAdjacency, districtsAdjacent } from './district-colors.js';
