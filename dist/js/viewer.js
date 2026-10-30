@@ -3,6 +3,7 @@ import { openGuide } from './guide.js';
 import { openEditor } from './authoring/editor.js';
 import { categories, escape, icon, number, toast } from './ui.js';
 import { viewerHTML, listItem, detailHTML, tooltipHTML } from './places.js';
+import { MapCallout } from './map-callout.js';
 import { MapStage } from './map-stage.js';
 import { matches, searchPlaces } from './spatial.js';
 export class AtlasViewer {
@@ -19,8 +20,9 @@ export class AtlasViewer {
     this.sidebar=root.querySelector('.place-sidebar');
     this.detail=root.querySelector('#detail-panel');this.tooltip=root.querySelector('#map-tooltip');
     this.stage=new MapStage(root.querySelector('#map-stage'),data,{
-      select:p=>this.select(p),selectDistrict:d=>this.selectDistrict(d),hoverDistrict:(d,e)=>this.hoverDistrict(d,e),hover:(p,e)=>this.hover(p,e),view:v=>this.updateOverview(v)
+      select:p=>this.select(p,false),selectDistrict:d=>this.selectDistrict(d),hoverDistrict:(d,e)=>this.hoverDistrict(d,e),hover:(p,e)=>this.hover(p,e),view:v=>this.updateOverview(v)
     },this.signal);
+    this.callout=new MapCallout(this.detail,this.stage,this.signal);
     this.listen(root.querySelector('#place-search'),'input',e=>{
       this.filters.query=e.target.value.trim();
       if(this.filters.query) this.setScope('all',false);
@@ -122,10 +124,11 @@ export class AtlasViewer {
   select(place,pan=true,focus=true) {
     if(!place)return;
     this.selected=place;this.hover(null);this.stage.select(place);
-    this.detail.innerHTML=detailHTML(place,this.numbers.get(place.id));this.detail.hidden=false;
+    this.detail.innerHTML=detailHTML(place,this.numbers.get(place.id));this.detail.hidden=false;this.detail.querySelector('h2').id='detail-title';
     if(pan) {
       this.stage.focus(place,innerWidth>760?this.detail.offsetWidth/2:0);
     }
+    this.callout.show(place);
     this.closeDirectory();
     history.replaceState(null,'',`#map/${this.data.id}/${place.id}`);
     this.root.querySelectorAll('[data-place]').forEach(el=>el.classList.toggle('selected',el.dataset.place===place.id));
@@ -133,7 +136,7 @@ export class AtlasViewer {
   }
   closeDetail(focus=false) {
     if(this.detail.hidden)return;
-    this.detail.hidden=true;this.selected=null;this.stage.select(null);
+    this.detail.hidden=true;this.callout.hide();this.selected=null;this.stage.select(null);
     history.replaceState(null,'',`#map/${this.data.id}`);
     this.root.querySelectorAll('[data-place]').forEach(el=>el.classList.remove('selected'));
     if(focus)this.root.querySelector('#map-stage').focus({preventScroll:true});
@@ -161,6 +164,7 @@ export class AtlasViewer {
     this.tooltip.style.left=`${Math.max(10,x)}px`;this.tooltip.style.top=`${Math.max(10,y)}px`;
   }
   updateOverview(view) {
+    this.callout?.update();
     this.root.querySelector('#zoom-status').textContent=`${Math.round(view.scale/view.min*100)}%`;
     if(view.raster)this.root.querySelector('#zoom-status').title=`${Math.round(view.raster.enlargement*100)}% of source pixel size. Use Native resolution to see the image without enlargement.`;
     const box=this.root.querySelector('.overview-viewport');

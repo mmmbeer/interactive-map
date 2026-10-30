@@ -21,7 +21,7 @@ export function viewerHTML(data) {
         <div class="map-navigation" aria-label="Map controls"><button id="zoom-in" class="map-control" aria-label="Zoom in">${icon('plus')}</button><button id="zoom-out" class="map-control" aria-label="Zoom out">${icon('minus')}</button><div></div><button id="fit-map" class="map-control" aria-label="Fit entire map" title="Fit entire map (0)">${icon('fit')}</button><button id="native-map" class="map-control" aria-label="View map at native resolution" title="Native resolution: one source pixel per screen pixel"><span class="native-resolution">1:1</span></button><button id="reset-map" class="map-control" aria-label="Return to the starting view" title="Return to city view">${icon('compass')}</button></div>
         <div class="map-bottomline"><span>${escape(data.name)} <b>·</b> ${escape(data.region).toUpperCase()}</span><span id="zoom-status"></span></div>
         <button class="overview-map" id="overview-map" style="--overview-width:${Math.min(180,128*data.width/data.height)}px;--overview-height:${Math.min(128,180*data.height/data.width)}px" aria-label="Recenter map using the overview"><img src="${escape(data.thumbnail)}" alt=""><span class="overview-viewport"></span><span class="overview-label">OVERVIEW</span></button>
-        <aside class="detail-panel" id="detail-panel" aria-label="Location details" hidden></aside>
+        <svg class="callout-connector" aria-hidden="true" hidden><line></line><circle r="5"></circle></svg><aside class="detail-panel" id="detail-panel" role="dialog" aria-modal="false" aria-labelledby="detail-title" hidden></aside>
       </section>
     </main>
     <div class="map-tooltip" id="map-tooltip" role="tooltip" hidden></div>
@@ -34,15 +34,16 @@ export function listItem(place,index) {
 }
 export function detailHTML(place,index) {
   const c=categories[place.category];
-  return `<div class="detail-banner" style="--category:${c.color}"><span>${icon(c.icon)}</span><button class="icon-button detail-close" aria-label="Close location details">${icon('close')}</button></div>
-    <div class="detail-content"><div class="eyebrow">${escape(place.district)}</div><h2 tabindex="-1">${index?`<span class="site-index">${index}</span>`:''}${escape(place.name)}</h2>${categoryBadge(place.category)}${place.demographics?`<div class="detail-demographics">${Object.entries(place.demographics).map(([key,v])=>`<span>${escape(String(v).replaceAll('_',' '))}${key==='population'?' residents':''}</span>`).join('')}</div>`:''}${place.address?`<div class="place-address">${icon('pin')}${escape(place.address)}</div>`:''}<p class="place-description">${escape(place.description)}</p>
-      ${place.person?`<div class="detail-section"><h3>A FAMILIAR FACE</h3><p>${escape(place.person)}</p></div>`:''}
-      ${place.rumor?`<div class="story-hook"><h3>${icon('book')}WORD ON THE STREET</h3><p>${escape(place.rumor)}</p></div>`:''}
-      ${place.services?`<div class="detail-section"><h3>AVAILABLE HERE</h3><p>${escape(place.services)}</p></div>`:''}
-      ${Object.values(place.extra || {}).filter(s=>s.text).map(s=>`<div class="detail-section"><h3>${escape(s.label)}</h3><p>${escape(s.text)}</p></div>`).join('')}
-      <button class="button detail-edit">${icon('layers')}Edit location</button>
-      <button class="button detail-share">${icon('share')}Copy link to this place</button><span class="detail-footnote">One small story in a much bigger city.</span>
-    </div>`;
+  return `<div class="detail-banner" style="--category:${c.color}">${categoryBadge(place.category)}<button class="detail-grip" aria-label="Move callout. Drag or use arrow keys." title="Drag to move. Arrow keys move the callout when focused.">⠿ <span>Move</span></button><button class="icon-button detail-close" aria-label="Close location details" title="Close (Escape)">${icon('close')}</button></div>
+    <div class="detail-body"><div class="detail-content"><div class="detail-heading"><span class="eyebrow">${escape(place.district)}</span>${index?`<span class="site-index">Site ${index}</span>`:''}</div><h2 tabindex="-1">${escape(place.name)}</h2>
+      ${place.address?`<div class="place-address">${icon('pin')}${escape(place.address)}</div>`:''}
+      ${place.demographics?`<dl class="detail-facts">${Object.entries(place.demographics).map(([key,v])=>`<div><dt>${escape(key.replaceAll('_',' '))}</dt><dd>${escape(String(v).replaceAll('_',' '))}${key==='population'?' residents':''}</dd></div>`).join('')}</dl>`:''}
+      <p class="place-description">${escape(place.description)}</p>
+      ${place.services?`<section class="detail-section"><h3>Available here</h3><p>${escape(place.services)}</p></section>`:''}
+      ${place.person?`<section class="detail-section"><h3>A familiar face</h3><p>${escape(place.person)}</p></section>`:''}
+      ${place.rumor?`<section class="story-hook"><h3>${icon('book')}Word on the street</h3><p>${escape(place.rumor)}</p></section>`:''}
+      ${Object.values(place.extra || {}).filter(s=>s.text).map(s=>`<section class="detail-section"><h3>${escape(s.label)}</h3><p>${escape(s.text)}</p></section>`).join('')}
+    </div></div><footer class="detail-actions"><button class="button detail-share">${icon('share')}Copy link</button><button class="button detail-edit">${icon('layers')}Edit location</button></footer>`;
 }
 export function tooltipHTML(place) {
   return `${categoryBadge(place.category)}<strong>${escape(place.name)}</strong><span class="tooltip-district">${escape(place.district)}${place.address?' · '+escape(place.address):''}</span><p>${escape(place.description)}</p><span class="tooltip-hint">Click to discover more ${icon('arrow')}</span>`;

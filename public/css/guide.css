@@ -2,9 +2,9 @@
 .map-street-overlay,.map-district-overlay{transition:opacity .25s ease}
 .layer-off{opacity:0}
 .map-site-numbers{position:absolute;inset:0;pointer-events:none}
-.site-number{position:absolute;pointer-events:auto;transform:translate(-50%,-50%) scale(var(--inverse-scale,1));transform-origin:center;background:var(--deep-twilight);color:var(--lime-cream);border:1px solid var(--sunflower-gold);padding:2px 5px;min-width:22px;height:20px;border-radius:4px;font-size:10px;font-weight:650;line-height:1;box-shadow:0 1px 5px #08035766;font-variant-numeric:tabular-nums}
+.site-number{position:absolute;pointer-events:auto;transform:translate(-50%,-50%) scale(var(--inverse-scale,1));transform-origin:center;background:var(--paper-light);color:var(--lime-cream);border:1px solid var(--sunflower-gold);padding:2px 5px;min-width:22px;height:20px;border-radius:4px;font-size:10px;font-weight:650;line-height:1;box-shadow:0 1px 5px #08035766;font-variant-numeric:tabular-nums}
 .site-number:hover,.site-number:focus-visible,.site-number.selected{background:var(--lime-cream);color:var(--deep-twilight);outline:2px solid var(--deep-twilight);outline-offset:2px;z-index:5}
-.map-pin.hovered{outline:2px solid var(--category);outline-offset:3px;border-radius:50%;background:#191370}
+.map-pin.hovered{outline:2px solid var(--category);outline-offset:3px;border-radius:50%;background:var(--surface)}
 .map-selection-ring{position:absolute;width:44px;height:44px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 3px #08035799,0 0 20px #ffc15e88;transform:translate(-50%,-50%) scale(var(--inverse-scale,1));transform-origin:center;pointer-events:none;animation:selection-in .4s ease-out}
 .map-selection-ring[hidden]{display:none}
 @keyframes selection-in{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:blur(0)}}
@@ -14,7 +14,7 @@
 .map-control[aria-pressed=true]{border-color:#d6ffb799}
 .guide-dialog{overflow:hidden;width:min(1360px,calc(100% - 32px));height:94dvh;max-height:94dvh;border:1px solid #d6ffb740;border-radius:9px;background:var(--paper-light);color:var(--ink);padding:0;box-shadow:0 15px 60px #08035760}
 .guide-dialog[open]{display:flex;flex-direction:column;animation:panel-in .25s var(--ease)}
-.guide-dialog::backdrop{background:#080357aa;backdrop-filter:blur(5px)}
+.guide-dialog::backdrop{background:#111610aa;backdrop-filter:blur(5px)}
 .guide-heading{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);gap:18px;flex-shrink:0}
 .guide-title{margin-right:auto;min-width:0}
 .guide-heading h2{font-size:27px;margin-top:3px}

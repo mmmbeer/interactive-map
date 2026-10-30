@@ -39,14 +39,15 @@ export class MapStage {
     element.addEventListener('pointermove', e => this.move(e), {signal});
     element.addEventListener('pointerup', e => this.up(e), {signal});
     element.addEventListener('pointercancel', e => this.cancel(e), {signal});
+    element.addEventListener('lostpointercapture', e => this.cancel(e), {signal});
     element.addEventListener('pointerleave', () => {this.callbacks.hover(null);this.highlight(null);this.highlightDistrict(null);}, {signal});
     element.addEventListener('click', e => {
       const pin = e.target.closest('.map-pin,.site-number');
-      if (pin && !this.dragged) callbacks.select(data.locations.find(p => p.id === pin.dataset.id));
+      if (pin && e.detail === 0) callbacks.select(this.placeIndex.get(pin.dataset.id));
     }, {signal});
     element.addEventListener('focusin', e => {
       const pin = e.target.closest('.map-pin,.site-number');
-      if (!pin) return;
+      if (!pin || this.pointers.size) return;
       const place = data.locations.find(p => p.id === pin.dataset.id);
       this.center(place.x, place.y);this.highlight(place);
     }, {signal});
@@ -144,8 +145,13 @@ export class MapStage {
     this.stopNavigation();
     const p = this.local(event);
     this.pointers.set(event.pointerId,p);
-    this.start = p; this.dragged = false;
-    (event.target.closest('.map-pin,.site-number')||this.el).setPointerCapture(event.pointerId);
+    if (this.pointers.size===1) {
+      this.start=p;this.dragged=false;
+      this.pressedPlace=event.target.closest('.map-pin,.site-number')?.dataset.id;
+    }
+    // Keep the gesture on a stable surface, even when labels move or disappear.
+    if(event.pointerType!=='touch')event.preventDefault();
+    this.el.setPointerCapture(event.pointerId);
     this.callbacks.hover(null);this.highlight(null);this.highlightDistrict(null);
     if (this.pointers.size>1) this.dragged = true;
   }
@@ -184,8 +190,8 @@ export class MapStage {
       const point=this.local(event);
       const consumed=this.callbacks.point?.({x:(point.x-this.tx)/this.scale,y:(point.y-this.ty)/this.scale});
       if (consumed) this.dragged=true;
-      else if (!event.target.closest('.map-pin,.site-number')) {
-        const place=this.at(point);
+      else {
+        const place=this.pressedPlace?this.placeIndex.get(this.pressedPlace):this.at(point);
         if(place)this.callbacks.select(place);
         else {const district=this.districtAt(point,place);if(district)this.callbacks.selectDistrict?.(district);}
       }
@@ -194,7 +200,10 @@ export class MapStage {
     if (this.pointers.size) this.start = [...this.pointers.values()][0];
     this.el.classList.remove('dragging');
   }
-  cancel(event) { this.pointers.delete(event.pointerId); this.dragged=true; this.el.classList.remove('dragging'); }
+  cancel(event) {
+    if(!this.pointers.has(event.pointerId))return;
+    this.pointers.delete(event.pointerId);this.dragged=true;this.el.classList.remove('dragging');
+  }
   at(point) {
     const m=new DOMMatrixReadOnly(getComputedStyle(this.world).transform);
     return hitTest(this.index,this.data.locations,(point.x-m.e)/m.a,(point.y-m.f)/m.a,m.a,this.visible,this.markers && !this.numberLayer.enabled,p=>this.visiblePinIds?.has(p.id));
