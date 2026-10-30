@@ -36,7 +36,7 @@ test('the production release graph validates the current geographic map',async()
     const release=await versionAssets(resolve(root,'public'),temp),prefix=resolve(temp,`releases/${release}/js`);
     const {validateMap}=await import(pathToFileURL(resolve(prefix,'map-contract.js')));
     const source=JSON.parse(await readFile(resolve(root,'public/data/maps/dragonsgate.json'),'utf8'));
-    assert.equal(validateMap(source),7109);
+    assert.equal(validateMap(source),source.locations.length);
     const seen=new Set();
     async function visit(path) {
       if(seen.has(path)) return;seen.add(path);

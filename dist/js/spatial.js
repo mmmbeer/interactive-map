@@ -14,11 +14,11 @@ export function buildSpatialIndex(locations, cellSize = 32) {
   }
   return {cells,cellSize,featured:locations.filter(p=>p.featured)};
 }
-export function hitTest(index,locations,x,y,scale=1,predicate=()=>true,markers=true) {
+export function hitTest(index,locations,x,y,scale=1,predicate=()=>true,markers=true,pinVisible=()=>true) {
   if (markers) {
     let nearest=null, distance=18/scale;
     for (const p of index.featured) {
-      if (!predicate(p)) continue;
+      if (!predicate(p) || !pinVisible(p)) continue;
       const d=Math.hypot(p.x-x,p.y-y);
       if (d<distance) { nearest=p; distance=d; }
     }

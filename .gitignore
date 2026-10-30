@@ -2,3 +2,5 @@ node_modules/
 .openai/
 .wrangler/
 .DS_Store
+__pycache__/
+*.pyc

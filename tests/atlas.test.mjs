@@ -25,6 +25,7 @@ test('landmark hit targets remain usable at different zoom levels',()=>{
   assert.equal(hitTest(index,places,48,20,1)?.id,'place-1');
   assert.equal(hitTest(index,places,48,20,4),null);
   assert.equal(hitTest(index,places,48,20,1,()=>true,false),null);
+  assert.equal(hitTest(index,places,48,20,1,()=>true,true,()=>false),null);
 });
 test('search finds residents and combines district and category filters',()=>{
   const p=map.locations[0];assert.equal(matches(p,{query:'MIRA'}),true);

@@ -138,7 +138,7 @@ node scripts/migrate-map.mjs public/data/maps/my-map.json
 
 The default migration preserves every authored field in overrides. `--regenerate-unfeatured` deliberately discards nonfeatured text so those places use generation. It keeps featured text, ids, coordinates, bounds and categories. Use that flag only when discarded text should be regenerated. Migration is idempotent for maps that already have a generator.
 
-Dragonsgate uses compact inputs for 7,085 places. Its 54 authored highlights remain overrides. All original ids and geometry are preserved.
+Dragonsgate was subsequently rebuilt from the source raster with v2 generation throughout. Its original 54 landmark ids remain available. See [dragonsgate-survey.md](dragonsgate-survey.md) for the current survey.
 
 
 ## Version 2: streets, water and geography
@@ -190,6 +190,6 @@ Version 2 mixes twelve weighted geographic naming patterns. Richer combinations 
 
 `generation.nameStyle` optionally selects `descriptive`, `simple`, `compound`, `eponym`, `local`, `poetic`, `historic`, `formal`, `regional`, `paired`, `commemorative` or `traditional`. Omit it for mixed patterns. An explicitly supplied `tables.name` takes priority over a style. Demographics select the people pool used for eponymous and commemorative patterns. Geography types select appropriate root banks and head nouns. Regions and districts provide shared context.
 
-Dragonsgate adds 24 v2 features to its original 7,085 places. Existing inputs and authored highlights remain unchanged. Its total is 7,109 locations. Future changes to released v2 defaults also require a new generator version.
+The current Dragonsgate survey contains 10,030 entries and uses v2 for buildings and geographic features. Future changes to released v2 defaults still require a new generator version. Map-local home grammar supplies household names without changing the shared v2 defaults.
 
 Version 2 additionally accepts literal token banks `root`, `waterRoot`, `streetRoot` and `epithet` in catalog, type and inherited tables. `root` explicitly overrides the selected geographic root bank. Otherwise water and route types use their specialized banks. `street` customizes the shared fallback street table. Custom banks may be smaller than the built-in defaults and support weighted entries.

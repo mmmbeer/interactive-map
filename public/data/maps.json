@@ -2,8 +2,8 @@
   {
     "id": "dragonsgate",
     "name": "Dragonsgate",
-    "subtitle": "The city between two shores",
-    "description": "Follow the tide through a walled island, crowded quays and the neighborhoods across the channel. Every door has a story.",
+    "subtitle": "An island fortress, working harbors and a city beyond the walls",
+    "description": "Explore surveyed streets, roof footprints, coastal features and fourteen bounded districts. Open any building for its residents, trade, address and local story.",
     "image": "assets/maps/dragonsgate/map.webp",
     "thumbnail": "assets/maps/dragonsgate/thumbnail.webp",
     "theme": "Coastal city",
@@ -13,8 +13,8 @@
       "Harbor",
       "Fantasy"
     ],
-    "locationCount": 7109,
-    "featuredCount": 54,
+    "locationCount": 10030,
+    "featuredCount": 71,
     "data": "data/maps/dragonsgate.json"
   }
 ]

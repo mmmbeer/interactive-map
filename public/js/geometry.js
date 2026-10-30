@@ -15,7 +15,9 @@ export function contains(place,x,y) {
   if (place.shape?.kind === 'ellipse') return ((x-place.x)/place.shape.rx)**2+((y-place.y)/place.shape.ry)**2 <= 1;
   if (place.shape?.kind === 'polyline') return distanceToPath(place.shape.points,x,y)<=place.shape.width/2;
   if (place.shape?.kind !== 'polygon') return true;
-  const points = place.shape.points;
+  return ringContains(place.shape.points,x,y) && !(place.shape.holes || []).some(ring=>ringContains(ring,x,y));
+}
+export function ringContains(points,x,y) {
   let inside = false;
   for (let i=0,j=points.length-1;i<points.length;j=i++) {
     const [ax,ay] = points[i], [cx,cy] = points[j];
@@ -29,7 +31,9 @@ export function traceShape(ctx,place) {
   ctx.beginPath();
   if (place.shape?.kind === 'ellipse') ctx.ellipse(place.x,place.y,place.shape.rx,place.shape.ry,0,0,Math.PI*2);
   else if (['polygon','polyline'].includes(place.shape?.kind)) {
-    place.shape.points.forEach(([x,y],i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y)); if (place.shape.kind==='polygon') ctx.closePath();
+    for(const ring of [place.shape.points,...(place.shape.holes || [])]) {
+      ring.forEach(([x,y],i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y)); if (place.shape.kind==='polygon') ctx.closePath();
+    }
   } else ctx.rect(...boundsFor(place));
 }
 
@@ -47,5 +51,5 @@ export function fillShape(ctx,place) {
   traceShape(ctx,place);
   if (place.shape?.kind==='polyline') {
     ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=place.shape.width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
-  } else ctx.fill();
+  } else ctx.fill('evenodd');
 }

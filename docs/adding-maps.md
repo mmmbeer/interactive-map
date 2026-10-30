@@ -48,3 +48,11 @@ All map data and templates are public. Do not include private GM notes.
 Start new maps with generator version 2 from `docs/map-template.json`. Trace recognizable roads and watercourses with open polyline shapes. Trace lakes, islands, woodland and fields with area shapes. Select a precise type from the `street`, `water` or `terrain` category. Save stable ids and geometry rather than generated names.
 
 Link a building's `context.street` to its mapped road and optionally link water, terrain or a landmark. The editor provides these selectors. Keep the image-space coordinates aligned to visible features. Do not label a peninsula as an island or add a river without a visible watercourse. See `docs/generation.md` for supported types, naming patterns and reference validation.
+
+## District boundaries and polygon exclusions
+
+District objects can include `boundaries`, a nonempty array of image-space polygon shapes, and `label: {"x":300,"y":200}`. Multiple polygons represent separated parts of one district. Keep boundary vertices within the image and assign each building to its actual district. The viewer displays these outlines through the **Districts** control. Map and district defaults in the editor preserve the complete geometry.
+
+Polygon shapes can include `holes`, an array of point rings using the same `[[x,y], ...]` format as the exterior. These rings exclude land from a sea polygon or a courtyard from an area. Exclusions participate in hit testing, drawing, validation and the location editor.
+
+Locations can set `labelMinScale` to delay a small feature's label until a closer zoom. Building labels are automatic at close zoom. They do not need thousands of featured pins. Label culling changes presentation only; every entry remains searchable and selectable through the directory.

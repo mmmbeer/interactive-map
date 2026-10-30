@@ -83,11 +83,12 @@ export function materializeMap(source) {
   if (!source.generator) return source;
   if (![1,2].includes(source.generator.version)) throw new Error(`Unsupported generator version: ${source.generator.version}`);
   const catalog = catalogFor(source);
-  return {...source,districts:districtList(source).map(d => d.name),locations:source.locations.map(p => {
+  const districtNames=new Map(districtList(source).map(d=>[d.id,d.name]));
+  return {...source,districtAreas:districtList(source),districts:districtList(source).map(d => d.name),locations:source.locations.map(p => {
     if (versionFor(source,p) === 1) return resolveLocation(source,p,source.generator.version === 1 ? catalog : catalogFor(source,p));
     let cached;
-    const result = {...p};
-    for (const key of [...availableFields(source),'district','districtId','demographics','extra']) Object.defineProperty(result,key,{enumerable:true,get:()=> (cached ||= resolveLocation(source,p))[key]});
+    const result = {...p,districtId:p.district,district:districtNames.get(p.district) || p.district};
+    for (const key of [...availableFields(source),'demographics','extra']) Object.defineProperty(result,key,{enumerable:true,get:()=> (cached ||= resolveLocation(source,p))[key]});
     return result;
   })};
 }
