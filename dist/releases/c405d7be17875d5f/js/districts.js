@@ -21,8 +21,12 @@ export class DistrictLayer {
     this.ctx=this.canvas.getContext('2d');
   }
   draw(scale,selected='') {
-    const ctx=this.ctx;ctx.clearRect(0,0,this.data.width,this.data.height);
+    if(this.lastScale===scale && this.lastSelected===selected && this.lastEnabled===this.enabled)return;
+    this.lastScale=scale;this.lastSelected=selected;this.lastEnabled=this.enabled;
+    const ctx=this.ctx;
+    this.canvas.classList.toggle('layer-off',!this.enabled);
     if(!this.enabled)return;
+    ctx.clearRect(0,0,this.data.width,this.data.height);
     this.districts.forEach((d,i)=>{
       const active=selected===d.name,color=colors[i%colors.length];
       for(const shape of d.boundaries) {
