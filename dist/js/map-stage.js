@@ -1,4 +1,4 @@
-import { traceShape } from './geometry.js';
+import { traceShape, fillShape } from './geometry.js';
 import { categories, icon, escape } from './ui.js';
 import { buildSpatialIndex, hitTest } from './spatial.js';
 export class MapStage {
@@ -6,7 +6,7 @@ export class MapStage {
     this.el = element; this.data = data; this.callbacks = callbacks;
     this.pointers = new Map(); this.visible = () => true; this.markers = true;
     this.index = buildSpatialIndex(data.locations);
-    element.innerHTML = `<div class="map-world"><img class="map-image" src="${escape(data.image)}" width="${data.width}" height="${data.height}" alt="${escape(data.name)} city map" draggable="false"><canvas class="map-overlay" aria-hidden="true"></canvas><div class="map-pins"></div></div><div class="map-load-error" hidden><p>The map image could not be loaded.</p><button class="button" type="button">Reload image</button></div>`;
+    element.innerHTML = `<div class="map-world"><img class="map-image" src="${escape(data.image)}" width="${data.width}" height="${data.height}" alt="${escape(data.name)} city map" draggable="false"><canvas class="map-overlay" aria-hidden="true"></canvas><div class="map-feature-labels"></div><div class="map-pins"></div></div><div class="map-load-error" hidden><p>The map image could not be loaded.</p><button class="button" type="button">Reload image</button></div>`;
     this.world = element.querySelector('.map-world');
     this.world.style.width = `${data.width}px`; this.world.style.height = `${data.height}px`;
     this.canvas = element.querySelector('canvas');
@@ -15,6 +15,10 @@ export class MapStage {
     this.pins = element.querySelector('.map-pins');
     this.pins.innerHTML = data.locations.filter(p => p.featured).map(p => `<button class="map-pin" data-id="${escape(p.id)}" aria-label="${escape(p.name)}: ${categories[p.category].singular}" style="left:${p.x}px;top:${p.y}px;--category:${categories[p.category].color}">${icon(categories[p.category].icon)}</button>`).join('');
     this.pinEls = [...this.pins.children];
+    this.labels=element.querySelector('.map-feature-labels');
+    this.labels.innerHTML=data.locations.filter(p=>['street','water','terrain'].includes(p.category)).map(p=>`<span class="map-feature-label ${p.category}" data-id="${escape(p.id)}" style="left:${p.x}px;top:${p.y}px">${escape(p.name)}</span>`).join('');
+    this.labelEls=[...this.labels.children];
+    this.placeIndex=new Map(data.locations.map(p=>[p.id,p]));
     this.image = element.querySelector('.map-image');
     this.image.addEventListener('error', () => element.querySelector('.map-load-error').hidden = false, {signal});
     element.querySelector('.map-load-error button').addEventListener('click', () => {
@@ -105,6 +109,7 @@ export class MapStage {
     this.hasRendered = true;
     this.world.style.transform = `translate(${this.tx}px,${this.ty}px) scale(${this.scale})`;
     this.world.style.setProperty('--inverse-scale',1/this.scale);
+    this.layoutLabels();
     this.callbacks.view?.({scale:this.scale,min:this.min,tx:this.tx,ty:this.ty,w:this.w,h:this.h});
   }
   down(event) {
@@ -175,7 +180,29 @@ export class MapStage {
   filter(predicate, showAll = false) {
     this.visible = predicate; this.showAll=showAll;
     this.pinEls.forEach(el => el.hidden = !this.markers || !predicate(this.data.locations.find(p=>p.id===el.dataset.id)));
+    this.layoutLabels();
     this.highlight(null);
+  }
+  layoutLabels() {
+    if (!this.labelEls || !this.scale) return;
+    const occupied=this.pinEls.filter(el=>!el.hidden).map(el=>{
+      const p=this.placeIndex.get(el.dataset.id),x=p.x*this.scale+this.tx,y=p.y*this.scale+this.ty;
+      return {x:x-18,y:y-18,w:36,h:36};
+    });
+    const overlap=(a,b)=>a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y;
+    for (const el of this.labelEls) {
+      const p=this.placeIndex.get(el.dataset.id);
+      if (!this.markers || !this.visible(p)) {el.hidden=true;continue;}
+      el.hidden=false;
+      el.labelSize ||= {w:el.offsetWidth+6,h:el.offsetHeight+4};
+      const x=p.x*this.scale+this.tx,y=p.y*this.scale+this.ty,{w,h}=el.labelSize;
+      const shift=[0,22,-22,40].find(d=>{
+        const rect={x:x-w/2,y:y-h/2+d,w,h};
+        return rect.x>=0 && rect.y>=0 && rect.x+w<=this.w && rect.y+h<=this.h && !occupied.some(r=>overlap(rect,r));
+      });
+      el.hidden=shift===undefined;
+      if (!el.hidden) {el.style.setProperty('--label-shift',shift+'px');occupied.push({x:x-w/2,y:y-h/2+shift,w,h});}
+    }
   }
   toggleMarkers() {
     this.markers = !this.markers;
@@ -189,12 +216,12 @@ export class MapStage {
       for (const p of this.data.locations) {
         if (!this.visible(p) || p.featured) continue;
         ctx.fillStyle = categories[p.category].color+'55';
-        traceShape(ctx,p); ctx.fill();
+        fillShape(ctx,p);
       }
     }
     for (const p of [this.selected,place]) {
       if (!p || !this.visible(p)) continue;
-      ctx.fillStyle=categories[p.category].color+'99';traceShape(ctx,p);ctx.fill();
+      ctx.fillStyle=categories[p.category].color+'99';fillShape(ctx,p);
       ctx.strokeStyle='#fff9e9';ctx.lineWidth=2/this.scale;ctx.stroke();
     }
   }
@@ -204,3 +231,4 @@ export class MapStage {
   }
   destroy() { clearTimeout(this.navigationTimer); this.resizeObserver.disconnect(); this.callbacks.hover(null); }
 }
+

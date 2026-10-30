@@ -41,3 +41,10 @@ Hit testing and overlays use the same shape. Shape extents must remain inside th
 `docs/map.schema.json` describes the structural contract. The shared browser/build validator also checks bounds, references, weights, tokens, catalog names and type/category compatibility. `initialView` optionally stores an image-pixel center and horizontal span. Asset paths are relative to `public/`.
 
 All map data and templates are public. Do not include private GM notes.
+
+
+## Name roads, water and terrain
+
+Start new maps with generator version 2 from `docs/map-template.json`. Trace recognizable roads and watercourses with open polyline shapes. Trace lakes, islands, woodland and fields with area shapes. Select a precise type from the `street`, `water` or `terrain` category. Save stable ids and geometry rather than generated names.
+
+Link a building's `context.street` to its mapped road and optionally link water, terrain or a landmark. The editor provides these selectors. Keep the image-space coordinates aligned to visible features. Do not label a peninsula as an island or add a river without a visible watercourse. See `docs/generation.md` for supported types, naming patterns and reference validation.

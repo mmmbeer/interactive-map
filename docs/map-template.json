@@ -16,8 +16,8 @@
   ],
   "credit": "Add known map attribution. Location names and stories are fictional additions.",
   "generator": {
-    "version": 1,
-    "seed": "your-map-v1",
+    "version": 2,
+    "seed": "your-map-v2",
     "defaults": {
       "demographics": {
         "races": {
@@ -80,7 +80,58 @@
           "population": 12
         }
       },
-      "featured": true
+      "featured": true,
+      "context": {
+        "street": "street-001",
+        "water": "water-001"
+      }
+    },
+    {
+      "id": "water-001",
+      "category": "water",
+      "type": "river",
+      "district": "old-town",
+      "x": 650,
+      "y": 700,
+      "shape": {
+        "kind": "polyline",
+        "width": 30,
+        "points": [
+          [
+            650,
+            100
+          ],
+          [
+            650,
+            1300
+          ]
+        ]
+      }
+    },
+    {
+      "id": "street-001",
+      "category": "street",
+      "type": "street",
+      "district": "old-town",
+      "x": 500,
+      "y": 730,
+      "shape": {
+        "kind": "polyline",
+        "width": 12,
+        "points": [
+          [
+            200,
+            730
+          ],
+          [
+            600,
+            730
+          ]
+        ]
+      },
+      "context": {
+        "water": "water-001"
+      }
     }
   ]
 }

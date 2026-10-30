@@ -6,9 +6,15 @@ export const categories = {
   temple: { label: 'Temples', singular: 'Temple', color: '#f5ff90', icon: 'spark' },
   guild: { label: 'Guilds', singular: 'Guild', color: '#d6ffb7', icon: 'shield' },
   harbor: { label: 'Harbor', singular: 'Harbor', color: '#d6ffb7', icon: 'anchor' },
+  street: {label:'Streets & routes',singular:'Street or route',color:'#ffc15e',icon:'route'},
+  water: {label:'Water',singular:'Body of water',color:'#95dce7',icon:'water'},
+  terrain: {label:'Geography',singular:'Geographic feature',color:'#d6ffb7',icon:'terrain'},
   home: { label: 'Homes', singular: 'Home', color: '#f5ff90', icon: 'home' }
 };
 const paths = {
+  route:'<path d="m4 20 5-16m6 16 5-16M12 8l1-4m-3 12 1-4"/>',
+  water:'<path d="M2 8q3-4 6 0t6 0 6 0M2 13q3-4 6 0t6 0 6 0M2 18q3-4 6 0t6 0 6 0"/>',
+  terrain:'<path d="m2 20 7-14 5 9 3-5 5 10ZM6 12l3 2 3-2"/>',
   compass: '<path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5Z"/><circle cx="12" cy="12" r="2"/>',
   arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
   diagonal: '<path d="M6 18 18 6M6 6h12v12"/>',
@@ -61,3 +67,4 @@ export function categoryBadge(category) {
   return `<span class="category-badge" style="--category:${item.color}">${icon(item.icon)}${item.singular}</span>`;
 }
 export function number(value) { return value.toLocaleString('en-US'); }
+

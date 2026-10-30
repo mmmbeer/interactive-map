@@ -39,7 +39,7 @@ export function serializeMap(map) {
 export function newLocation(map,x=map.width/2,y=map.height/2) {
   const used=new Set(map.locations.map(p=>p.id));
   let n=1; while(used.has(`place-${String(n).padStart(4,'0')}`)) n++;
-  return {id:`place-${String(n).padStart(4,'0')}`,category:'home',district:map.districts[0]?.id || map.districts[0],x,y,generation:{demographics:{}}};
+  return {id:`place-${String(n).padStart(4,'0')}`,category:'home',district:map.districts[0]?.id || map.districts[0],x,y,generation:{version:2,demographics:{}}};
 }
 export function saveLocation(map,place,originalId=null) {
   const result=structuredClone(map),index=originalId===null ? -1 : result.locations.findIndex(p=>p.id===originalId);
@@ -51,3 +51,4 @@ export function saveLocation(map,place,originalId=null) {
   } else result.locations[index]=structuredClone(place);
   return result;
 }
+

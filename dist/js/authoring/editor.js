@@ -31,7 +31,7 @@ export function openEditor(viewer,selected=null) {
   };
   const candidate=(previewOnly=false)=>{
     if (!(previewOnly ? form.checkValidity() : form.reportValidity())) throw new Error('Complete the required fields.');
-    const p=readPlace(form,original),map=previewOnly ? {...source,locations:[p]} : saveLocation(source,p,originalId);
+    const p=readPlace(form,original),map=saveLocation(source,p,originalId);
     validateMap(map);return {p,map};
   };
   const showPreview=()=>{
@@ -107,10 +107,14 @@ export function openEditor(viewer,selected=null) {
   });
   on(form,'input',()=>{clearTimeout(timer);timer=setTimeout(showPreview,200);});
   on(form,'change',e=>{
-    if(e.target.name==='category') form.elements.type.innerHTML=typeOptions(source,e.target.value);
+    if(e.target.name==='category') {
+      form.elements.type.innerHTML=typeOptions(source,e.target.value);
+      if (['street','water','terrain'].includes(e.target.value)) form.elements.version.value='2';
+    }
     if(e.target.name==='shape') {
+      form.querySelector('[data-route-width]').hidden=e.target.value!=='polyline';
       const x=Number(form.elements.x.value),y=Number(form.elements.y.value);
-      form.elements.geometry.value=JSON.stringify(e.target.value==='ellipse' ? [5,5] : e.target.value==='polygon' ? [[x-5,y-5],[x+5,y-5],[x,y+5]] : [x-5,y-5,10,10]);
+      form.elements.geometry.value=JSON.stringify(e.target.value==='ellipse' ? [5,5] : e.target.value==='polyline' ? [[x-5,y],[x+5,y]] : e.target.value==='polygon' ? [[x-5,y-5],[x+5,y-5],[x,y+5]] : [x-5,y-5,10,10]);
     }
     showPreview();
   });
@@ -137,3 +141,4 @@ export function openEditor(viewer,selected=null) {
   viewer.signal.addEventListener('abort',dispose,{once:true});
   dialog.showModal();showPreview();
 }
+

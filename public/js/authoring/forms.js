@@ -1,22 +1,29 @@
 import { escape, categories } from '../ui.js';
 import { catalogFor, configFor, districtList, availableFields } from '../generation/config.js';
+import { nameStyles } from '../generation/locations-v2.js';
+import { versionFor } from '../generation/config.js';
+import { resolveLocation } from '../generation/locations.js';
 const options = (values,selected) => values.map(v=>`<option value="${escape(typeof v==='object'?v.id:v)}" ${(typeof v==='object'?v.id:v)===selected?'selected':''}>${escape(typeof v==='object'?v.name:v)}</option>`).join('');
 const input = (key,title,value,type='text',extra='') => `<label>${title}<input name="${key}" type="${type}" value="${escape(value ?? '')}" ${extra}></label>`;
 const select = (key,title,values,value) => `<label>${title}<select name="${key}">${options(values,value)}</select></label>`;
 export function placeForm(map,place,isNew) {
-  const fields=availableFields(map),c=catalogFor(map),g=place.generation || {},d=g.demographics || {},setting=configFor(map,place).config;
+  const fields=availableFields(map),c=catalogFor(map,{generation:{version:2}}),g=place.generation || {},d=g.demographics || {},setting=configFor(map,place).config;
   const inherit=[{id:'',name:'Inherit from district / map'}];
   const choices=list=>[...inherit,...list];
   return `<div class="editor-grid">
     ${input('id','Stable ID',place.id,'text',isNew?'required pattern="[a-z0-9]+(-[a-z0-9]+)*"':'readonly')}
     ${select('district','District',districtList(map),place.district)}
+    ${select('version','Generator',[{id:'1',name:'Version 1 (preserve existing)'},{id:'2',name:'Version 2 (expanded names)'}],String(versionFor(map,place)))}
+    ${select('nameStyle','Naming pattern (version 2)',[{id:'',name:'Mixed patterns'},...nameStyles],g.nameStyle || '')}
     ${select('category','Category',Object.entries(categories).map(([id,v])=>({id,name:v.singular})),place.category)}
     ${select('type','Location type',Object.entries(c.types).filter(([,t])=>t.category===place.category).map(([id,t])=>({id,name:t.label})),place.type || place.category)}
     ${input('x','X · image pixels',place.x,'number','required step="any" min="0"')}
     ${input('y','Y · image pixels',place.y,'number','required step="any" min="0"')}
-    ${select('shape','Hit shape',['point','rectangle','ellipse','polygon'],place.shape?.kind || (place.bounds?'rectangle':'point'))}
+    ${select('shape','Hit shape',['point','rectangle','ellipse','polygon','polyline'],place.shape?.kind || (place.bounds?'rectangle':'point'))}
     <label class="check-label"><input type="checkbox" name="featured" ${place.featured?'checked':''}>Show as a highlight</label>
-    <div class="shape-inputs editor-wide"><label>Shape coordinates (JSON)<textarea name="geometry" rows="2" spellcheck="false">${escape(JSON.stringify(place.shape?.kind==='polygon' ? place.shape.points : place.shape?.kind==='ellipse' ? [place.shape.rx,place.shape.ry] : place.bounds || [place.x-5,place.y-5,10,10]))}</textarea></label><small>Rectangle: [left, top, width, height]. Ellipse: [radius X, radius Y]. Polygon: [[x, y], …]. Point needs no coordinates.</small></div>
+    <div class="shape-inputs editor-wide"><label>Shape coordinates (JSON)<textarea name="geometry" rows="2" spellcheck="false">${escape(JSON.stringify(['polygon','polyline'].includes(place.shape?.kind) ? place.shape.points : place.shape?.kind==='ellipse' ? [place.shape.rx,place.shape.ry] : place.bounds || [place.x-5,place.y-5,10,10]))}</textarea></label><small>Rectangle: [left, top, width, height]. Ellipse: [radius X, radius Y]. Polygon or route: [[x, y], …]. Point needs no coordinates.</small></div>
+    <div data-route-width ${place.shape?.kind==='polyline'?'':'hidden'}>${input('lineWidth','Route width (image pixels)',place.shape?.width || 6,'number','min="0.1" step="any"')}</div>
+    <fieldset class="editor-wide"><legend>Geographic context (version 2)</legend><p>Link saved features so names, addresses and lore use the same geography.</p><div class="editor-grid">${['street','water','terrain','landmark'].map(key=>select('context-'+key,key[0].toUpperCase()+key.slice(1),[{id:'',name:'No linked feature'},...map.locations.filter(p=>p.id!==place.id && p.category===key).map(p=>({id:p.id,name:resolveLocation(map,p).name}))],place.context?.[key] || '')).join('')}</div></fieldset>
     <fieldset class="editor-wide editor-demographics"><legend>Demographics</legend><p>These choices drive names and resident profiles. Inherited choices use weighted map and district settings.</p><div class="editor-grid">
     ${select('race','Race',choices(Object.keys(c.people)),d.race || '')}
     ${select('gender','Resident gender',choices(['female','male','nonbinary']),d.gender || '')}
@@ -40,10 +47,15 @@ export function readPlace(form,original) {
   const kind=value('shape');
   if (kind==='rectangle') place.bounds=JSON.parse(value('geometry'));
   if (kind==='ellipse') { const [rx,ry]=JSON.parse(value('geometry'));place.shape={kind,rx,ry}; }
-  if (kind==='polygon') place.shape={kind,points:JSON.parse(value('geometry'))};
+  if (['polygon','polyline'].includes(kind)) place.shape={kind,points:JSON.parse(value('geometry'))};
+  if (kind==='polyline') place.shape.width=Number(value('lineWidth'));
+  place.context=Object.fromEntries(['street','water','terrain','landmark'].filter(k=>value('context-'+k)).map(k=>[k,value('context-'+k)]));
+  if (!Object.keys(place.context).length) delete place.context;
   const generation=JSON.parse(value('advanced') || '{}');
   if (!generation || typeof generation!=='object' || Array.isArray(generation)) throw new Error('Advanced settings must be an object.');
   generation.demographics ||= {};
+  generation.version=Number(value('version'));
+  if (value('nameStyle')) generation.nameStyle=value('nameStyle');else delete generation.nameStyle;
   const originalD=original.generation?.demographics || {};
   for (const [single,plural] of Object.entries({race:'races',gender:'genders',age:'ages',culture:'cultures',wealth:'wealths'})) {
     if (value(single)) { generation.demographics[single]=value(single);delete generation.demographics[plural]; }
@@ -64,5 +76,6 @@ export function readPlace(form,original) {
   return place;
 }
 export function typeOptions(map,category) {
-  return options(Object.entries(catalogFor(map).types).filter(([,v])=>v.category===category).map(([id,v])=>({id,name:v.label})),category);
+  return options(Object.entries(catalogFor(map,{generation:{version:2}}).types).filter(([,v])=>v.category===category).map(([id,v])=>({id,name:v.label})),category);
 }
+
