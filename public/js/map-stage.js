@@ -1,3 +1,4 @@
+import { rasterQuality } from './raster-quality.js';
 import { StreetLayer, NumberLayer } from './map-overlays.js';
 import { siteNumbers } from './site-index.js';
 import { DistrictLayer } from './districts.js';
@@ -27,6 +28,7 @@ export class MapStage {
     this.labelLayer=new MapLabels(this.world,data,this.districtLayer);
     this.placeIndex=new Map(data.locations.map(p=>[p.id,p]));
     this.image = element.querySelector('.map-image');
+    this.image.addEventListener('load',()=>this.render(),{signal});
     this.image.addEventListener('error', () => element.querySelector('.map-load-error').hidden = false, {signal});
     element.querySelector('.map-load-error button').addEventListener('click', () => {
       element.querySelector('.map-load-error').hidden = true;
@@ -83,6 +85,12 @@ export class MapStage {
     this.tx = this.w/2-x*this.scale; this.ty = this.h/2-y*this.scale;
     this.render(animate);
   }
+  native() {
+    this.stopNavigation();
+    const x=(this.w/2-this.tx)/this.scale,y=(this.h/2-this.ty)/this.scale;
+    this.scale=Math.max(this.min,Math.min(this.max,rasterQuality(this.data.width,this.image.naturalWidth,this.scale,devicePixelRatio).nativeScale));
+    this.center(x,y);
+  }
   focus(place,offset=0) {
     this.stopNavigation();
     const [x,y,w,h]=boundsFor(place);
@@ -123,10 +131,12 @@ export class MapStage {
     this.hasRendered = true;
     this.world.style.transform = `translate(${this.tx}px,${this.ty}px) scale(${this.scale})`;
     this.world.style.setProperty('--inverse-scale',1/this.scale);
+    this.raster=rasterQuality(this.data.width,this.image.naturalWidth,this.scale,devicePixelRatio);
+    this.image.classList.toggle('is-enlarged',this.raster.enlarged);
     this.districtLayer.draw(this.scale,this.districtFilter);
     this.streetLayer.draw(this.scale,this.visible);
     this.layoutLabels();this.highlight(this.hovered);
-    this.callbacks.view?.({scale:this.scale,min:this.min,tx:this.tx,ty:this.ty,w:this.w,h:this.h});
+    this.callbacks.view?.({scale:this.scale,min:this.min,tx:this.tx,ty:this.ty,w:this.w,h:this.h,raster:this.raster});
   }
   down(event) {
     if (event.button !== 0 && event.pointerType !== 'touch') return;
