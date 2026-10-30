@@ -1,6 +1,8 @@
 # The Wandering Atlas
 
-A static interactive map collection for Cloudflare Pages. The first map is **Dragonsgate**, using the supplied city map, 54 authored landmarks and 7,031 generated building entries. Location JSON stores compact geometry and generation inputs. A versioned, seeded browser generator supplies names, residents, lore, hooks and services. The 54 authored landmarks keep their original text as overrides.
+A static interactive map collection for Cloudflare Pages. Dragonsgate uses the supplied city map with 14 bounded districts, 10,030 mapped entries, 1,033 streets and routes, 129 water and terrain features, and 71 highlighted locations. The rebuilt survey uses v2 generation throughout. Compact source records hold geometry, demographics and geographic links. Names, residents, lore and services resolve deterministically in the browser.
+
+See [the Dragonsgate survey](docs/dragonsgate-survey.md) for coverage, assumptions and the repeatable authoring pipeline.
 
 ## Run and build
 
@@ -55,11 +57,14 @@ See [docs/adding-maps.md](docs/adding-maps.md) for the format and complete workf
 - Extensible name pools, location types, template tables and content sections.
 - Compact JSON import/export, legacy migration and authored text overrides.
 - Category and neighborhood filters, highlights and a full directory.
+- District boundary overlays with multipart polygons and neighborhood labels.
+- Zoom-dependent labels for roads, geography, businesses and residences with collision culling.
+- Sea polygons with island exclusions and matching hit testing.
 - Individual map/place links, clipboard sharing and a copyable-link fallback.
 - Keyboard controls: `/` search, arrows pan, `+`/`-` zoom, `0` fit, Escape close.
 - Local assets only. No analytics, remote fonts or external map service.
 
-The source map is an unlabeled raster. Its black building-like footprints were used as approximate hit areas. These are points of interest, not surveyed building boundaries or original-map lore. Names, inhabitants and story hooks are invented. A generated street address is a directory label, not a labeled street on the drawing. Prominent landmarks have authored descriptions and rumors. Ordinary buildings have shorter generated descriptions. Some tiny or joined structures may share a hit area.
+The source map is an unlabeled raster. Roof footprints and small lanes are approximate at its 948 × 1,659 resolution. Building functions, district names, residents and stories are fictional additions. Some joined structures share a footprint. Building addresses reference saved mapped roads. The original 54 landmark links remain available; ordinary building ids were rebuilt from roof coordinates for the explicitly requested fresh survey.
 
 ## Source layout
 
@@ -87,10 +92,14 @@ sources/                    Original supplied map, excluded from deployment
 
 See [docs/generation.md](docs/generation.md) for seeds, inheritance, race/culture inputs, custom content and legacy migration. Use **Edit map** to add locations and **Edit location** on a place to update it. Saves create a draft on the current device. Export JSON, register the updated map, rebuild and commit to publish through Cloudflare. Generated results are never persisted in map JSON.
 
-Dragonsgate’s map data dropped from 2,103,891 to about 813,000 bytes while preserving every location id, coordinate, hit box and authored highlight.
+The current survey stores more detailed geometry than the original map. Generated stories remain outside the source JSON.
 
 ## Browser asset versions
 
 The production build copies JavaScript and CSS into a directory named from a deterministic content hash. The generated HTML loads that release, and relative module imports remain inside it. A change to any runtime dependency changes the release URL. This prevents browsers from mixing an old validator with new modules after deployment. The original asset paths remain as revalidated compatibility aliases. HTML and map data also revalidate. Versioned assets can be cached indefinitely because their URLs change with their contents.
 
 The error screen’s Reload atlas button reloads the document so a tab left open across a deployment can load the current release.
+
+## Reuse the mapping tools
+
+See [mapping-tools.md](docs/mapping-tools.md) for the browser ES-module entry point, geometry, spatial selection, compact authoring, deterministic generation and Python recognition helpers. The source for roof extraction, contour tracing, lane skeletons and route alignment is committed with the map.

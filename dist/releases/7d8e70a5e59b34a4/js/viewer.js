@@ -62,6 +62,7 @@ export class AtlasViewer {
       'zoom-in':()=>this.stage.zoom(1.4,undefined,true),'zoom-out':()=>this.stage.zoom(1/1.4,undefined,true),
       'fit-map':()=>this.stage.fit(),'reset-map':()=>this.stage.reset(),
       'toggle-markers':()=>target.setAttribute('aria-pressed',this.stage.toggleMarkers()),
+      'toggle-districts':()=>target.setAttribute('aria-pressed',this.stage.toggleDistricts()),
       'open-directory':()=>this.openDirectory(),'show-more':()=>{this.limit+=45;this.renderList();},
       'random-place':()=>{if(this.results.length)this.select(this.results[Math.floor(Math.random()*this.results.length)],true);},
       'share-map':()=>this.share(false),'about-map':()=>this.root.querySelector('#map-info').showModal()
@@ -90,7 +91,7 @@ export class AtlasViewer {
     this.results=results;
     this.limit=45;this.renderList();
     this.root.querySelector('#place-list').scrollTop=0;
-    this.stage.filter(this.predicate,this.scope==='all');
+    this.stage.filter(this.predicate,this.scope==='all',filters.district);
     this.root.querySelector('#random-place').disabled=!this.results.length;
   }
   renderList() {

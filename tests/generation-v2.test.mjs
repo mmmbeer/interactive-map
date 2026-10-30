@@ -125,14 +125,6 @@ test('new locations opt into v2 and compact serialization keeps references, not 
   assert.equal(JSON.parse(json).locations[2].context.street,'lane');
   const shop=resolved(source)[2];assert.equal(matches(shop,{query:resolved(source)[1].name}),true);
 });
-test('Dragonsgate keeps all 7,085 historical inputs unchanged and adds 24 valid mapped features',async()=>{
-  const m=JSON.parse(await readFile(new URL('../public/data/maps/dragonsgate.json',import.meta.url),'utf8'));
-  validateMap(m);assert.equal(m.locations.length,7109);
-  const added=m.locations.slice(7085);assert.equal(added.length,24);
-  let hash=2166136261;for(const c of JSON.stringify(m.locations.slice(0,7085))) hash=Math.imul(hash^c.charCodeAt(0),16777619);
-  assert.equal((hash>>>0).toString(16),'4a3d9a18','Original location inputs must remain byte-for-byte equivalent.');
-  for(const p of added) {assert.equal(p.generation.version,2);assert.ok(['street','water','terrain'].includes(p.category));const r=resolveLocation(m,p);assert.doesNotMatch(r.name+r.description,/[{}]|undefined/);}
-});
 
 test('v2 geographic lexicons and fallback street tables are configurable',()=>{
   const m=makeMap();

@@ -22,6 +22,7 @@ export function placeForm(map,place,isNew) {
     ${select('shape','Hit shape',['point','rectangle','ellipse','polygon','polyline'],place.shape?.kind || (place.bounds?'rectangle':'point'))}
     <label class="check-label"><input type="checkbox" name="featured" ${place.featured?'checked':''}>Show as a highlight</label>
     <div class="shape-inputs editor-wide"><label>Shape coordinates (JSON)<textarea name="geometry" rows="2" spellcheck="false">${escape(JSON.stringify(['polygon','polyline'].includes(place.shape?.kind) ? place.shape.points : place.shape?.kind==='ellipse' ? [place.shape.rx,place.shape.ry] : place.bounds || [place.x-5,place.y-5,10,10]))}</textarea></label><small>Rectangle: [left, top, width, height]. Ellipse: [radius X, radius Y]. Polygon or route: [[x, y], …]. Point needs no coordinates.</small></div>
+    <label class="editor-wide" data-polygon-holes ${place.shape?.kind==='polygon'?'':'hidden'}>Excluded areas (JSON rings)<textarea name="holes" rows="2" spellcheck="false">${escape(JSON.stringify(place.shape?.holes || []))}</textarea><small>Optional polygon rings, for islands inside a sea or courtyards inside an area.</small></label>
     <div data-route-width ${place.shape?.kind==='polyline'?'':'hidden'}>${input('lineWidth','Route width (image pixels)',place.shape?.width || 6,'number','min="0.1" step="any"')}</div>
     <fieldset class="editor-wide"><legend>Geographic context (version 2)</legend><p>Link saved features so names, addresses and lore use the same geography.</p><div class="editor-grid">${['street','water','terrain','landmark'].map(key=>select('context-'+key,key[0].toUpperCase()+key.slice(1),[{id:'',name:'No linked feature'},...map.locations.filter(p=>p.id!==place.id && p.category===key).map(p=>({id:p.id,name:resolveLocation(map,p).name}))],place.context?.[key] || '')).join('')}</div></fieldset>
     <fieldset class="editor-wide editor-demographics"><legend>Demographics</legend><p>These choices drive names and resident profiles. Inherited choices use weighted map and district settings.</p><div class="editor-grid">
@@ -48,6 +49,7 @@ export function readPlace(form,original) {
   if (kind==='rectangle') place.bounds=JSON.parse(value('geometry'));
   if (kind==='ellipse') { const [rx,ry]=JSON.parse(value('geometry'));place.shape={kind,rx,ry}; }
   if (['polygon','polyline'].includes(kind)) place.shape={kind,points:JSON.parse(value('geometry'))};
+  if(kind==='polygon') {const holes=JSON.parse(value('holes') || '[]');if(!Array.isArray(holes))throw new Error('Excluded areas must be an array of polygon rings.');if(holes.length)place.shape.holes=holes;}
   if (kind==='polyline') place.shape.width=Number(value('lineWidth'));
   place.context=Object.fromEntries(['street','water','terrain','landmark'].filter(k=>value('context-'+k)).map(k=>[k,value('context-'+k)]));
   if (!Object.keys(place.context).length) delete place.context;

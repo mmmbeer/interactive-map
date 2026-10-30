@@ -1,4 +1,6 @@
-import { traceShape, fillShape } from './geometry.js';
+import { DistrictLayer } from './districts.js';
+import { MapLabels } from './map-labels.js';
+import { boundsFor, fillShape } from './geometry.js';
 import { categories, icon, escape } from './ui.js';
 import { buildSpatialIndex, hitTest } from './spatial.js';
 export class MapStage {
@@ -6,7 +8,7 @@ export class MapStage {
     this.el = element; this.data = data; this.callbacks = callbacks;
     this.pointers = new Map(); this.visible = () => true; this.markers = true;
     this.index = buildSpatialIndex(data.locations);
-    element.innerHTML = `<div class="map-world"><img class="map-image" src="${escape(data.image)}" width="${data.width}" height="${data.height}" alt="${escape(data.name)} city map" draggable="false"><canvas class="map-overlay" aria-hidden="true"></canvas><div class="map-feature-labels"></div><div class="map-pins"></div></div><div class="map-load-error" hidden><p>The map image could not be loaded.</p><button class="button" type="button">Reload image</button></div>`;
+    element.innerHTML = `<div class="map-world"><img class="map-image" src="${escape(data.image)}" width="${data.width}" height="${data.height}" alt="${escape(data.name)} city map" draggable="false"><canvas class="map-overlay" aria-hidden="true"></canvas><div class="map-pins"></div></div><div class="map-load-error" hidden><p>The map image could not be loaded.</p><button class="button" type="button">Reload image</button></div>`;
     this.world = element.querySelector('.map-world');
     this.world.style.width = `${data.width}px`; this.world.style.height = `${data.height}px`;
     this.canvas = element.querySelector('canvas');
@@ -15,9 +17,8 @@ export class MapStage {
     this.pins = element.querySelector('.map-pins');
     this.pins.innerHTML = data.locations.filter(p => p.featured).map(p => `<button class="map-pin" data-id="${escape(p.id)}" aria-label="${escape(p.name)}: ${categories[p.category].singular}" style="left:${p.x}px;top:${p.y}px;--category:${categories[p.category].color}">${icon(categories[p.category].icon)}</button>`).join('');
     this.pinEls = [...this.pins.children];
-    this.labels=element.querySelector('.map-feature-labels');
-    this.labels.innerHTML=data.locations.filter(p=>['street','water','terrain'].includes(p.category)).map(p=>`<span class="map-feature-label ${p.category}" data-id="${escape(p.id)}" style="left:${p.x}px;top:${p.y}px">${escape(p.name)}</span>`).join('');
-    this.labelEls=[...this.labels.children];
+    this.districtLayer=new DistrictLayer(this.world,data);
+    this.labelLayer=new MapLabels(this.world,data,this.districtLayer);
     this.placeIndex=new Map(data.locations.map(p=>[p.id,p]));
     this.image = element.querySelector('.map-image');
     this.image.addEventListener('error', () => element.querySelector('.map-load-error').hidden = false, {signal});
@@ -74,8 +75,10 @@ export class MapStage {
     this.render(animate);
   }
   focus(place) {
-    this.scale = Math.min(this.max,Math.max(this.scale,1.8));
-    this.center(place.x,place.y);
+    const [x,y,w,h]=boundsFor(place);
+    const span=Math.max(w,h);
+    this.scale = span>100 ? Math.max(this.min,Math.min(this.w/(w+100),this.h/(h+100),2)) : Math.min(this.max,Math.max(this.scale,2.8));
+    this.center(span>100?x+w/2:place.x,span>100?y+h/2:place.y);
   }
   zoom(factor, point = {x:this.w/2,y:this.h/2}, animate = false) {
     this.stopNavigation();
@@ -109,6 +112,7 @@ export class MapStage {
     this.hasRendered = true;
     this.world.style.transform = `translate(${this.tx}px,${this.ty}px) scale(${this.scale})`;
     this.world.style.setProperty('--inverse-scale',1/this.scale);
+    this.districtLayer.draw(this.scale,this.districtFilter);
     this.layoutLabels();
     this.callbacks.view?.({scale:this.scale,min:this.min,tx:this.tx,ty:this.ty,w:this.w,h:this.h});
   }
@@ -166,7 +170,7 @@ export class MapStage {
   }
   cancel(event) { this.pointers.delete(event.pointerId); this.dragged=true; this.el.classList.remove('dragging'); }
   at(point) {
-    return hitTest(this.index,this.data.locations,(point.x-this.tx)/this.scale,(point.y-this.ty)/this.scale,this.scale,this.visible,this.markers);
+    return hitTest(this.index,this.data.locations,(point.x-this.tx)/this.scale,(point.y-this.ty)/this.scale,this.scale,this.visible,this.markers,p=>this.visiblePinIds?.has(p.id));
   }
   key(event) {
     if (event.target.closest('.map-pin')) return;
@@ -177,36 +181,36 @@ export class MapStage {
     };
     if (actions[event.key]) {event.preventDefault();actions[event.key]();}
   }
-  filter(predicate, showAll = false) {
+  filter(predicate, showAll = false, district = '') {
+    this.districtFilter=district;this.districtLayer.draw(this.scale,district);
     this.visible = predicate; this.showAll=showAll;
     this.pinEls.forEach(el => el.hidden = !this.markers || !predicate(this.data.locations.find(p=>p.id===el.dataset.id)));
     this.layoutLabels();
     this.highlight(null);
   }
-  layoutLabels() {
-    if (!this.labelEls || !this.scale) return;
-    const occupied=this.pinEls.filter(el=>!el.hidden).map(el=>{
-      const p=this.placeIndex.get(el.dataset.id),x=p.x*this.scale+this.tx,y=p.y*this.scale+this.ty;
-      return {x:x-18,y:y-18,w:36,h:36};
-    });
-    const overlap=(a,b)=>a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y;
-    for (const el of this.labelEls) {
-      const p=this.placeIndex.get(el.dataset.id);
-      if (!this.markers || !this.visible(p)) {el.hidden=true;continue;}
-      el.hidden=false;
-      el.labelSize ||= {w:el.offsetWidth+6,h:el.offsetHeight+4};
-      const x=p.x*this.scale+this.tx,y=p.y*this.scale+this.ty,{w,h}=el.labelSize;
-      const shift=[0,22,-22,40].find(d=>{
-        const rect={x:x-w/2,y:y-h/2+d,w,h};
-        return rect.x>=0 && rect.y>=0 && rect.x+w<=this.w && rect.y+h<=this.h && !occupied.some(r=>overlap(rect,r));
-      });
-      el.hidden=shift===undefined;
-      if (!el.hidden) {el.style.setProperty('--label-shift',shift+'px');occupied.push({x:x-w/2,y:y-h/2+shift,w,h});}
+  layoutLabels() { this.layoutPins();this.labelLayer.layout(this); }
+  layoutPins() {
+    if(!this.scale)return;
+    const occupied=[];this.visiblePinIds=new Set();
+    if(this.districtLayer.enabled && this.scale<2)for(const d of this.districtLayer.districts) {
+      if(d.label)occupied.push({x:d.label.x*this.scale+this.tx,y:d.label.y*this.scale+this.ty,district:true});
     }
+    const score=el=>el.dataset.id===this.selected?.id?100:['landmark','temple','harbor'].includes(this.placeIndex.get(el.dataset.id).category)?10:0;
+    const pins=[...this.pinEls].sort((a,b)=>score(b)-score(a));
+    const limit=this.scale<.7?18:this.scale<1.2?32:Infinity;let shown=0;
+    for(const el of pins) {
+      const p=this.placeIndex.get(el.dataset.id),x=p.x*this.scale+this.tx,y=p.y*this.scale+this.ty;
+      const crowded=p.id!==this.selected?.id && occupied.some(q=>q.district?Math.abs(q.x-x)<65 && Math.abs(q.y-y)<24:Math.hypot(q.x-x,q.y-y)<32);
+      el.hidden=!this.markers || !this.visible(p) || x<0 || x>this.w || y<0 || y>this.h || crowded || shown>=limit;
+      if(!el.hidden){occupied.push({x,y});shown++;this.visiblePinIds.add(p.id);}
+    }
+  }
+  toggleDistricts() {
+    const enabled=this.districtLayer.toggle(this.scale,this.districtFilter);this.layoutLabels();return enabled;
   }
   toggleMarkers() {
     this.markers = !this.markers;
-    this.filter(this.visible,this.showAll);
+    this.filter(this.visible,this.showAll,this.districtFilter);
     return this.markers;
   }
   highlight(place) {
@@ -215,7 +219,7 @@ export class MapStage {
     if (this.showAll && this.markers) {
       for (const p of this.data.locations) {
         if (!this.visible(p) || p.featured) continue;
-        ctx.fillStyle = categories[p.category].color+'55';
+        ctx.fillStyle = categories[p.category].color+(['water','terrain'].includes(p.category)?'18':p.category==='street'?'66':'55');
         fillShape(ctx,p);
       }
     }
@@ -226,7 +230,7 @@ export class MapStage {
     }
   }
   select(place) {
-    this.selected=place; this.highlight(null);
+    this.selected=place; this.highlight(null);this.layoutLabels();
     this.pinEls.forEach(el=>el.classList.toggle('selected',el.dataset.id===place?.id));
   }
   destroy() { clearTimeout(this.navigationTimer); this.resizeObserver.disconnect(); this.callbacks.hover(null); }

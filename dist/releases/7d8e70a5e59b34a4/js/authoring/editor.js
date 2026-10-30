@@ -75,6 +75,7 @@ export function openEditor(viewer,selected=null) {
           original.x+=dx;original.y+=dy;
           if(original.bounds) {original.bounds[0]+=dx;original.bounds[1]+=dy;}
           if(original.shape?.points) original.shape.points=original.shape.points.map(([x,y])=>[x+dx,y+dy]);
+          if(original.shape?.holes) original.shape.holes=original.shape.holes.map(ring=>ring.map(([x,y])=>[x+dx,y+dy]));
           resume();setForm();showPreview();return true;
         };
       }
@@ -112,6 +113,8 @@ export function openEditor(viewer,selected=null) {
       if (['street','water','terrain'].includes(e.target.value)) form.elements.version.value='2';
     }
     if(e.target.name==='shape') {
+      form.querySelector('[data-polygon-holes]').hidden=e.target.value!=='polygon';
+      form.elements.holes.value='[]';
       form.querySelector('[data-route-width]').hidden=e.target.value!=='polyline';
       const x=Number(form.elements.x.value),y=Number(form.elements.y.value);
       form.elements.geometry.value=JSON.stringify(e.target.value==='ellipse' ? [5,5] : e.target.value==='polyline' ? [[x-5,y],[x+5,y]] : e.target.value==='polygon' ? [[x-5,y-5],[x+5,y-5],[x,y+5]] : [x-5,y-5,10,10]);

@@ -1,7 +1,8 @@
+import { validateDistrictGeometry } from './districts.js';
 import { catalogFor, versionFor } from './generation/config.js';
 import { validateGeography } from './generation/geography-validation.js';
 import { check, validateGenerator, validateSettings, validateResolvedSettings } from './generation/validate.js';
-import { boundsFor } from './geometry.js';
+import { boundsFor, ringContains } from './geometry.js';
 export const categoryKeys = ['landmark','tavern','shop','workshop','temple','guild','harbor','home','street','water','terrain'];
 const slug = value => typeof value==='string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 const number = value => typeof value==='number' && Number.isFinite(value);
@@ -32,6 +33,7 @@ export function validateMap(map) {
     check(text(id) && text(name) && !districts.has(id) && !districtNames.has(name),'Invalid or duplicate district.'); districts.add(id); districtNames.add(name);
     if (typeof d==='object') {
       check(slug(id),'District ids must be slugs.');
+      validateDistrictGeometry(d,map);
       if (d.region !== undefined) check(regions.has(d.region),`${id}: unknown region.`);
       if (d.generation !== undefined) { check(catalog,'Generation settings need a map generator.'); check(!Object.hasOwn(d.generation,'version'),'District cannot select an engine version.'); validateSettings(d.generation,id,catalog); }
     }
@@ -50,6 +52,7 @@ export function validateMap(map) {
     if (p.bounds !== undefined) check(Array.isArray(p.bounds) && p.bounds.length===4 && p.bounds.every(number),`${prefix}: invalid bounds.`);
     if (p.shape !== undefined) {
       check(!p.bounds || p.shape?.kind==='rectangle',`${prefix}: use bounds or a non-rectangle shape, not both.`);
+      if(p.shape?.holes!==undefined) check(p.shape.kind==='polygon',`${prefix}: only polygons can have holes.`);
       check(p.shape && ['point','rectangle','ellipse','polygon','polyline'].includes(p.shape.kind),`${prefix}: invalid shape.`);
       if (p.shape.kind==='ellipse') check(number(p.shape.rx) && p.shape.rx>0 && number(p.shape.ry) && p.shape.ry>0,`${prefix}: invalid ellipse.`);
       if (p.shape.kind==='polyline') {
@@ -63,12 +66,22 @@ export function validateMap(map) {
         check(Array.isArray(pts) && pts.length>=3 && pts.every(v=>Array.isArray(v) && v.length===2 && v.every(number)),`${prefix}: invalid polygon.`);
         const area=pts.reduce((sum,[x,y],i)=>{const [nx,ny]=pts[(i+1)%pts.length]; return sum+x*ny-nx*y;},0);
         check(Math.abs(area)>0,`${prefix}: polygon has no area.`);
+        if(p.shape.holes!==undefined) {
+          check(Array.isArray(p.shape.holes),`${prefix}: polygon holes must be a list.`);
+          for(const ring of p.shape.holes) {
+            check(Array.isArray(ring) && ring.length>=3 && ring.every(v=>Array.isArray(v) && v.length===2 && v.every(number) && v[0]>=0 && v[0]<=map.width && v[1]>=0 && v[1]<=map.height),`${prefix}: invalid polygon hole.`);
+            const area=ring.reduce((sum,[x,y],i)=>{const [nx,ny]=ring[(i+1)%ring.length];return sum+x*ny-nx*y;},0);
+            check(Math.abs(area)>0,`${prefix}: polygon hole has no area.`);
+            check(ring.every(([x,y])=>ringContains(pts,x,y)),`${prefix}: polygon hole must be inside its exterior.`);
+          }
+        }
       }
     }
     if (p.bounds || ['ellipse','polygon','polyline'].includes(p.shape?.kind)) {
       const [x,y,w,h]=boundsFor(p);
       check(x>=0 && y>=0 && w>0 && h>0 && x+w<=map.width && y+h<=map.height,`${prefix}: bounds are outside the image.`);
     }
+    if(p.labelMinScale!==undefined) check(number(p.labelMinScale) && p.labelMinScale>=0,`${prefix}: invalid minimum label scale.`);
     check(p.featured===undefined || typeof p.featured==='boolean',`${prefix}: featured must be a boolean.`);
     if (catalog) {
       const localCatalog = catalogFor(map,p);

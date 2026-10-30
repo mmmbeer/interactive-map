@@ -181,22 +181,20 @@ test('full-text search yields and cancels when a query is replaced or the viewer
   assert.equal(await searchPlaces(places,{query:p.name},{signal:controller.signal}),null);
   assert.equal((await searchPlaces(places,{query:'test-2'},{batchSize:2})).length,1);
 });
-test('the complete migrated map resolves without missing text or unresolved tokens',async()=>{
+test('the complete rebuilt map resolves without missing text or unresolved tokens',async()=>{
   const source=JSON.parse(await readFile(new URL('../public/data/maps/dragonsgate.json',import.meta.url),'utf8'));
   validateMap(source);
-  assert.equal(source.locations.length,7109);assert.equal(source.locations.filter(p=>p.overrides).length,54);
+  assert.ok(source.locations.length>9000);assert.equal(source.generator.version,2);
   const places=materializeMap(source).locations;
   for(const p of places) {
     for(const field of ['name','description','person','rumor','address','services']) {
       assert.equal(typeof p[field],'string');assert.doesNotMatch(p[field],/undefined|\{\w+\}/);
     }
   }
-  assert.equal(places[0].name,'The Dragonseat');
-  assert.equal(places[0].description,source.locations[0].overrides.description);
-  // Pin released v1 output so later refactors cannot silently reroll this map.
-  assert.equal(places[54].name,'Tabitha’s Rooms on Garden Walk');
-  assert.equal(places[54].person,'Tabitha Dunbar, adult human resident. She knows the neighbors by name.');
-  assert.ok(source.locations.filter(p=>p.type).length>2000);
-  assert.ok(Buffer.byteLength(serializeMap(source))<870000);
+  const dragonseat=places.find(p=>p.id==='dg-0001');
+  assert.equal(dragonseat.name,'The Dragonseat');
+  assert.equal(dragonseat.description,source.locations.find(p=>p.id==='dg-0001').overrides.description);
+  assert.ok(source.locations.every(p=>p.type));
+  assert.ok(Buffer.byteLength(serializeMap(source))<4000000);
 });
 
