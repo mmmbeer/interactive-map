@@ -1,5 +1,5 @@
 @media(min-width:1600px){.library-workspace{grid-template-columns:350px minmax(0,1fr)}.library-panel{padding:30px 24px 0}.library-heading h1{font-size:44px}.place-sidebar{width:330px}}
-@media(max-width:1050px){.library-workspace{grid-template-columns:270px minmax(0,1fr);gap:10px;padding:10px}.library-panel{padding:20px 10px 0}.library-heading h1{font-size:33px}.preview-caption{padding:18px;left:12px;right:12px}.preview-caption h2{font-size:28px}.preview-caption .button{padding:10px;font-size:11px}.preview-caption p{font-size:11px}.place-sidebar{width:275px}.detail-panel{width:275px}.map-context{font-size:7px}.map-context b{padding:0 3px}}
+@media(max-width:1050px){.library-workspace{grid-template-columns:270px minmax(0,1fr);gap:10px;padding:10px}.library-panel{padding:20px 10px 0}.library-heading h1{font-size:33px}.preview-caption{padding:18px;left:12px;right:12px}.preview-caption h2{font-size:28px}.preview-caption .button{padding:10px;font-size:11px}.preview-caption p{font-size:11px}.place-sidebar{width:275px}.map-context{font-size:7px}.map-context b{padding:0 3px}}
 @media(max-width:760px){
 .site-header{height:60px;padding:0 16px;gap:8px}
 .site-header .brand img{width:31px;height:31px}
@@ -76,7 +76,7 @@
 .results-heading button{min-height:30px;font-size:11px}
 .map-topline{top:12px;right:12px;left:auto}
 .map-context{display:none}
-.mobile-directory{display:flex;position:absolute;top:12px;left:12px;background:var(--deep-twilight);color:var(--tea-green);min-height:42px;padding:10px 12px;gap:7px;font-size:10px;border-color:#ffffff30;box-shadow:0 2px 6px #08035720}
+.mobile-directory{display:flex;position:absolute;top:12px;left:12px;background:var(--paper-light);color:var(--tea-green);min-height:42px;padding:10px 12px;gap:7px;font-size:10px;border-color:#ffffff30;box-shadow:0 2px 6px #08035720}
 .mobile-directory .icon{width:15px;height:15px}
 .mobile-directory>span{font-weight:400;color:var(--muted);font-size:9px;margin-left:3px}
 .marker-toggle{min-height:42px;padding:0 10px}
@@ -87,17 +87,6 @@
 .preview-navigation .map-control{width:38px;height:38px}
 .overview-map{width:calc(var(--overview-width,74px)*.85);height:calc(var(--overview-height,128px)*.85);right:12px;bottom:44px}
 .map-bottomline{bottom:10px;left:12px;right:12px;font-size:6px;letter-spacing:.6px}
-.detail-panel{width:auto;max-height:49%;top:auto;bottom:10px;right:10px;left:10px;z-index:6;border-radius:8px}
-.detail-banner{height:43px;padding-left:17px}
-.detail-banner>span>.icon{width:21px;height:21px}
-.detail-close{top:2px;right:5px;width:40px;height:40px}
-.detail-content{padding:16px 18px 19px}
-.detail-content h2{font-size:25px;margin:6px 0 10px}
-.place-description{font-size:12px;line-height:1.8;margin:13px 0 16px}
-.detail-section{padding-top:13px}
-.story-hook{margin-top:14px}
-.detail-share{margin-top:17px;min-height:42px}
-.detail-footnote{margin-top:10px}
 .map-tooltip{display:none!important}
 .about-dialog{padding:25px}
 .about-dialog h2{font-size:30px}

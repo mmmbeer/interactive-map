@@ -1,5 +1,5 @@
 .location-editor{width:min(1040px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;border:1px solid var(--line);border-radius:12px;background:var(--paper-light);color:var(--ink);overflow:auto;box-shadow:0 20px 80px #0008}
-.location-editor::backdrop{background:#030122b0;backdrop-filter:blur(5px)}
+.location-editor::backdrop{background:#111610b0;backdrop-filter:blur(5px)}
 .location-editor>header{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 12px}
 .location-editor h2{font-size:24px;margin-top:3px}
 .location-editor p{line-height:1.6;font-size:12px;color:var(--muted)}
@@ -12,7 +12,7 @@
 .editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .editor-wide{grid-column:1/-1}
 .location-editor label{display:flex;flex-direction:column;gap:6px;font-size:11px;line-height:1.5;min-width:0}
-.location-editor input:not([type=checkbox]),.location-editor select,.location-editor textarea{width:100%;min-height:40px;background:var(--deep-twilight);color:var(--ink);border:1px solid #ffffff30;border-radius:6px;padding:9px;font:inherit}
+.location-editor input:not([type=checkbox]),.location-editor select,.location-editor textarea{width:100%;min-height:40px;background:var(--paper-light);color:var(--ink);border:1px solid #ffffff30;border-radius:6px;padding:9px;font:inherit}
 .location-editor textarea{resize:vertical;font-family:monospace;font-size:11px;line-height:1.6}
 .location-editor small{display:block;line-height:1.6;color:var(--muted);font-size:10px;margin-top:4px}
 .location-editor input[type=checkbox]{accent-color:var(--tea-green)}
@@ -26,7 +26,7 @@
 .location-editor details{border-top:1px solid var(--line);padding-top:12px}
 .location-editor summary{font-size:12px;color:var(--tea-green);cursor:pointer;margin-bottom:12px}
 .override-fields{display:grid;gap:12px}
-.editor-preview{position:sticky;top:12px;align-self:start;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--deep-twilight)}
+.editor-preview{position:sticky;top:12px;align-self:start;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper-light)}
 .editor-preview>.eyebrow{padding:12px 18px;border-bottom:1px solid var(--line)}
 .editor-preview .detail-banner{height:44px}
 .editor-preview .detail-content{padding:18px}
