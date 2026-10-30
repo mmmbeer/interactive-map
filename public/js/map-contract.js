@@ -1,6 +1,8 @@
+import { catalogFor, versionFor } from './generation/config.js';
+import { validateGeography } from './generation/geography-validation.js';
 import { check, validateGenerator, validateSettings, validateResolvedSettings } from './generation/validate.js';
 import { boundsFor } from './geometry.js';
-export const categoryKeys = ['landmark','tavern','shop','workshop','temple','guild','harbor','home'];
+export const categoryKeys = ['landmark','tavern','shop','workshop','temple','guild','harbor','home','street','water','terrain'];
 const slug = value => typeof value==='string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 const number = value => typeof value==='number' && Number.isFinite(value);
 const text = value => typeof value==='string' && value.trim().length>0;
@@ -22,7 +24,7 @@ export function validateMap(map) {
   check(map.regions===undefined || Array.isArray(map.regions),'Regions must be a list.');
   for (const r of map.regions || []) {
     check(r && slug(r.id) && text(r.name) && !regions.has(r.id),'Invalid or duplicate region.'); regions.add(r.id);
-    if (r.generation !== undefined) { check(catalog,'Generation settings need a map generator.'); validateSettings(r.generation,r.id,catalog); }
+    if (r.generation !== undefined) { check(catalog,'Generation settings need a map generator.'); check(!Object.hasOwn(r.generation,'version'),'Region cannot select an engine version.'); validateSettings(r.generation,r.id,catalog); }
   }
   check(map.districts===undefined || Array.isArray(map.districts),'Districts must be a list.');
   for (const d of map.districts || []) {
@@ -31,7 +33,7 @@ export function validateMap(map) {
     if (typeof d==='object') {
       check(slug(id),'District ids must be slugs.');
       if (d.region !== undefined) check(regions.has(d.region),`${id}: unknown region.`);
-      if (d.generation !== undefined) { check(catalog,'Generation settings need a map generator.'); validateSettings(d.generation,id,catalog); }
+      if (d.generation !== undefined) { check(catalog,'Generation settings need a map generator.'); check(!Object.hasOwn(d.generation,'version'),'District cannot select an engine version.'); validateSettings(d.generation,id,catalog); }
     }
   }
   check(Array.isArray(map.locations) && map.locations.length,'A map needs at least one location.');
@@ -48,8 +50,14 @@ export function validateMap(map) {
     if (p.bounds !== undefined) check(Array.isArray(p.bounds) && p.bounds.length===4 && p.bounds.every(number),`${prefix}: invalid bounds.`);
     if (p.shape !== undefined) {
       check(!p.bounds || p.shape?.kind==='rectangle',`${prefix}: use bounds or a non-rectangle shape, not both.`);
-      check(p.shape && ['point','rectangle','ellipse','polygon'].includes(p.shape.kind),`${prefix}: invalid shape.`);
+      check(p.shape && ['point','rectangle','ellipse','polygon','polyline'].includes(p.shape.kind),`${prefix}: invalid shape.`);
       if (p.shape.kind==='ellipse') check(number(p.shape.rx) && p.shape.rx>0 && number(p.shape.ry) && p.shape.ry>0,`${prefix}: invalid ellipse.`);
+      if (p.shape.kind==='polyline') {
+        const pts=p.shape.points;
+        check(Array.isArray(pts) && pts.length>=2 && pts.every(v=>Array.isArray(v) && v.length===2 && v.every(number)),`${prefix}: invalid polyline.`);
+        check(number(p.shape.width) && p.shape.width>0,`${prefix}: polyline needs a positive width.`);
+        check(pts.some(v=>v[0]!==pts[0][0] || v[1]!==pts[0][1]),`${prefix}: polyline has no length.`);
+      }
       if (p.shape.kind==='polygon') {
         const pts=p.shape.points;
         check(Array.isArray(pts) && pts.length>=3 && pts.every(v=>Array.isArray(v) && v.length===2 && v.every(number)),`${prefix}: invalid polygon.`);
@@ -57,17 +65,19 @@ export function validateMap(map) {
         check(Math.abs(area)>0,`${prefix}: polygon has no area.`);
       }
     }
-    if (p.bounds || ['ellipse','polygon'].includes(p.shape?.kind)) {
+    if (p.bounds || ['ellipse','polygon','polyline'].includes(p.shape?.kind)) {
       const [x,y,w,h]=boundsFor(p);
       check(x>=0 && y>=0 && w>0 && h>0 && x+w<=map.width && y+h<=map.height,`${prefix}: bounds are outside the image.`);
     }
     check(p.featured===undefined || typeof p.featured==='boolean',`${prefix}: featured must be a boolean.`);
     if (catalog) {
-      if(p.type!==undefined) check(text(p.type) && Object.hasOwn(catalog.types,p.type),`${prefix}: unknown type.`);
-      const type=catalog.types[p.type || p.category];
+      const localCatalog = catalogFor(map,p);
+      if(p.type!==undefined) check(text(p.type) && Object.hasOwn(localCatalog.types,p.type),`${prefix}: unknown type.`);
+      const type=localCatalog.types[p.type || p.category];
+      if (['street','water','terrain'].includes(p.category)) check(versionFor(map,p)===2,`${prefix}: geography requires generator 2.`);
       check(type && type.category===p.category,`${prefix}: unknown or incompatible type.`);
-      if (p.generation !== undefined) validateSettings(p.generation,prefix,catalog);
-      validateResolvedSettings(map,p,catalog);
+      if (p.generation !== undefined) validateSettings(p.generation,prefix,localCatalog);
+      validateResolvedSettings(map,p,localCatalog);
       if (p.overrides !== undefined) {
         check(p.overrides && typeof p.overrides==='object' && !Array.isArray(p.overrides),`${prefix}: overrides must be an object.`);
         for (const [key,value] of Object.entries(p.overrides)) check((['name','description','person','rumor','address','services'].includes(key) || Object.hasOwn(catalog.sections,key)) && (typeof value==='string' || value===null),`${prefix}: invalid override ${key}.`);
@@ -79,9 +89,11 @@ export function validateMap(map) {
       for (const key of ['address','person','rumor']) check(p[key]===undefined || typeof p[key]==='string',`${prefix}: ${key} must be text.`);
     }
   }
+  validateGeography(map);
   if (map.initialView) {
     const v=map.initialView;
     check(number(v.x) && number(v.y) && number(v.width) && v.x>=0 && v.x<=map.width && v.y>=0 && v.y<=map.height && v.width>0,'Invalid initial view.');
   }
   return map.locations.length;
 }
+

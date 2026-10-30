@@ -139,3 +139,57 @@ node scripts/migrate-map.mjs public/data/maps/my-map.json
 The default migration preserves every authored field in overrides. `--regenerate-unfeatured` deliberately discards nonfeatured text so those places use generation. It keeps featured text, ids, coordinates, bounds and categories. Use that flag only when discarded text should be regenerated. Migration is idempotent for maps that already have a generator.
 
 Dragonsgate uses compact inputs for 7,085 places. Its 54 authored highlights remain overrides. All original ids and geometry are preserved.
+
+
+## Version 2: streets, water and geography
+
+Use `generator.version: 2` for a new map. Keep the map seed stable. Existing maps can retain version 1 and opt new places into version 2 with `generation.version: 2`. The editor does this for new locations. Existing places keep their original engine until you explicitly change it. `generation.version` selects only that location's engine. Do not put it on map defaults, districts or regions.
+
+Version 1 banks, templates and RNG remain frozen. Version 2 is independently versioned in `public/js/generation/*-v2.js`. Every built-in v2 lexical bank has at least 100 distinct entries, including each race/gender name pool, surnames, place roots, adjectives, animals, symbols, prose fragments and each type's noun, role and service pools. Some banks compose full entries from curated compatible stems. `bank()` rejects fewer than 100 unique nonempty entries. Small grammar tables, finite choices, field lists and user-supplied catalog overrides are not lexical banks and do not require 100 entries.
+
+The strict helpers validate finite JSON seeds, finite nonnegative weights, positive totals, RNG boundaries and integer ranges. Zero-weight choices never occur. `sample()` selects without replacement. Independent labeled streams isolate field selection from identity. Numeric geometry never enters a content seed.
+
+### Mapped feature types
+
+| Category | Built-in types |
+| --- | --- |
+| `street` | `street`, `road`, `lane`, `alley`, `bridge`, `square`, `trail` |
+| `water` | `river`, `stream`, `canal`, `lake`, `pond`, `bay`, `sea`, `channel`, `strait` |
+| `terrain` | `island`, `forest`, `wood`, `hill`, `mountain`, `valley`, `marsh`, `field`, `cliff`, `beach`, `cape` |
+
+Set both category and type. A lake uses lake naming grammar and physical descriptions. It does not receive a shopkeeper, stock list or numbered house address. Demographics still inform commemorative names, but the viewer does not present a randomly generated resident profile for geographic features. Explicit text overrides and custom output tables remain available.
+
+Use `shape: {"kind":"polyline","width":8,"points":[[120,200],[180,240],[250,240]]}` for roads, rivers and canals. Width is the full selectable corridor in image pixels. Lines stay open and use round endpoints. They need at least two distinct points and positive width. Their complete corridor must fit inside the image. Use polygons or ellipses for lakes and land areas. The existing point and rectangle shapes remain supported.
+
+Geographic labels appear on the map. Filters, search, hover cards, the directory and touch selection include these features. Marker visibility also controls labels. An overlapping building's smaller hit area takes priority over broad geographic areas.
+
+### Shared geographic references
+
+A location can store `context` with `street`, `water`, `terrain` and `landmark` keys. Each value is another saved location's stable id. The target must have the corresponding category. References cannot point to the same place or form a cycle.
+
+```json
+{
+  "id": "river-shop-001",
+  "category": "shop",
+  "type": "apothecary",
+  "district": "north-quays",
+  "x": 315,
+  "y": 246,
+  "generation": {"version":2,"demographics":{"race":"elf"}},
+  "context": {"street":"quay-road","water":"harbor-bay"}
+}
+```
+
+The generated address uses the exact name of `quay-road`. Descriptions can mention `harbor-bay`. Changing a feature's authored name updates references to it on the next load. Moving a feature does not change its identity. Adding a new nearby feature does not silently reassign a building. Without an explicit street reference, v2 buildings use a deterministic fallback street shared within their district. This fallback is an address convention, not an automatically mapped road. Use editor context selectors to link actual mapped features.
+
+Version 2 descriptions use the displayed location name, including an authored name override. Resident identity, type and available services share the same tokens. New v2 tokens are `root`, `compound`, `head`, `water`, `terrain`, `landmark`, `setting`, `displayName`, `address`, `firstPossessive`, `surnamePossessive`, `fullNamePossessive`, `epithetPossessive` and `article`. `displayName` cannot appear inside a name template. Malformed or unknown template tokens fail validation.
+
+### Naming structures
+
+Version 2 mixes twelve weighted geographic naming patterns. Richer combinations receive greater weight to reduce repetition. Business patterns always include a type noun or label. Name collisions remain possible and never cause order-dependent renaming. Stable ids identify places.
+
+`generation.nameStyle` optionally selects `descriptive`, `simple`, `compound`, `eponym`, `local`, `poetic`, `historic`, `formal`, `regional`, `paired`, `commemorative` or `traditional`. Omit it for mixed patterns. An explicitly supplied `tables.name` takes priority over a style. Demographics select the people pool used for eponymous and commemorative patterns. Geography types select appropriate root banks and head nouns. Regions and districts provide shared context.
+
+Dragonsgate adds 24 v2 features to its original 7,085 places. Existing inputs and authored highlights remain unchanged. Its total is 7,109 locations. Future changes to released v2 defaults also require a new generator version.
+
+Version 2 additionally accepts literal token banks `root`, `waterRoot`, `streetRoot` and `epithet` in catalog, type and inherited tables. `root` explicitly overrides the selected geographic root bank. Otherwise water and route types use their specialized banks. `street` customizes the shared fallback street table. Custom banks may be smaller than the built-in defaults and support weighted entries.

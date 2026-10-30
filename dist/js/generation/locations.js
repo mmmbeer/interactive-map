@@ -1,4 +1,6 @@
 import { random, pick, weighted, render } from './random.js';
+import { resolveV2 } from './locations-v2.js';
+import { versionFor } from './config.js';
 import { catalogFor, configFor, dimensions, districtList, availableFields } from './config.js';
 
 const label = text => text.replaceAll('_',' ');
@@ -47,9 +49,11 @@ function contextFor(map, location, catalog) {
   }
   return {config,demographics,tokens,localTables,roll};
 }
-export function resolveLocation(map, location, catalog = catalogFor(map)) {
+export function resolveLocation(map, location, catalog, stack) {
+  catalog ||= catalogFor(map,location);
   if (!map.generator) return {...location}; // Legacy maps remain readable.
-  if (map.generator.version !== 1) throw new Error(`Unsupported generator version: ${map.generator.version}`);
+  if (versionFor(map,location) === 2) return resolveV2(map,location,resolveLocation,catalog,stack);
+  if (versionFor(map,location) !== 1) throw new Error(`Unsupported generator version: ${map.generator.version}`);
   let context;
   const getContext = () => context ||= contextFor(map,location,catalog);
   const district = districtList(map).find(d => d.id === location.district);
@@ -77,6 +81,14 @@ export function resolveLocation(map, location, catalog = catalogFor(map)) {
 }
 export function materializeMap(source) {
   if (!source.generator) return source;
+  if (![1,2].includes(source.generator.version)) throw new Error(`Unsupported generator version: ${source.generator.version}`);
   const catalog = catalogFor(source);
-  return {...source,districts:districtList(source).map(d => d.name),locations:source.locations.map(p => resolveLocation(source,p,catalog))};
+  return {...source,districts:districtList(source).map(d => d.name),locations:source.locations.map(p => {
+    if (versionFor(source,p) === 1) return resolveLocation(source,p,source.generator.version === 1 ? catalog : catalogFor(source,p));
+    let cached;
+    const result = {...p};
+    for (const key of [...availableFields(source),'district','districtId','demographics','extra']) Object.defineProperty(result,key,{enumerable:true,get:()=> (cached ||= resolveLocation(source,p))[key]});
+    return result;
+  })};
 }
+

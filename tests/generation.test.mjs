@@ -77,7 +77,7 @@ test('version, seed and per-place variation are explicit and isolated',()=>{
   a.locations[0].generation={revision:1};assert.notEqual(output(a).description,before.description);
   assert.equal(resolveLocation(a,a.locations[1]).name,other);
   a.generator.seed='other';assert.notEqual(output(a).person,before.person);
-  a.generator.version=2;assert.throws(()=>validateMap(a),/version/);assert.throws(()=>materializeMap(a),/version/);
+  a.generator.version=99;assert.throws(()=>validateMap(a),/version/);assert.throws(()=>materializeMap(a),/version/);
 });
 test('invalid weights, tokens, catalog entries and demographic references fail early',()=>{
   const variants=[
@@ -184,7 +184,7 @@ test('full-text search yields and cancels when a query is replaced or the viewer
 test('the complete migrated map resolves without missing text or unresolved tokens',async()=>{
   const source=JSON.parse(await readFile(new URL('../public/data/maps/dragonsgate.json',import.meta.url),'utf8'));
   validateMap(source);
-  assert.equal(source.locations.length,7085);assert.equal(source.locations.filter(p=>p.overrides).length,54);
+  assert.equal(source.locations.length,7109);assert.equal(source.locations.filter(p=>p.overrides).length,54);
   const places=materializeMap(source).locations;
   for(const p of places) {
     for(const field of ['name','description','person','rumor','address','services']) {
@@ -197,5 +197,6 @@ test('the complete migrated map resolves without missing text or unresolved toke
   assert.equal(places[54].name,'Tabitha’s Rooms on Garden Walk');
   assert.equal(places[54].person,'Tabitha Dunbar, adult human resident. She knows the neighbors by name.');
   assert.ok(source.locations.filter(p=>p.type).length>2000);
-  assert.ok(Buffer.byteLength(serializeMap(source))<850000);
+  assert.ok(Buffer.byteLength(serializeMap(source))<870000);
 });
+
