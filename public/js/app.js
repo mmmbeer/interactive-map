@@ -50,8 +50,9 @@ async function route() {
     if (placeId) viewer.selectById(placeId);
   } catch (error) {
     if (error.name === 'AbortError') return;
-    root.innerHTML = `<main class="error-page"><div class="eyebrow">A WRONG TURN</div><h1>The trail ends here.</h1><p>${escape(error.message)}</p><a class="button primary" href="#">Back to the atlas ${icon('arrow')}</a><button class="button" id="retry">Try again</button></main>`;
-    document.querySelector('#retry').onclick = route;
+    root.innerHTML = `<main class="error-page"><div class="eyebrow">A WRONG TURN</div><h1>The trail ends here.</h1><p>${escape(error.message)}</p><a class="button primary" href="#">Back to the atlas ${icon('arrow')}</a><button class="button" id="retry">Reload atlas</button></main>`;
+    // Refresh the document and its release graph when an old open tab meets new data.
+    document.querySelector('#retry').onclick = () => location.reload();
   }
 }
 document.querySelector('.skip-link').addEventListener('click',event=>{

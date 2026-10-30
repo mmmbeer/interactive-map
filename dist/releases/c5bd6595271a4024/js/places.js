@@ -1,0 +1,49 @@
+import { brand, categories, categoryBadge, escape, icon, number } from './ui.js';
+export function viewerHTML(data) {
+  return `<div class="atlas-shell">
+    <header class="atlas-header"><a class="back-link" href="#">${icon('back')}<span>All maps</span></a><div class="atlas-title"><span class="eyebrow">THE WANDERING ATLAS</span><strong>${escape(data.name)}</strong></div><div class="header-actions"><button class="button quiet" id="edit-map" aria-label="Edit map" title="Add a location or edit map defaults">${icon('plus')}<span>Edit map</span></button><button class="button quiet" id="share-map" aria-label="Share map">${icon('share')}<span>Share map</span></button><button class="icon-button" id="about-map" aria-label="About this map">${icon('info')}</button></div></header>
+    <main class="atlas-main" id="main-content">
+      <aside class="place-sidebar" aria-label="Place directory" id="place-sidebar">
+        <div class="sidebar-intro"><div class="eyebrow">${escape(data.region)}</div><h1>${escape(data.name)}</h1><p>${escape(data.subtitle)}.</p><div class="sidebar-stats">${icon('pin')}<span>${number(data.locations.length)} places. Countless stories.</span></div><button class="sidebar-close icon-button" aria-label="Close place directory">${icon('close')}</button></div>
+        <div class="directory-controls"><label class="search-field">${icon('search')}<input id="place-search" type="search" placeholder="Find a place, person, or story…" aria-label="Search all places" autocomplete="off"><kbd>/</kbd></label>
+          <div class="directory-tabs" aria-label="Directory scope"><button data-scope="highlights" class="active" aria-pressed="true">Highlights <span>${data.locations.filter(p=>p.featured).length}</span></button><button data-scope="all" aria-pressed="false">All places <span>${number(data.locations.length)}</span></button></div>
+          <div class="category-filters" role="group" aria-label="Filter places by type"><button class="filter-chip active" data-category="" aria-pressed="true">All types</button>${Object.entries(categories).map(([key,c])=>`<button class="filter-chip" data-category="${key}" aria-pressed="false" style="--category:${c.color}">${icon(c.icon)}${c.label}</button>`).join('')}</div>
+          <label class="district-filter"><span>NEIGHBORHOOD</span><select id="district-filter"><option value="">Every neighborhood</option>${(data.districts||[...new Set(data.locations.map(p=>p.district))]).map(d=>`<option>${escape(d)}</option>`).join('')}</select></label>
+        </div>
+        <div class="results-heading"><span id="results-count" role="status" aria-live="polite"></span><button id="random-place" title="Open a random place">${icon('dice')}Surprise me</button></div>
+        <div class="place-list" id="place-list" tabindex="-1"></div>
+        <div class="sidebar-footer">${icon('compass')}Follow a street. Find a story.</div>
+      </aside>
+      <section class="map-area" aria-label="Interactive ${escape(data.name)} map">
+        <div id="map-stage" class="map-stage" tabindex="0" role="region" aria-label="Map. Drag to pan. Scroll or pinch to zoom. Keyboard: arrow keys to pan, plus and minus to zoom, zero to fit. Choose a location from the directory to read its story."></div>
+        <div class="map-topline"><span class="map-context">${icon('compass')}<span>DRAG TO WANDER <b>·</b> HOVER TO DISCOVER</span></span><button id="toggle-markers" class="map-control marker-toggle" aria-pressed="true" title="Show or hide location markers">${icon('pin')}<span>Markers</span></button></div>
+        <button class="mobile-directory button" id="open-directory" aria-controls="place-sidebar" aria-expanded="false">${icon('search')}Explore places<span>${number(data.locations.length)}</span></button>
+        <div class="map-navigation" aria-label="Map controls"><button id="zoom-in" class="map-control" aria-label="Zoom in">${icon('plus')}</button><button id="zoom-out" class="map-control" aria-label="Zoom out">${icon('minus')}</button><div></div><button id="fit-map" class="map-control" aria-label="Fit entire map" title="Fit entire map (0)">${icon('fit')}</button><button id="reset-map" class="map-control" aria-label="Return to the starting view" title="Return to city view">${icon('compass')}</button></div>
+        <div class="map-bottomline"><span>${escape(data.name)} <b>·</b> ${escape(data.region).toUpperCase()}</span><span id="zoom-status"></span></div>
+        <button class="overview-map" id="overview-map" aria-label="Recenter map using the overview"><img src="${escape(data.thumbnail)}" alt=""><span class="overview-viewport"></span><span class="overview-label">OVERVIEW</span></button>
+        <aside class="detail-panel" id="detail-panel" aria-label="Location details" hidden></aside>
+      </section>
+    </main>
+    <div class="map-tooltip" id="map-tooltip" role="tooltip" hidden></div>
+    <dialog class="about-dialog" id="map-info"><button class="dialog-close icon-button" aria-label="Close map information">${icon('close')}</button>${brand()}<div class="eyebrow">A FIELD GUIDE TO</div><h2>${escape(data.name)}</h2><p>${escape(data.description)}</p><dl><div><dt>Explore</dt><dd>Drag the map to pan. Scroll or pinch to zoom. Use the overview to jump across the city.</dd></div><div><dt>Discover</dt><dd>Hover over buildings for a preview. Click or tap any place for its full story. The directory is searchable by place, person and neighborhood.</dd></div><div><dt>Keyboard</dt><dd>Use Tab to move between controls and landmarks. Press / to search. On the map, use arrow keys to pan, + and − to zoom, and 0 to fit. Escape closes an open story.</dd></div></dl><p class="map-credit">${escape(data.credit||'Location names and stories are fictional additions.')} Each building entry is a point of interest, not an official account of the original map.</p></dialog>
+  </div>`;
+}
+export function listItem(place) {
+  const c=categories[place.category];
+  return `<button class="place-item" data-place="${escape(place.id)}" style="--category:${c.color}"><span class="place-symbol">${icon(c.icon)}</span><span class="place-item-copy"><strong>${escape(place.name)}</strong><span>${escape(place.district)} <b>·</b> ${escape(c.singular)}</span></span>${icon('arrow','place-arrow')}</button>`;
+}
+export function detailHTML(place) {
+  const c=categories[place.category];
+  return `<div class="detail-banner" style="--category:${c.color}"><span>${icon(c.icon)}</span><button class="icon-button detail-close" aria-label="Close location details">${icon('close')}</button></div>
+    <div class="detail-content"><div class="eyebrow">${escape(place.district)}</div><h2 tabindex="-1">${escape(place.name)}</h2>${categoryBadge(place.category)}${place.demographics?`<div class="detail-demographics">${Object.entries(place.demographics).map(([key,v])=>`<span>${escape(String(v).replaceAll('_',' '))}${key==='population'?' residents':''}</span>`).join('')}</div>`:''}${place.address?`<div class="place-address">${icon('pin')}${escape(place.address)}</div>`:''}<p class="place-description">${escape(place.description)}</p>
+      ${place.person?`<div class="detail-section"><h3>A FAMILIAR FACE</h3><p>${escape(place.person)}</p></div>`:''}
+      ${place.rumor?`<div class="story-hook"><h3>${icon('book')}WORD ON THE STREET</h3><p>${escape(place.rumor)}</p></div>`:''}
+      ${place.services?`<div class="detail-section"><h3>AVAILABLE HERE</h3><p>${escape(place.services)}</p></div>`:''}
+      ${Object.values(place.extra || {}).filter(s=>s.text).map(s=>`<div class="detail-section"><h3>${escape(s.label)}</h3><p>${escape(s.text)}</p></div>`).join('')}
+      <button class="button detail-edit">${icon('layers')}Edit location</button>
+      <button class="button detail-share">${icon('share')}Copy link to this place</button><span class="detail-footnote">One small story in a much bigger city.</span>
+    </div>`;
+}
+export function tooltipHTML(place) {
+  return `${categoryBadge(place.category)}<strong>${escape(place.name)}</strong><span class="tooltip-district">${escape(place.district)}${place.address?' · '+escape(place.address):''}</span><p>${escape(place.description)}</p><span class="tooltip-hint">Click to discover more ${icon('arrow')}</span>`;
+}

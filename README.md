@@ -88,3 +88,9 @@ sources/                    Original supplied map, excluded from deployment
 See [docs/generation.md](docs/generation.md) for seeds, inheritance, race/culture inputs, custom content and legacy migration. Use **Edit map** to add locations and **Edit location** on a place to update it. Saves create a draft on the current device. Export JSON, register the updated map, rebuild and commit to publish through Cloudflare. Generated results are never persisted in map JSON.
 
 Dragonsgate’s map data dropped from 2,103,891 to about 813,000 bytes while preserving every location id, coordinate, hit box and authored highlight.
+
+## Browser asset versions
+
+The production build copies JavaScript and CSS into a directory named from a deterministic content hash. The generated HTML loads that release, and relative module imports remain inside it. A change to any runtime dependency changes the release URL. This prevents browsers from mixing an old validator with new modules after deployment. The original asset paths remain as revalidated compatibility aliases. HTML and map data also revalidate. Versioned assets can be cached indefinitely because their URLs change with their contents.
+
+The error screen’s Reload atlas button reloads the document so a tab left open across a deployment can load the current release.
