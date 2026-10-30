@@ -1,52 +1,43 @@
-# Adding a map from a work chat
+# Adding a map
 
-Give the agent a map image, a name and any preferred setting or tone. Ask it to add the map to `mmmbeer/interactive-map`. All authoring happens in the repository. Visitors only browse the finished maps.
+Supply a map image, name and setting preferences in a work chat and ask to add it to `mmmbeer/interactive-map`. Maps remain static assets on Cloudflare Pages. Text is generated locally from versioned inputs. No server, API key or AI request is involved.
 
-## Authoring workflow
+1. Read `AGENTS.md` and inspect the image. Identify structures, water, landmarks and neighborhoods.
+2. Choose a stable lowercase map id. Save the original in `sources/` and optimized images in `public/assets/maps/<id>/`.
+3. Copy `docs/map-template.json` to `public/data/maps/<id>.json`. Set exact image dimensions, metadata and attribution.
+4. Choose a permanent map seed. Define regions and districts with stable ids and readable names. Districts can reference a region and override its generation settings.
+5. Flag recognizable structures with stable location ids, image-pixel anchors, hit shapes, categories, specific types and district ids. Never generate positions at runtime.
+6. Configure race, gender, age, naming culture, wealth and population where known. Use weighted defaults for remaining places. See [generation.md](generation.md).
+7. Preserve setting-specific names and stories in `overrides`. Use `featured: true` for a manageable number of visible pins. Ordinary buildings usually need no text in the map JSON.
+8. Optionally run `scripts/extract-buildings.py` to identify candidate boxes. It needs Pillow, NumPy and SciPy. Inspect candidates visually and remove false positives before adding locations.
+9. Run `node scripts/register-map.mjs <id>`, `npm test` and `npm run build`. Inspect hover, tap, search, filters, links and map controls.
+10. Commit source, images, map JSON, index and matching `dist/`. Push to the production branch for a connected Cloudflare Pages build.
 
-1. Read `AGENTS.md` and inspect the supplied map. Identify city boundaries, water, buildings, landmark structures and neighborhoods.
-2. Choose a unique lowercase map id, such as `mistwood`. Never rename an existing id.
-3. Preserve the original in `sources/<id>.<extension>`. Save a web-optimized image and a smaller thumbnail in `public/assets/maps/<id>/`. Keep source coordinates aligned to the displayed image dimensions.
-4. Copy `docs/map-template.json` to `public/data/maps/<id>.json`. Fill in metadata and dimensions. Coordinates and bounding boxes are in **original displayed-image pixels**, not percentages or viewport pixels.
-5. Author named locations. Include clear landmarks and useful everyday destinations. Ground the location in what is drawn. Assign categories and neighborhoods. Use original fiction unless setting details are provided.
-6. If the map has many buildings, use `scripts/extract-buildings.py` as an optional starting point for approximate hit boxes. It requires Python with Pillow, NumPy and SciPy. Inspect its output. It cannot reliably distinguish buildings, rocks, trees or connected walls. Remove false positives and manually place missing landmarks before creating content. This is an authoring tool and is never run by Cloudflare or visitors.
-7. Add a stable unique id, a name, category, district and description to each location. Ordinary places can use one-time seeded generation during authoring. Store the result in JSON. Add `featured: true` to a manageable selection of landmarks for the initial directory and visible pins. Richer entries can include a resident and rumor.
-8. Run `node scripts/register-map.mjs <id>`. This validates the map and updates its collection index entry, including counts.
-9. Run `npm test` and `npm run build`. Inspect desktop and mobile. Open the map, hover a building, select a place, search and filter, zoom and pan, follow a place link, return to the collection and switch maps.
-10. Commit source, images, JSON and the rebuilt `dist/` together. Push to the production branch to trigger a connected Cloudflare Pages deployment.
+## Browser authoring
 
-## Map data
+Open **Edit map** to add a place or configure map/district defaults. Open a place and choose **Edit location** to update it. Existing ids are read-only to preserve shared links.
 
-`docs/map.schema.json` defines the format. The build validates the main structural constraints without an external schema library.
+The form provides demographics, category/type, coordinates, shape, highlights, enabled content, overrides and variation. **Place on map** lets you click or tap a point. Pan and zoom while choosing. Press Escape to return without placing. Numeric coordinates support keyboard use. Polygon vertices use an explicit list in the shape field.
 
-| Field | Meaning |
+The preview uses the viewer's generator. **Save location** stores inputs in a local draft and opens the saved place. **Map & district defaults** edits shared settings as JSON. Apply to the preview, then save defaults.
+
+**Map files & drafts** imports or exports compact map data. **Export saved map JSON** exports the saved draft. **Export current edits** includes unsaved form changes and also works if browser draft storage is full. Imports validate before replacing this map's local draft. They cannot change the map id. An older draft is retained for export when the published map changes. It is not applied over newer published data. Restoring the published map requires the discard checkbox.
+
+To publish browser edits, export `<id>.json`, replace `public/data/maps/<id>.json`, register the map to update counts, test, rebuild, commit and push. Drafts are local to the device. Other visitors see changes after publication.
+
+## Geometry
+
+All coordinates use original displayed-image pixels. The upper-left corner is the origin.
+
+| Shape | Saved representation |
 | --- | --- |
-| `id` | Stable unique lowercase slug. Used in `#map/<id>` links. |
-| `name`, `subtitle`, `description` | Visible map identity and introduction. |
-| `image`, `thumbnail` | Local paths relative to `public/`, without a leading slash. |
-| `width`, `height` | Exact dimensions of the displayed full-size map in pixels. |
-| `theme`, `region`, `tags` | Collection card metadata. |
-| `credit` | Map attribution and note about invented content. Preserve known attribution. |
-| `initialView` | Optional `{ "x": 474, "y": 342, "width": 860 }`. Center and visible horizontal span in image pixels. Omit to initially fit the entire map. |
-| `districts` | Optional list of neighborhood names. Every location's district must be listed. If omitted, the viewer derives it. |
-| `locations` | Complete authored list of places. |
+| Point | `x`, `y`; default 10 × 10 pixel hit target |
+| Rectangle | `bounds: [left, top, width, height]` |
+| Ellipse | `shape: {"kind":"ellipse","rx":10,"ry":6}` centered on `x`, `y` |
+| Polygon | `shape: {"kind":"polygon","points":[[10,10],[30,10],[20,30]]}` |
 
-## Location data
+Hit testing and overlays use the same shape. Shape extents must remain inside the image. An anchor may sit outside its shape for marker placement. Regions and districts use explicit mappings, not automatic geographic inference.
 
-| Field | Required | Meaning |
-| --- | --- | --- |
-| `id` | Yes | Stable unique slug within the map, used in share links. |
-| `name` | Yes | Place name. |
-| `category` | Yes | `landmark`, `tavern`, `shop`, `workshop`, `temple`, `guild`, `harbor` or `home`. |
-| `x`, `y` | Yes | Anchor point in image pixels. Origin is the upper-left corner. |
-| `bounds` | No | `[left, top, width, height]` of the building hit area in image pixels. Keep it inside the image. If omitted, the point receives a 10×10 pixel hit area. |
-| `district` | Yes | Neighborhood or regional grouping. |
-| `description` | Yes | Visible description. Plain text only. |
-| `person` | No | Resident, proprietor or contact. |
-| `address` | No | Directory address. Avoid claiming generated addresses are marked on the original drawing. |
-| `rumor` | No | Public story hook. Do not put private GM notes here. |
-| `featured` | No | `true` adds a visible marker and includes the entry under Highlights. |
+`docs/map.schema.json` describes the structural contract. The shared browser/build validator also checks bounds, references, weights, tokens, catalog names and type/category compatibility. `initialView` optionally stores an image-pixel center and horizontal span. Asset paths are relative to `public/`.
 
-Everything in this repository's map data is public. The source includes no separate private notes or player/GM permissions.
-
-When editing an existing place, preserve its id. When updating the index, preserve the order of existing maps unless asked to reorder them. New maps append to the collection. The first entry supplies the landing page's featured image and title.
+All map data and templates are public. Do not include private GM notes.

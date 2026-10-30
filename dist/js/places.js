@@ -1,7 +1,7 @@
 import { brand, categories, categoryBadge, escape, icon, number } from './ui.js';
 export function viewerHTML(data) {
   return `<div class="atlas-shell">
-    <header class="atlas-header"><a class="back-link" href="#">${icon('back')}<span>All maps</span></a><div class="atlas-title"><span class="eyebrow">THE WANDERING ATLAS</span><strong>${escape(data.name)}</strong></div><div class="header-actions"><button class="button quiet" id="share-map" aria-label="Share map">${icon('share')}<span>Share map</span></button><button class="icon-button" id="about-map" aria-label="About this map">${icon('info')}</button></div></header>
+    <header class="atlas-header"><a class="back-link" href="#">${icon('back')}<span>All maps</span></a><div class="atlas-title"><span class="eyebrow">THE WANDERING ATLAS</span><strong>${escape(data.name)}</strong></div><div class="header-actions"><button class="button quiet" id="edit-map" aria-label="Edit map" title="Add a location or edit map defaults">${icon('plus')}<span>Edit map</span></button><button class="button quiet" id="share-map" aria-label="Share map">${icon('share')}<span>Share map</span></button><button class="icon-button" id="about-map" aria-label="About this map">${icon('info')}</button></div></header>
     <main class="atlas-main" id="main-content">
       <aside class="place-sidebar" aria-label="Place directory" id="place-sidebar">
         <div class="sidebar-intro"><div class="eyebrow">${escape(data.region)}</div><h1>${escape(data.name)}</h1><p>${escape(data.subtitle)}.</p><div class="sidebar-stats">${icon('pin')}<span>${number(data.locations.length)} places. Countless stories.</span></div><button class="sidebar-close icon-button" aria-label="Close place directory">${icon('close')}</button></div>
@@ -35,9 +35,12 @@ export function listItem(place) {
 export function detailHTML(place) {
   const c=categories[place.category];
   return `<div class="detail-banner" style="--category:${c.color}"><span>${icon(c.icon)}</span><button class="icon-button detail-close" aria-label="Close location details">${icon('close')}</button></div>
-    <div class="detail-content"><div class="eyebrow">${escape(place.district)}</div><h2 tabindex="-1">${escape(place.name)}</h2>${categoryBadge(place.category)}${place.address?`<div class="place-address">${icon('pin')}${escape(place.address)}</div>`:''}<p class="place-description">${escape(place.description)}</p>
+    <div class="detail-content"><div class="eyebrow">${escape(place.district)}</div><h2 tabindex="-1">${escape(place.name)}</h2>${categoryBadge(place.category)}${place.demographics?`<div class="detail-demographics">${Object.entries(place.demographics).map(([key,v])=>`<span>${escape(String(v).replaceAll('_',' '))}${key==='population'?' residents':''}</span>`).join('')}</div>`:''}${place.address?`<div class="place-address">${icon('pin')}${escape(place.address)}</div>`:''}<p class="place-description">${escape(place.description)}</p>
       ${place.person?`<div class="detail-section"><h3>A FAMILIAR FACE</h3><p>${escape(place.person)}</p></div>`:''}
       ${place.rumor?`<div class="story-hook"><h3>${icon('book')}WORD ON THE STREET</h3><p>${escape(place.rumor)}</p></div>`:''}
+      ${place.services?`<div class="detail-section"><h3>AVAILABLE HERE</h3><p>${escape(place.services)}</p></div>`:''}
+      ${Object.values(place.extra || {}).filter(s=>s.text).map(s=>`<div class="detail-section"><h3>${escape(s.label)}</h3><p>${escape(s.text)}</p></div>`).join('')}
+      <button class="button detail-edit">${icon('layers')}Edit location</button>
       <button class="button detail-share">${icon('share')}Copy link to this place</button><span class="detail-footnote">One small story in a much bigger city.</span>
     </div>`;
 }

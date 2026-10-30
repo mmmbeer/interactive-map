@@ -1,5 +1,8 @@
 import { escape, icon, loadJSON } from './ui.js';
 import { renderLibrary } from './library.js';
+import { readDraft } from './authoring/drafts.js';
+import { materializeMap } from './generation/locations.js';
+import { validateMap } from './map-contract.js';
 import { AtlasViewer } from './viewer.js';
 const root = document.querySelector('#app');
 let viewer, maps, loadController, routeVersion = 0;
@@ -27,11 +30,23 @@ async function route() {
     const entry = maps.find(map => map.id === mapId);
     if (!entry) throw new Error('This map is not in the atlas. Return to the collection to choose another.');
     root.innerHTML = `<div class="loading-screen">${icon('compass')}<p>Unfolding ${escape(entry.name)}…</p></div>`;
-    const data = await loadJSON(entry.data, signal);
+    const source = await loadJSON(entry.data, signal);
+    validateMap(source);
+    const draft = readDraft(source);
+    const data = materializeMap(draft.map);
     if (signal.aborted || version !== routeVersion) return;
     document.body.classList.add('viewer-open');
     document.title = `${data.name} | The Wandering Atlas`;
-    viewer = new AtlasViewer(root, data);
+    const mount = (next,placeId) => {
+      const previous=viewer?.stage;
+      const view=previous && {scale:previous.scale,tx:previous.tx,ty:previous.ty};
+      const selectedId=placeId || viewer?.selected?.id;
+      viewer?.destroy();
+      viewer = new AtlasViewer(root, materializeMap(next), {source:next,published:source,onChange:mount,local:next!==source});
+      if(view) {Object.assign(viewer.stage,view);viewer.stage.render();}
+      if(selectedId && next.locations.some(p=>p.id===selectedId)) viewer.selectById(selectedId);
+    };
+    viewer = new AtlasViewer(root, data, {source:draft.map,published:source,onChange:mount,local:draft.local,stale:draft.stale});
     if (placeId) viewer.selectById(placeId);
   } catch (error) {
     if (error.name === 'AbortError') return;

@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 2,
   "id": "your-map",
   "name": "Your Map",
   "subtitle": "A short invitation to explore",
@@ -14,14 +15,54 @@
     "Fantasy"
   ],
   "credit": "Add known map attribution. Location names and stories are fictional additions.",
+  "generator": {
+    "version": 1,
+    "seed": "your-map-v1",
+    "defaults": {
+      "demographics": {
+        "races": {
+          "human": 6,
+          "elf": 2,
+          "dwarf": 1,
+          "orc": 1
+        }
+      },
+      "fields": [
+        "name",
+        "description",
+        "person",
+        "rumor",
+        "address",
+        "services"
+      ]
+    }
+  },
+  "regions": [
+    {
+      "id": "coast",
+      "name": "Your Region"
+    }
+  ],
   "districts": [
-    "Old Town"
+    {
+      "id": "old-town",
+      "name": "Old Town",
+      "region": "coast",
+      "generation": {
+        "demographics": {
+          "races": {
+            "human": 3,
+            "elf": 1
+          }
+        }
+      }
+    }
   ],
   "locations": [
     {
       "id": "place-001",
-      "name": "The Copper Lantern",
       "category": "tavern",
+      "district": "old-town",
       "x": 500,
       "y": 700,
       "bounds": [
@@ -30,10 +71,15 @@
         20,
         20
       ],
-      "district": "Old Town",
-      "description": "A busy corner inn with a common room overlooking the market.",
-      "person": "Mira Venn, innkeeper",
-      "rumor": "An unopened letter has been waiting behind the bar for twenty years.",
+      "generation": {
+        "demographics": {
+          "race": "elf",
+          "gender": "female",
+          "age": "adult",
+          "wealth": "modest",
+          "population": 12
+        }
+      },
       "featured": true
     }
   ]

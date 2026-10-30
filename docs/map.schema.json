@@ -1,21 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Wandering Atlas map",
+  "title": "Wandering Atlas map, deterministic v2 with legacy read support",
   "type": "object",
-  "required": [
-    "id",
-    "name",
-    "subtitle",
-    "description",
-    "image",
-    "thumbnail",
-    "width",
-    "height",
-    "theme",
-    "region",
-    "locations"
-  ],
   "properties": {
+    "schemaVersion": {
+      "enum": [
+        1,
+        2
+      ]
+    },
     "id": {
       "type": "string",
       "minLength": 1,
@@ -54,34 +47,23 @@
       "minLength": 1
     },
     "width": {
-      "type": "integer",
-      "minimum": 1
+      "type": "number",
+      "exclusiveMinimum": 0
     },
     "height": {
-      "type": "integer",
-      "minimum": 1
+      "type": "number",
+      "exclusiveMinimum": 0
     },
     "tags": {
       "type": "array",
       "items": {
-        "type": "string"
-      }
-    },
-    "districts": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
         "type": "string",
         "minLength": 1
-      }
+      },
+      "minItems": 0
     },
     "initialView": {
       "type": "object",
-      "required": [
-        "x",
-        "y",
-        "width"
-      ],
       "properties": {
         "x": {
           "type": "number",
@@ -95,93 +77,700 @@
           "type": "number",
           "exclusiveMinimum": 0
         }
-      }
+      },
+      "required": [
+        "x",
+        "y",
+        "width"
+      ]
     },
-    "locations": {
+    "regions": {
       "type": "array",
-      "minItems": 1,
       "items": {
         "type": "object",
-        "required": [
-          "id",
-          "name",
-          "category",
-          "x",
-          "y",
-          "district",
-          "description"
-        ],
         "properties": {
           "id": {
             "type": "string",
+            "minLength": 1,
             "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
-          "district": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "person": {
-            "type": "string"
-          },
-          "address": {
-            "type": "string"
-          },
-          "rumor": {
-            "type": "string"
-          },
-          "category": {
-            "enum": [
-              "landmark",
-              "tavern",
-              "shop",
-              "workshop",
-              "temple",
-              "guild",
-              "harbor",
-              "home"
-            ]
-          },
-          "x": {
-            "type": "number",
-            "minimum": 0
-          },
-          "y": {
-            "type": "number",
-            "minimum": 0
-          },
-          "bounds": {
-            "type": "array",
-            "minItems": 4,
-            "maxItems": 4,
-            "prefixItems": [
-              {
-                "type": "number",
-                "minimum": 0
-              },
-              {
-                "type": "number",
-                "minimum": 0
-              },
-              {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              {
-                "type": "number",
-                "exclusiveMinimum": 0
+          "generation": {
+            "$ref": "#/$defs/settings"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "minItems": 0
+    },
+    "districts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/district"
+      },
+      "minItems": 0
+    },
+    "generator": {
+      "$ref": "#/$defs/generator"
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/location"
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "subtitle",
+    "description",
+    "image",
+    "thumbnail",
+    "width",
+    "height",
+    "theme",
+    "region",
+    "locations"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "schemaVersion"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "const": 2
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "generator"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "generator"
+        ]
+      },
+      "then": {
+        "properties": {
+          "locations": {
+            "items": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "name"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "description"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "person"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "rumor"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "address"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "services"
+                    ]
+                  }
+                ]
               }
-            ]
+            }
           },
-          "featured": {
-            "type": "boolean"
+          "districts": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "districts"
+        ]
+      },
+      "else": {
+        "properties": {
+          "locations": {
+            "items": {
+              "required": [
+                "name",
+                "description"
+              ]
+            }
           }
         }
       }
+    }
+  ],
+  "$defs": {
+    "table": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 1
+    },
+    "demographics": {
+      "type": "object",
+      "properties": {
+        "race": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gender": {
+          "type": "string",
+          "minLength": 1
+        },
+        "age": {
+          "type": "string",
+          "minLength": 1
+        },
+        "culture": {
+          "type": "string",
+          "minLength": 1
+        },
+        "wealth": {
+          "type": "string",
+          "minLength": 1
+        },
+        "races": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "genders": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "ages": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "cultures": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "wealths": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "population": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "demographics": {
+          "$ref": "#/$defs/demographics"
+        },
+        "fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "traits": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "tables": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/table"
+          }
+        },
+        "seed": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "shape": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "point",
+                "rectangle"
+              ]
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "ellipse"
+            },
+            "rx": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "ry": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "kind",
+            "rx",
+            "ry"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "polygon"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "minItems": 3
+            }
+          },
+          "required": [
+            "kind",
+            "points"
+          ]
+        }
+      ]
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "category": {
+          "enum": [
+            "landmark",
+            "tavern",
+            "shop",
+            "workshop",
+            "temple",
+            "guild",
+            "harbor",
+            "home"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "district": {
+          "type": "string",
+          "minLength": 1
+        },
+        "region": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bounds": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          ],
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "featured": {
+          "type": "boolean"
+        },
+        "generation": {
+          "$ref": "#/$defs/settings"
+        },
+        "overrides": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "person": {
+          "type": "string"
+        },
+        "rumor": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "services": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "category",
+        "district",
+        "x",
+        "y"
+      ]
+    },
+    "namePool": {
+      "type": "object",
+      "properties": {
+        "female": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "male": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "nonbinary": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "surnames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "female",
+        "male",
+        "nonbinary",
+        "surnames"
+      ]
+    },
+    "locationType": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "landmark",
+            "tavern",
+            "shop",
+            "workshop",
+            "temple",
+            "guild",
+            "harbor",
+            "home"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nouns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "tables": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/table"
+          }
+        }
+      },
+      "required": [
+        "category",
+        "label",
+        "nouns",
+        "roles",
+        "services"
+      ]
+    },
+    "district": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "region": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "generation": {
+              "$ref": "#/$defs/settings"
+            }
+          },
+          "required": [
+            "id",
+            "name"
+          ]
+        }
+      ]
+    },
+    "generator": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "seed": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "defaults": {
+          "$ref": "#/$defs/settings"
+        },
+        "catalog": {
+          "type": "object",
+          "properties": {
+            "people": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/namePool"
+              }
+            },
+            "types": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/locationType"
+              }
+            },
+            "tables": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/table"
+              }
+            },
+            "cultures": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "namePool": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "namePool"
+                ]
+              }
+            },
+            "sections": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "templates": {
+                    "$ref": "#/$defs/table"
+                  }
+                },
+                "required": [
+                  "label",
+                  "templates"
+                ]
+              }
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "version",
+        "seed"
+      ]
     }
   }
 }

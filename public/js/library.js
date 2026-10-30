@@ -1,4 +1,6 @@
 import { brand, escape, icon, loadJSON, number, toast } from './ui.js';
+import { materializeMap } from './generation/locations.js';
+import { validateMap } from './map-contract.js';
 import { MapStage } from './map-stage.js';
 import { tooltipHTML } from './places.js';
 
@@ -45,7 +47,9 @@ export function renderLibrary(root, maps, signal) {
     const el = root.querySelector('#preview-stage');
     el.innerHTML = `<div class="loading-screen">${icon('compass')}<p>Opening map…</p></div>`;
     try {
-      const data = await loadJSON(map.data,previewController.signal);
+      const source = await loadJSON(map.data,previewController.signal);
+      validateMap(source);
+      const data = materializeMap(source);
       if(signal.aborted || version!==previewVersion)return;
       stage = new MapStage(el,data,{
         select:p=>{ location.hash=`map/${data.id}/${p.id}`; },
