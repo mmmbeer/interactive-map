@@ -20,8 +20,8 @@
   {
     "id": "grayhaven",
     "name": "Grayhaven",
-    "subtitle": "A city of crossings and quays",
-    "description": "Explore a coastal town of quays and avenues surrounded by farms, orchards and pastures. This fantasy map interprets the supplied street plan.",
+    "subtitle": "Town, coast and countryside",
+    "description": "Explore the streets, quays, farmsteads, orchards and fields of Grayhaven. Building functions, district names and stories are fictional interpretations of the map artwork.",
     "image": "assets/maps/grayhaven/map-hires.webp",
     "thumbnail": "assets/maps/grayhaven/thumbnail.webp",
     "theme": "Fantasy city",
@@ -31,8 +31,8 @@
       "Coast",
       "Fantasy"
     ],
-    "locationCount": 1471,
-    "featuredCount": 15,
+    "locationCount": 1540,
+    "featuredCount": 14,
     "data": "data/maps/grayhaven.json"
   }
 ]

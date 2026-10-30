@@ -9,7 +9,7 @@ export class AtlasViewer {
   constructor(root,data,options={}) {
     this.staleDraft=options.stale;this.source=options.source || data;this.published=options.published || this.source;this.onChange=options.onChange;
     this.root=root;this.data=data;this.numbers=siteNumbers(data.locations);this.controller=new AbortController();this.signal=this.controller.signal;
-    this.filters={query:'',category:'',district:''};this.scope='highlights';this.limit=45;
+    this.filters={query:'',category:'',district:''};this.scope=data.directoryScope || 'highlights';this.limit=45;
     root.innerHTML=viewerHTML(data);
     if(options.local || options.stale) {
       const note=document.createElement('div');note.className='local-draft-note';

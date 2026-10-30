@@ -15,6 +15,7 @@ export function validateMap(map) {
     const path=map[key];
     check(!path.includes('\\') && !path.split('/').includes('..') && !path.startsWith('/') && !/^[a-z]+:/i.test(path),`${key} must be a local relative asset path.`);
   }
+  if(map.directoryScope!==undefined) check(['all','highlights'].includes(map.directoryScope),'Directory scope must be all or highlights.');
   if(map.tags!==undefined) check(Array.isArray(map.tags) && map.tags.every(text),'Tags must be a list of text values.');
   check(number(map.width) && map.width>0 && number(map.height) && map.height>0,'Image dimensions must be positive numbers.');
   check(map.schemaVersion===undefined || [1,2].includes(map.schemaVersion),'Unsupported map schema version.');

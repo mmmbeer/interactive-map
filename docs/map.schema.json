@@ -125,6 +125,13 @@
         "$ref": "#/$defs/location"
       },
       "minItems": 1
+    },
+    "directoryScope": {
+      "enum": [
+        "all",
+        "highlights"
+      ],
+      "description": "Initial directory tab. Defaults to highlights."
     }
   },
   "required": [

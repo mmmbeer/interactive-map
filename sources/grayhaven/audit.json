@@ -1,0 +1,316 @@
+{
+  "imageSha256": "43b39c7a7e3fcfd90dff1293074098328ca2a393495f2b825e3d016123f4cccf",
+  "surveySha256": "5fb24c220449e2d3e9e908d7cb316d88730f15cde1c658b02f84de21731233b2",
+  "dimensions": [
+    3548,
+    1774
+  ],
+  "counts": {
+    "water": 4,
+    "street": 230,
+    "terrain": 85,
+    "landmark": 5,
+    "temple": 18,
+    "guild": 24,
+    "workshop": 99,
+    "tavern": 32,
+    "harbor": 20,
+    "home": 869,
+    "shop": 154
+  },
+  "total": 1540,
+  "districtCells": [
+    [
+      "east-ward",
+      353452.0,
+      true
+    ],
+    [
+      "crown-ward",
+      177123.38900471854,
+      true
+    ],
+    [
+      "diamond-ward",
+      415667.98599528143,
+      true
+    ],
+    [
+      "east-quays",
+      283368.0,
+      true
+    ],
+    [
+      "crossroads",
+      727013.4101568426,
+      true
+    ],
+    [
+      "south-wharves",
+      279076.18638663343,
+      true
+    ],
+    [
+      "south-wharves",
+      35.90031545741429,
+      false
+    ],
+    [
+      "north-market",
+      522864.7927071124,
+      true
+    ],
+    [
+      "garden-ward",
+      474150.4572928874,
+      true
+    ],
+    [
+      "westhaven",
+      300185.75,
+      true
+    ],
+    [
+      "western-commons",
+      385902.7557343505,
+      true
+    ],
+    [
+      "craft-quarter",
+      382910.7811331852,
+      true
+    ],
+    [
+      "south-gate",
+      690656.5866088077,
+      true
+    ]
+  ],
+  "missingParcels": [],
+  "roads": [
+    {
+      "id": "east-west-way",
+      "pavingFraction": 1.0
+    },
+    {
+      "id": "north-crossing",
+      "pavingFraction": 0.9711
+    },
+    {
+      "id": "south-crossing",
+      "pavingFraction": 0.9902
+    },
+    {
+      "id": "central-avenue",
+      "pavingFraction": 1.0
+    },
+    {
+      "id": "diamond-road",
+      "pavingFraction": 0.7471
+    },
+    {
+      "id": "crown-road",
+      "pavingFraction": 1.0
+    },
+    {
+      "id": "west-farm-road",
+      "pavingFraction": 0.9639
+    },
+    {
+      "id": "south-field-road",
+      "pavingFraction": 0.8914
+    },
+    {
+      "id": "north-coast-lane",
+      "pavingFraction": 0.9533
+    },
+    {
+      "id": "west-croft-lane",
+      "pavingFraction": 0.7256
+    },
+    {
+      "id": "west-grange-lane",
+      "pavingFraction": 0.8527
+    },
+    {
+      "id": "garden-lane",
+      "pavingFraction": 0.8721
+    },
+    {
+      "id": "garden-grange-lane",
+      "pavingFraction": 0.9256
+    },
+    {
+      "id": "middle-orchard-lane",
+      "pavingFraction": 0.6335
+    },
+    {
+      "id": "west-mill-lane",
+      "pavingFraction": 0.6826
+    },
+    {
+      "id": "south-grange-lane",
+      "pavingFraction": 0.641
+    },
+    {
+      "id": "south-coast-lane",
+      "pavingFraction": 0.9518
+    },
+    {
+      "id": "harbor-farm-lane",
+      "pavingFraction": 0.9246
+    },
+    {
+      "id": "harbor-orchard-lane",
+      "pavingFraction": 0.8149
+    },
+    {
+      "id": "south-quay-road",
+      "pavingFraction": 0.7577
+    },
+    {
+      "id": "east-quay-road",
+      "pavingFraction": 0.9953
+    },
+    {
+      "id": "crown-boulevard",
+      "pavingFraction": 1.0
+    },
+    {
+      "id": "diamond-boulevard",
+      "pavingFraction": 1.0
+    },
+    {
+      "id": "square-west",
+      "pavingFraction": 1.0
+    },
+    {
+      "id": "square-east",
+      "pavingFraction": 1.0
+    },
+    {
+      "id": "north-shore-walk",
+      "pavingFraction": 0.9502
+    }
+  ],
+  "roofCount": 1193,
+  "roofReview": {
+    "authoredAccepted": 289,
+    "authoredUnmatched": [
+      [
+        76.0,
+        29.0
+      ],
+      [
+        430.0,
+        77.0
+      ],
+      [
+        608.0,
+        120.0
+      ],
+      [
+        735.0,
+        138.0
+      ],
+      [
+        736.0,
+        147.0
+      ],
+      [
+        747.0,
+        146.0
+      ],
+      [
+        701.0,
+        266.0
+      ],
+      [
+        729.0,
+        278.0
+      ],
+      [
+        343.0,
+        318.0
+      ],
+      [
+        382.0,
+        351.0
+      ],
+      [
+        348.0,
+        330.0
+      ],
+      [
+        716.0,
+        325.0
+      ],
+      [
+        731.0,
+        374.0
+      ],
+      [
+        470.0,
+        439.0
+      ],
+      [
+        694.0,
+        499.0
+      ],
+      [
+        743.0,
+        546.0
+      ],
+      [
+        131.0,
+        657.0
+      ],
+      [
+        43.0,
+        745.0
+      ],
+      [
+        689.0,
+        685.0
+      ],
+      [
+        677.0,
+        821.0
+      ],
+      [
+        901.0,
+        518.0
+      ],
+      [
+        1105.0,
+        781.0
+      ],
+      [
+        1128.0,
+        801.0
+      ],
+      [
+        1131.0,
+        790.0
+      ],
+      [
+        1124.0,
+        778.0
+      ],
+      [
+        1122.0,
+        767.0
+      ]
+    ],
+    "authoredPublished": 285
+  },
+  "mapSha256": "4be55073a0e1213676ff4ee00142a88a75b33c5cefe8e009422d2399bd83ede3",
+  "verification": {
+    "districtsDisjoint": true,
+    "districtLandCoverage": true,
+    "parcelsDisjoint": true,
+    "roofAnchorsInside": true,
+    "streetReferencesValid": true,
+    "roadBrightPixelFraction": 0.9688
+  }
+}

@@ -85,7 +85,7 @@
 .map-navigation{left:12px;bottom:45px;gap:5px}
 .map-control{width:42px;height:42px}
 .preview-navigation .map-control{width:38px;height:38px}
-.overview-map{width:64px;height:110px;right:12px;bottom:44px}
+.overview-map{width:calc(var(--overview-width,74px)*.85);height:calc(var(--overview-height,128px)*.85);right:12px;bottom:44px}
 .map-bottomline{bottom:10px;left:12px;right:12px;font-size:6px;letter-spacing:.6px}
 .detail-panel{width:auto;max-height:49%;top:auto;bottom:10px;right:10px;left:10px;z-index:6;border-radius:8px}
 .detail-banner{height:43px;padding-left:17px}
