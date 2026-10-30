@@ -68,8 +68,9 @@
 .map-stage{width:100%;height:100%;position:absolute;overflow:hidden;touch-action:none;cursor:grab;outline-offset:-5px!important;background:var(--sea)}
 .map-stage.over-place{cursor:pointer}
 .map-stage.dragging{cursor:grabbing}
-.map-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;user-select:none}
-.map-world.navigating{transition:transform .48s var(--ease)}
+.map-world{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none}
+.map-world.navigating{will-change:transform;transition:transform .48s var(--ease)}
+.map-image.is-enlarged{image-rendering:pixelated}
 .map-image{width:100%;height:100%;display:block;pointer-events:none}
 .map-overlay,.map-pins{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .map-pin{pointer-events:auto;position:absolute;transform:translate(-50%,-50%) scale(var(--inverse-scale,1));transform-origin:center;border:1.5px solid var(--category);border-radius:7px;background:var(--deep-twilight);color:var(--category);width:29px;height:29px;padding:5px;box-shadow:0 2px 5px #08035740;display:grid;place-items:center;z-index:1;transition:border-radius .2s,background .2s,box-shadow .2s}
@@ -156,3 +157,5 @@
 .map-feature-label.district{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#080357;background:#f5ff90db;border:1px solid #08035755;padding:4px 7px}
 .map-feature-label.home,.map-feature-label.shop,.map-feature-label.workshop,.map-feature-label.tavern,.map-feature-label.guild,.map-feature-label.temple,.map-feature-label.harbor,.map-feature-label.landmark{font-size:9px;max-width:175px;background:#080357e8;color:#f5ff90}
 @media(max-width:760px){.map-context{display:none}.map-topline{justify-content:flex-end}.map-layer-controls .marker-toggle{min-height:38px}}
+.about-dialog dd a{text-decoration:underline;color:var(--tea-green)}
+.native-resolution{font-size:11px;font-weight:650;letter-spacing:-.5px}

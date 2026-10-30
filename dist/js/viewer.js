@@ -64,7 +64,7 @@ export class AtlasViewer {
     if(target.id==='edit-map' || target.id==='draft-tools') return openEditor(this);
     const handlers={
       'zoom-in':()=>this.stage.zoom(1.4,undefined,true),'zoom-out':()=>this.stage.zoom(1/1.4,undefined,true),
-      'fit-map':()=>this.stage.fit(),'reset-map':()=>this.stage.reset(),
+      'native-map':()=>this.stage.native(),'fit-map':()=>this.stage.fit(),'reset-map':()=>this.stage.reset(),
       'toggle-markers':()=>target.setAttribute('aria-pressed',this.stage.toggleMarkers()),
       'toggle-streets':()=>target.setAttribute('aria-pressed',this.stage.toggleStreets()),
       'toggle-numbers':()=>target.setAttribute('aria-pressed',this.stage.toggleNumbers()),
@@ -144,6 +144,7 @@ export class AtlasViewer {
   }
   updateOverview(view) {
     this.root.querySelector('#zoom-status').textContent=`${Math.round(view.scale/view.min*100)}%`;
+    if(view.raster)this.root.querySelector('#zoom-status').title=`${Math.round(view.raster.enlargement*100)}% of source pixel size. Use Native resolution to see the image without enlargement.`;
     const box=this.root.querySelector('.overview-viewport');
     const left=Math.max(0,-view.tx/view.scale),top=Math.max(0,-view.ty/view.scale);
     const right=Math.min(this.data.width,(view.w-view.tx)/view.scale),bottom=Math.min(this.data.height,(view.h-view.ty)/view.scale);

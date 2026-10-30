@@ -115,3 +115,7 @@ Choose **Site guide** in the header to read full numbered entries. Export the cu
 Site numbers are assigned by stable location ID order across the complete map. Filtering, zooming, directory order and export scope do not renumber sites. Adding or deleting IDs can change later numbers, so keep the map and its exported guide from the same map revision together. A complete Dragonsgate guide has thousands of pages. Use district or category filters to produce smaller guides.
 
 The reusable modules are `site-index.js`, `guide-maps.js`, `guide-pdf.js`, `pdf-writer.js` and `pdf-font.js`. PDF generation never writes resolved content back into compact map data.
+
+## Map image quality
+
+Dragonsgate now loads a lossless 948 x 1659 image from the supplied Reddit original. Enlarged pixels use sharp rendering. The **1:1** map control opens the native-resolution view within the map's zoom limits. About this map provides the image dimensions and a direct image link. More close-up detail requires a larger original raster or vector source. See [map-image-quality.md](docs/map-image-quality.md) for source information and the verified lossless conversion helper.
