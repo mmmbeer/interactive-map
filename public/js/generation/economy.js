@@ -7,6 +7,9 @@ import { traditionFor, traditionRecipes } from './economy-traditions.js';
 import { choose, streams, title, article } from './helpers-v2.js';
 import { render } from './random.js';
 import { uniqueChoices } from './detail-helpers-v1.js';
+import { proseEnabled } from './prose/settings.js';
+import { productWorkflow, goodsTasks, goodsWorkRecipes } from './prose/workflows.js';
+import { practicalTraditions, currentWork } from './prose/commerce.js';
 
 export const economySections={
   livelihood:{label:'Livelihood',templates:['{livelihoodNote}'],categories:['home','shop','workshop']},
@@ -17,6 +20,7 @@ export function prepareEconomy(map,place,{tokens,config,catalog,type}) {
   Object.assign(tokens,{livelihoodNote:'',tradeLinksNote:'',craftTraditionNote:'',industry:'',trade:'',tradeRole:'',product:'',material:'',customer:'',workTask:'',supplyRoute:'',settlementType:'',tradition:'',budgetNote:''});
   if(['street','water','terrain','landmark'].includes(place.category))return null;
   if(place.category==='home' && config.demographics.population===0) {tokens.livelihoodNote='No resident livelihood is recorded for this unoccupied home.';return null;}
+  if(proseEnabled(map) && place.category==='home' && ['infant','child','adolescent'].includes(tokens.age)) {tokens.role='dependent';tokens.livelihoodNote='The primary resident is a dependent.';return null;}
   if(place.category==='home' && Object.hasOwn(place.overrides || {},'person')) {tokens.livelihoodNote='The authored resident profile supplies this household’s occupation.';return null;}
   const context=economicContext(map,place,config,tokens);
   const custom=map.generator.catalog?.types?.[place.type || place.category];
@@ -44,27 +48,31 @@ export function prepareEconomy(map,place,{tokens,config,catalog,type}) {
   const customers=preferredCustomers.length ? preferredCustomers : industries[industry].customers;
   Object.assign(tokens,{industry:industries[industry].label,trade:trade?.label || tokens.label,tradeRole:trade?.role || tokens.role,
     product,material,customer:draw('customer',customers),settlementType:context.profile.label,tradition:tradition.label,supplyRoute:route});
-  const workflow=trade ? workflowFor(trade) : 'service';
+  const polished=proseEnabled(map),workflow=polished?productWorkflow(trade,product,place.category):trade ? workflowFor(trade) : 'service';
+  if(polished && !custom && ['shop','workshop','tavern','temple','guild','harbor'].includes(place.category)) {
+    tokens.role=trade?.role || type.roles[0];
+    tokens.service=product;
+  }
   if(trade && ['shop','workshop','home'].includes(place.category) && !custom?.tables?.person)tokens.role=trade.role;
   if(trade && ['shop','workshop'].includes(place.category)) {
-    tokens.service=`orders for ${product}`;
+    tokens.service=polished && !custom ? product : `orders for ${product}`;
     if(['shop','workshop'].includes(place.type || place.category)) {
       tokens.label=trade.label;tokens.nameLabel=title(trade.label);tokens.article=article(trade.label);
       tokens.noun=title(trade.label);
     }
   }
   const overriddenBank=key=>config.tables[key] || map.generator.catalog?.tables?.[key] || type.tables?.[key];
-  if(!overriddenBank('task'))tokens.task=render(draw('rumor',workRumors[workflow]),tokens);
+  if(!overriddenBank('task'))tokens.task=render(draw('rumor',workflow==='goods'?goodsTasks:workRumors[workflow]),tokens);
   if(!overriddenBank('complication'))tokens.complication='';
-  return {trade,context,ready() {
+  return {trade,context,workflow,ready() {
     // Keep the base engine's building details and history. Economic sections
     // describe the business without turning every paragraph into an order ledger.
-    tokens.workTask=render(draw('task',workRecipes[workflow]),tokens);
+    tokens.workTask=render(draw('task',polished?currentWork[workflow]:workflow==='goods'?goodsWorkRecipes:workRecipes[workflow]),tokens);
     if(trade && economySections.livelihood.categories.includes(place.category) && config.demographics.population!==0)tokens.livelihoodNote=`The ${trade.role} serves ${tokens.customer} in ${tokens.district}.`;
-    tokens.budgetNote=render(draw('budget',budgetFor(context.wealth,workflow)),tokens);
+    tokens.budgetNote=render(draw('budget',budgetFor(context.wealth,workflow==='goods'?'provisions':workflow)),tokens);
     const supply=render(draw('supply',supplyRecipes),tokens);
     if(economySections.tradeLinks.categories.includes(place.category))tokens.tradeLinksNote=`${supply} ${materialIsLocal(material,context) ? 'Supplies are sourced locally' : 'Supplies come from outside the settlement'}, via ${route}.`;
-    if(economySections.craftTradition.categories.includes(place.category))tokens.craftTraditionNote=render(draw('tradition',traditionRecipes[tradition.key]),tokens)+'.';
+    if(economySections.craftTradition.categories.includes(place.category))tokens.craftTraditionNote=render(draw('tradition',polished && workflow!=='craft'?practicalTraditions[workflow][tradition.key]:traditionRecipes[tradition.key]),tokens).replace(/\.?$/,'.');
   },finish() {
     const sources=map.generator.catalog?.detailSources || {};
     if(config.fields.includes('stock') && trade && ['shop','workshop'].includes(place.category) && !Object.hasOwn(sources,`stock_${trade.id}`) && !Object.hasOwn(sources,`stock_${place.type || place.category}`)) {
@@ -75,9 +83,9 @@ export function prepareEconomy(map,place,{tokens,config,catalog,type}) {
     }
     if(config.fields.includes('commissions') && trade && ['shop','workshop'].includes(place.category) && !Object.hasOwn(sources,'commissions')) {
       const contact=Object.hasOwn(place.overrides || {},'person') ? 'the keeper' : tokens.fullName;
-      tokens.commission=`Orders go through ${contact}. ${tokens.workTask} ${tokens.budgetNote}`;
+      tokens.commission=`${polished && workflow==='service'?'Bookings':polished && workflow==='documents'?'Requests':'Orders'} go through ${contact}. ${tokens.workTask} ${tokens.budgetNote}`;
     }
     if(config.fields.includes('contracts') && place.category==='guild' && trade && !Object.hasOwn(sources,'contracts'))tokens.contract=`${tokens.workTask} ${tokens.budgetNote}`;
-    if(config.fields.includes('guests') && place.category==='tavern' && !Object.hasOwn(sources,'guests'))tokens.guest=uniqueChoices(guestRecipes[context.settlementType],2,stream('guests',input),v=>v.split(' asks ')[0].split(' compares ')[0]).map(v=>render(v,tokens)+'.').join(' ');
+    if(!polished && config.fields.includes('guests') && place.category==='tavern' && !Object.hasOwn(sources,'guests'))tokens.guest=uniqueChoices(guestRecipes[context.settlementType],2,stream('guests',input),v=>v.split(' asks ')[0].split(' compares ')[0]).map(v=>render(v,tokens)+'.').join(' ');
   }};
 }

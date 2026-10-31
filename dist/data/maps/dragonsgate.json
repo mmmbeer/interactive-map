@@ -478,17 +478,14 @@
               "{surname} & {partnerSurname} House",
               "{surname} Household",
               "{houseNumber} {street}"
-            ],
-            "description": [
-              "{displayName} is a {wealth} household in {district}, {setting}. {detail} {history}",
-              "The residents of {displayName} live at {address} in {district}. {detail} {history}"
             ]
           }
         }
       }
     },
     "detailsVersion": 2,
-    "socialVersion": 1
+    "socialVersion": 1,
+    "proseVersion": 1
   },
   "regions": [
     {

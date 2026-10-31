@@ -2,6 +2,8 @@ import { compatibleProducts } from './goods.js';
 import { hash, pairRank, compare, addTo } from './helpers.js';
 import { choose, streams } from '../helpers-v2.js';
 import { workflowFor } from '../economy-workflows.js';
+import { proseEnabled } from '../prose/settings.js';
+import { scenariosForProduct } from '../prose/workflows.js';
 const needs={
   agriculture:['wood','metal','textiles','leather','records'],food:['maritime','agriculture','wood','metal','glass','stone','records'],
   textiles:['agriculture','wood','metal','records'],leather:['agriculture','metal','textiles','wood'],wood:['metal','agriculture','records'],
@@ -24,7 +26,8 @@ export function buildConnections(map,facts,census) {
     const id=`story:${kind}:${a.id}:${b.id}`;
     const roll=streams(['social-event-v1',map.generationId ?? map.id,map.generator.seed,id,a.config.seed ?? '',a.config.revision ?? 0,b.config.seed ?? '',b.config.revision ?? 0]);
     const product=trade ? choose(products || trade.items,roll('product')) : choose(['a family recipe book','a set of measuring weights','a sewing basket','a carved keepsake box','a borrowed handcart','a tool chest','a wool blanket','a packet of copied letters','a set of clay dishes','a folding work stool'],roll('keepsake'));
-    const scenario=choose(scenarios,roll('scenario'));
+    const choices=proseEnabled(map) && trade ? scenariosForProduct(trade,product,a.place) : scenarios;
+    const scenario=choose(choices,roll('scenario'));
     const link={id,kind,from:a.id,to:b.id,supplierId:supplier.id,buyerId:buyer.id,tradeId:trade?.id || null,product,scenario};
     links.set(id,link);addTo(atSite,a.id,id);addTo(atSite,b.id,id);degrees.set(a.id,(degrees.get(a.id)||0)+1);degrees.set(b.id,(degrees.get(b.id)||0)+1);return true;
   };

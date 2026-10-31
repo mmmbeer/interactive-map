@@ -16,6 +16,10 @@ Settings are remembered per map on the current device. `?ancestry=elf&seed=my-wo
 
 ## Stable output
 
+Set `generator.proseVersion: 1` to use the audited location presentation. Both published maps and newly recognized uploads enable it. It adds type-specific descriptions, visitor activity, household language, burial-site text, geography notes and visiting guidance. Commercial work follows the selected product, so lessons and room bookings receive service tasks while physical supplies receive goods tasks. Released engine defaults remain available when this property is omitted. See [the content audit](location-content-audit.md) for scope, examples and the repeatable audit command.
+
+The profile does not change location ids, geometry or naming pools. Authored field overrides, custom templates and source banks retain precedence. Profile changes affect generated presentation and the compatible situation families selected for a product. Treat a map source as immutable after resolving it, as with other generation inputs.
+
 Maps declare `schemaVersion: 2` and `generator: {"version":1,"seed":"my-world"}`. Independent seeded streams derive from the map id/seed, location id, optional seed/variation and a field label. Demographics and local context feed text generation. The same version, catalogs and inputs produce the same output on every visit.
 
 - Moving a marker or changing its shape leaves its story unchanged.

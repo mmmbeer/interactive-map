@@ -6,6 +6,8 @@ import { resolveV2 } from './locations-v2.js';
 import { versionFor } from './config.js';
 import { prepareDetails } from './details-v1.js';
 import { catalogFor, configFor, dimensions, districtList, availableFields } from './config.js';
+import { proseDefaults, proseSectionLabel } from './prose/index.js';
+import { defaultProse, proseEnabled } from './prose/settings.js';
 
 const label = text => text.replaceAll('_',' ');
 function contextFor(map, location, catalog,mode='full') {
@@ -60,7 +62,7 @@ function contextFor(map, location, catalog,mode='full') {
   prepareDetails(map,location,{tokens,config,context:economy?.context});
   economy?.finish();
   const social=mode==='full' ? applySocialContent(map,location,{tokens,config,shared,resolve:(m,p)=>resolveLocation(m,p,undefined,undefined,'identity')}) : null;
-  return {config,demographics,tokens,localTables,roll,social};
+  return {config,demographics,tokens,localTables,roll,social,economy,prose:proseDefaults(map,location,{tokens,config,type,economy,social})};
 }
 export function resolveLocation(map, location, catalog, stack,mode='full') {
   catalog ||= catalogFor(map,location);
@@ -84,11 +86,11 @@ export function resolveLocation(map, location, catalog, stack,mode='full') {
         if (Object.hasOwn(overrides,field)) cached = overrides[field] ?? '';
         else if (getContext().config.fields.includes(field)) {
           const ctx=getContext();
-          cached = field==='rumor' && ctx.social?.rumor ? ctx.social.rumor : field==='person' && ctx.social?.profile ? ctx.social.profile : field==='person' && location.category==='home' && ctx.demographics.population===0 ? '' : render(pick(ctx.localTables[field],ctx.roll(`field:${field}`)),ctx.tokens);
+          cached = field==='rumor' && ctx.social?.rumor ? ctx.social.rumor : field==='person' && ctx.social?.profile ? ctx.social.profile : field==='person' && location.category==='home' && ctx.demographics.population===0 ? '' : Object.hasOwn(ctx.prose || {},field) && defaultProse(map,location,ctx.config,field)?ctx.prose[field]:render(pick(ctx.localTables[field],ctx.roll(`field:${field}`)),ctx.tokens);
         } else cached = field === 'name' ? location.id : '';
         ready = true;
       }
-      return isExtra ? {label:catalog.sections[field].label,text:cached} : cached;
+      return isExtra ? {label:proseEnabled(map)?proseSectionLabel(map,location,field,catalog.sections[field].label,getContext().economy):catalog.sections[field].label,text:cached} : cached;
     }});
   }
   return result;

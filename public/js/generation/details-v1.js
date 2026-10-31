@@ -5,6 +5,8 @@ import { detailSourcesFor } from './detail-catalog.js';
 import { streams } from './helpers-v2.js';
 import { matchingSources, uniqueChoices, priceFor, detailTokens } from './detail-helpers-v1.js';
 import { render } from './random.js';
+import { proseEnabled } from './prose/settings.js';
+import { selectGuests } from './prose/detail-sources.js';
 
 const section = (label,token,categories) => ({label,templates:[`{${token}}`],categories});
 export const detailSections = {
@@ -55,11 +57,12 @@ export function prepareDetails(map,place,{tokens,config,context:economyContext})
   const stream = streams(['details-v1',map.generationId ?? map.id,map.generator.seed,place.id,config.seed ?? '',config.revision ?? 0]);
   const input = [kind,place.category,context.wealth,config.traits,tokens.race,tokens.culture];
   const draw = (source,count=1) => {
-    const values = map.generator.catalog?.detailSources?.[source] || detailSourcesFor(map)[source];
+    const values = map.generator.catalog?.detailSources?.[source] || detailSourcesFor(map,context)[source];
     if (!values) throw new Error(`Unknown detail source: ${source}`);
     const distinctBy = Object.hasOwn(map.generator.catalog?.detailSources || {},source) ? value=>value : source.endsWith('Meals') || source==='meals' ? value=>value.split(' with ')[0] :
       source.startsWith('stock_') ? value=>value.split('.')[0] : source==='guests' ? value=>value.split(/ (?:is|has) /)[0] : value=>value;
-    const selected = uniqueChoices(matchingSources(values,context),count,stream(source,input),distinctBy);
+    const entries=matchingSources(values,context);
+    const selected = proseEnabled(map) && source==='guests' && !Object.hasOwn(map.generator.catalog?.detailSources || {},source)?selectGuests(entries,count,stream(source,input)):uniqueChoices(entries,count,stream(source,input),distinctBy);
     return selected.map(text=>render(text,tokens).replace(/([.!?])?$/,'.')).join(' ');
   };
   const enabled = field => config.fields.includes(field) && detailApplies(field,place);
@@ -69,27 +72,27 @@ export function prepareDetails(map,place,{tokens,config,context:economyContext})
   if (enabled('meals')) {
     const source = sourceFor('meals',context);
     tokens.price=priceFor(tokens.wealth,stream('meal-price',input));
-    tokens.meal=`At ${tokens.displayName}: ${draw(source,2)} Meals cost ${tokens.price} each.`;
+    tokens.meal=`At ${tokens.displayName}: ${draw(source,2)} ${proseEnabled(map)?'Menu choices':'Meals'} cost ${tokens.price} each.`;
   }
   if (enabled('guests')) tokens.guest=draw('guests',2);
   if (enabled('lodgings')) {
     const tier=['modest','comfortable','wealthy'].includes(tokens.wealth) ? tokens.wealth : 'modest';
-    tokens.lodging=`${draw(`lodging_${tier}`)} A bed costs ${priceFor(tier,stream('bed-price',input),'bed')} per night. Book with ${contact}.`;
+    tokens.lodging=`${draw(`lodging_${tier}`)} ${proseEnabled(map)?'A stay':'A bed'} costs ${priceFor(tier,stream('bed-price',input),'bed')} per night. Book with ${contact}.`;
   }
   if (enabled('stock')) {
     const custom=map.generator.catalog?.detailSources || {};
     const source=sourceFor('stock',context,custom);
-    tokens.stock=draw(source,3);
+    tokens.stock=proseEnabled(map) && source==='stock_service' && !custom[source]?`Available: ${tokens.service}.`:draw(source,3);
   }
   if (enabled('commissions')) tokens.commission=`Orders go through ${contact}. ${draw('commissions')}`;
   if (enabled('observances')) tokens.observance=draw('observances');
   if (enabled('contracts')) tokens.contract=draw('contracts',2);
   if (enabled('household')) {
     const population=config.demographics.population;
-    tokens.household=population===0 ? `No permanent residents are recorded. ${draw('household')}` :
+    tokens.household=proseEnabled(map)?population===0?'This home has no permanent residents.':`${population===undefined?'A household lives':population===1?'One resident lives':`${population} residents live`} at ${tokens.displayName}. ${draw('household')}`:population===0 ? `No permanent residents are recorded. ${draw('household')}` :
       `${population === undefined ? 'The household' : population===1 ? 'One resident' : `${population} residents`} at ${tokens.displayName}. ${draw('household')}`;
   }
-  if (enabled('portActivity')) tokens.portActivity=`${tokens.displayName}${tokens.water ? `, beside ${tokens.water}` : ''}. ${draw('portActivity')}`;
+  if (enabled('portActivity')) tokens.portActivity=proseEnabled(map)?draw('portActivity'):`${tokens.displayName}${tokens.water ? `, beside ${tokens.water}` : ''}. ${draw('portActivity')}`;
   for (const field of ['routeNotes','waterNotes','terrainNotes','landmarkNotes']) if (enabled(field)) tokens[field.slice(0,-1)]=draw(field);
   if (enabled('openingHours')) tokens.openingHours=draw('openingHours');
   for (const key of detailTokens) shared[key]=tokens[key];
