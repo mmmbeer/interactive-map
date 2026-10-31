@@ -36,7 +36,21 @@
         "person",
         "rumor",
         "address",
-        "services"
+        "services",
+        "meals",
+        "guests",
+        "lodgings",
+        "stock",
+        "commissions",
+        "observances",
+        "contracts",
+        "household",
+        "portActivity",
+        "routeNotes",
+        "waterNotes",
+        "terrainNotes",
+        "landmarkNotes",
+        "openingHours"
       ]
     },
     "catalog": {

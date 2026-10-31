@@ -1,6 +1,7 @@
 import { random, pick, weighted, render } from './random.js';
 import { resolveV2 } from './locations-v2.js';
 import { versionFor } from './config.js';
+import { prepareDetails } from './details-v1.js';
 import { catalogFor, configFor, dimensions, districtList, availableFields } from './config.js';
 
 const label = text => text.replaceAll('_',' ');
@@ -47,6 +48,9 @@ function contextFor(map, location, catalog) {
     // Pools use third-person singular verbs. Keep neutral pronouns grammatical.
     tokens.habit = tokens.habit.replace(/^(keeps|remembers|collects|offers|repairs|always carries|knows|speaks|sends|hums|supports)\b/, word => ({keeps:'keep',remembers:'remember',collects:'collect',offers:'offer',repairs:'repair','always carries':'always carry',knows:'know',speaks:'speak',sends:'send',hums:'hum',supports:'support'}[word]));
   }
+  tokens.displayName=location.overrides?.name || (config.fields.includes('name') ? render(pick(localTables.name,roll('field:name')),tokens) : location.id);
+  tokens.address=location.overrides?.address ?? render(pick(localTables.address,roll('field:address')),tokens);
+  prepareDetails(map,location,{tokens,config});
   return {config,demographics,tokens,localTables,roll};
 }
 export function resolveLocation(map, location, catalog, stack) {

@@ -7,6 +7,9 @@ export { validateDistrictGeometry, hitTestDistrict, DistrictLayer } from './dist
 export { materializeMap, resolveLocation } from './generation/locations.js';
 export { catalogFor, configFor, districtList, regionList, availableFields, versionFor } from './generation/config.js';
 export { streams, choose, distribution, integer, sample, bank, words, combine } from './generation/helpers-v2.js';
+export { recipe, eligible, matchingSources, uniqueChoices, priceFor } from './generation/detail-helpers-v1.js';
+export { detailSources } from './generation/detail-sources-v1.js';
+export { detailSections, detailFields } from './generation/details-v1.js';
 export { migrateMap, serializeMap, newLocation, saveLocation } from './authoring/model.js';
 export { MapStage } from './map-stage.js';
 export { MapLabels } from './map-labels.js';

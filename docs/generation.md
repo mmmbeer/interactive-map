@@ -84,7 +84,7 @@ The default culture `ancestral` uses the selected race’s names. A custom cultu
 
 ## Authored fields and exclusions
 
-`generation.fields` lists enabled generated fields. Built-ins are `name`, `description`, `person`, `rumor`, `address` and `services`. An omitted field returns empty text. If name is disabled, the id remains as its directory label.
+`generation.fields` lists enabled generated fields. Core fields are `name`, `description`, `person`, `rumor`, `address` and `services`. Type-specific detail fields below are also enabled by default. An explicit field list replaces the inherited list, so include the detail fields you want. An omitted field returns empty text. If name is disabled, the id remains as its directory label.
 
 `overrides` contains authored values and takes precedence even when a field is disabled. Use `""` or `null` to suppress a non-name field. Names must be nonempty. Removing an override restores generation. Overrides are literal plain text and are escaped before HTML rendering.
 
@@ -101,6 +101,7 @@ Reusable v1 word banks are adapted from Shoppe’s shop-type and race/gender poo
 | `types` | Named objects with `category`, `label`, `nouns`, `roles`, `services` and optional `tables` |
 | `tables` | Replacement token banks or output template tables |
 | `sections` | Extra viewer sections with `label` and `templates` |
+| `detailSources` | Context-filtered source banks for the built-in location details described below |
 
 Entries replace whole same-named pools/types/sections. Partial pool or type definitions are rejected. Add a race by adding a people pool, then selecting it in demographics. Add a culture with `{"riverfolk":{"namePool":"human"}}` to use human-style naming for any race.
 
@@ -205,3 +206,65 @@ Version 2 mixes twelve weighted geographic naming patterns. Richer combinations 
 The current Dragonsgate survey contains 10,030 entries and uses v2 for buildings and geographic features. Future changes to released v2 defaults still require a new generator version. Map-local home grammar supplies household names without changing the shared v2 defaults.
 
 Version 2 additionally accepts literal token banks `root`, `waterRoot`, `streetRoot` and `epithet` in catalog, type and inherited tables. `root` explicitly overrides the selected geographic root bank. Otherwise water and route types use their specialized banks. `street` customizes the shared fallback street table. Custom banks may be smaller than the built-in defaults and support weighted entries.
+
+## Type-specific location details
+
+Location details are available by default with either engine. Existing name, resident, address, description, service and rumor rolls are unchanged. The detail layer uses separate labeled streams. No version selection is needed.
+
+| Category | Detail fields |
+| --- | --- |
+| Tavern | `meals`, `guests`, `lodgings` |
+| Shop and workshop | `stock`, `commissions`, `openingHours` |
+| Temple | `observances`, `openingHours` |
+| Guild | `contracts`, `openingHours` |
+| Home | `household` |
+| Harbor | `portActivity`, `openingHours` |
+| Street | `routeNotes` |
+| Water | `waterNotes` |
+| Terrain | `terrainNotes` |
+| Landmark | `landmarkNotes` |
+
+The resolved fields appear under `extra`, with the same `{label,text}` structure as custom sections. Callouts, search, site guides and PDF exports include them automatically. Inapplicable sections stay empty. The editor exposes their field and override controls. Setting `overrides.meals` supplies an authored menu. Setting `overrides.lodgings` to `null` suppresses rooms. Explicit inherited field lists still control which details are generated.
+
+Meals and guests are sampled without repeating a dish or guest role within an entry. Each of the 31 built-in shops and workshops has a dedicated stock bank. Custom trades can provide `stock_<type>`; otherwise their stock information refers to the trade's existing service token. Custom trades never inherit arbitrary general-store wares.
+
+A linked water feature selects water-oriented meals. The inherited `vegetarian` trait takes precedence over that selection. Ancestry and culture do not prescribe diet, wealth, behavior or occupation. Wealth selects room standards and price ranges. An unknown wealth key uses modest prices and rooms. Household counts use the inherited population, including zero and one, and never invent a count when none is supplied. Details share the displayed place name, authored address and generated resident identity. If the resident profile is authored, bookings and orders refer to the keeper instead of inventing a second named resident. Geographic records use the exact displayed feature name and its actual type, without adding residents, shops or physical features that were not mapped.
+
+Every compiled source recipe has at least 100 unique, nonempty variations. The standard banks have 120 or more. These counts hold with identity, district, wealth and geography fixed. They do not depend on rerolling resident names or inserting a random number. Small composition components form compatible complete entries. Tests render every compiled recipe in a fixed context and check its distinct outputs and attainable selection diversity.
+
+### Context-filtered source options
+
+`generator.catalog.detailSources` replaces complete named source banks. Source keys are `meals`, `vegetarianMeals`, `waterMeals`, `guests`, `lodging_modest`, `lodging_comfortable`, `lodging_wealthy`, `stock_<type>`, `stock_service`, `commissions`, `observances`, `contracts`, `household`, `portActivity`, `routeNotes`, `waterNotes`, `terrainNotes`, `landmarkNotes` and `openingHours`.
+
+Each entry is a string or an object:
+
+```json
+{
+  "value": "Mushroom pasties collected at {address}",
+  "weight": 3,
+  "when": {
+    "types": ["tavern"],
+    "categories": ["tavern"],
+    "wealths": ["comfortable", "wealthy"],
+    "traits": ["vegetarian"],
+    "water": true
+  }
+}
+```
+
+This is one entry, not a complete source bank. Supply at least 100 distinct positive-weight variants for each active context. Filters apply before sampling. `types`, `categories` and `wealths` match any listed value. Every listed `traits` value must be present. `water`, `terrain` and `street` test for explicit mapped references. All supplied conditions must match. Unconditional entries can supply a shared baseline for several contexts. Zero-weight entries never occur. Validation rejects a bank that has 100 entries globally but fewer than 100 matching entries for an enabled recipe in an actual location's inherited context. It checks every possible positive-weight wealth choice.
+
+Source text expands base identity and geographic tokens once. It cannot refer to other detail tokens. Nested templates, unknown tokens, malformed braces, invalid conditions and invalid weights are rejected. Text remains plain text and is escaped by each HTML renderer. Source options are stored once per map. Generated results remain read-time data and are never serialized back into the authoring model.
+
+Custom `catalog.sections` and normal output `tables` can use these detail tokens: `meal`, `guest`, `lodging`, `stock`, `commission`, `observance`, `contract`, `household`, `portActivity`, `routeNote`, `waterNote`, `terrainNote`, `landmarkNote`, `openingHours`, `price`. A detail token is empty when its built-in field is disabled or inapplicable. Source banks contain the variations; output templates can remain small deliberate grammars. Authored overrides and custom output templates are not required to contain 100 alternatives.
+
+### Reusable detail helpers
+
+`mapping-tools.js` exports the source and section registries plus:
+
+- `recipe(left, right, join)`: composes a compatible source bank and rejects fewer than 100 distinct entries.
+- `matchingSources(entries, context)`: applies typed context conditions and excludes zero weights.
+- `uniqueChoices(entries, count, rng, distinctBy)`: weighted selection without replacement, with optional semantic grouping. Rejects invalid weights and impossible counts.
+- `priceFor(wealth, rng, unit)`: deterministic meal or bed prices in silver pieces with a modest fallback.
+
+Use independent `streams(seed)(label, input)` streams for each recipe. Keep numeric geometry and unrelated locations out of seeds. Catalogs and authoring snapshots should be treated as immutable while resolving content.

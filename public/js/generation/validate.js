@@ -1,6 +1,9 @@
 import { catalogFor, configFor, dimensions, fields } from './config.js';
 import { render } from './random.js';
 import { nameStyles } from './locations-v2.js';
+import { detailTokens } from './detail-helpers-v1.js';
+import { validateDetailSources, validateDetailContext } from './detail-validation.js';
+import { detailFields } from './details-v1.js';
 export function check(condition,message) { if (!condition) throw new Error(message); }
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 const text = value => typeof value === 'string' && value.trim().length > 0;
@@ -8,6 +11,7 @@ const safeKey = key => /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(key) && !['__proto__','co
 const tokenTables = ['adjective','animal','symbol','street','detail','history','habit','task','complication'];
 const v2Banks = ['root','waterRoot','streetRoot','epithet'];
 const tokens = Object.fromEntries('first surname partnerSurname fullName label nameLabel subject race raceLabel gender age ageLabel culture wealth population district region map traits pronoun noun role service number houseNumber adjective animal symbol street detail history habit task complication root compound head water terrain landmark setting displayName address firstPossessive surnamePossessive fullNamePossessive epithetPossessive article'.split(' ').map(k => [k,'test']));
+Object.assign(tokens,Object.fromEntries([...detailTokens].map(k=>[k,'test'])));
 export function validateTables(tables,prefix,extra=[],strict=false) {
   check(object(tables),`${prefix}: tables must be an object.`);
   for (const [key,table] of Object.entries(tables)) {
@@ -67,7 +71,8 @@ export function validateGenerator(map,categories) {
   check(object(g) && [1,2].includes(g.version),'Unsupported generator version. Expected 1 or 2.');
   check(text(g.seed) || Number.isFinite(g.seed),'A generator needs a map seed.');
   const custom = g.catalog || {};
-  check(object(custom) && Object.keys(custom).every(k => ['people','types','tables','cultures','sections'].includes(k)),'Invalid generation catalog.');
+  check(object(custom) && Object.keys(custom).every(k => ['people','types','tables','cultures','sections','detailSources'].includes(k)),'Invalid generation catalog.');
+  validateDetailSources(map,check,value=>validateTables({description:[value]},'Detail source',[],true));
   for (const group of ['people','types','cultures','sections']) if (custom[group] !== undefined) check(object(custom[group]),`Catalog ${group} must be an object.`);
   const catalog = catalogFor(map);
   for (const [key,pool] of Object.entries(catalog.people)) {
@@ -81,7 +86,7 @@ export function validateGenerator(map,categories) {
   }
   for (const [key,culture] of Object.entries(catalog.cultures)) check(safeKey(key) && object(culture) && Object.hasOwn(catalog.people,culture.namePool),`Invalid culture: ${key}.`);
   for (const [key,section] of Object.entries(catalog.sections)) {
-    check(safeKey(key) && !fields.includes(key) && !Object.hasOwn(tokens,key) && object(section) && text(section.label),`Invalid custom section: ${key}.`);
+    check(safeKey(key) && !fields.includes(key) && (detailFields.includes(key) || !Object.hasOwn(tokens,key)) && object(section) && text(section.label),`Invalid custom section: ${key}.`);
     validateTables({[key]:section.templates},`Section ${key}`,Object.keys(catalog.sections),catalog.version===2);
   }
   if (custom.tables !== undefined) validateTables(custom.tables,'Catalog',Object.keys(catalog.sections),catalog.version===2);
@@ -94,5 +99,6 @@ export function validateGenerator(map,categories) {
 export function validateResolvedSettings(map,place,catalog) {
   const {config} = configFor(map,place);
   validateSettings(config,place.id,catalog);
+  validateDetailContext(map,place,config,check);
 }
 
