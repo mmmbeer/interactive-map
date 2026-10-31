@@ -13,6 +13,15 @@ export function integrationSettings(place) {
       level:3,count:6,tone:'Mixed',...saved.quests}
   };
 }
+export function integrationSearchTerms(place) {
+  const settings=integrationSettings(place),type=place.type || place.category,terms=[];
+  if(settings.quests.enabled)terms.push('quest board quest boards notice board notice boards job board job boards help board help boards quests side quest side quests mini quest mini quests D&D Help Board');
+  if(settings.sorrow.enabled || burialTypes.has(type)) {
+    terms.push('burial site burial sites burial ground burial grounds grave site grave sites NPC Sorrow');
+    if(['graveyard','cemetery','necropolis'].includes(type))terms.push('graveyard graveyards cemetery cemeteries necropolis necropolises');
+  }
+  return terms.join(' ');
+}
 // Explicit building functions take precedence over the surrounding landscape.
 // Merchant and workshop boards use guild commissions unless local geography selects a regional recipe.
 export function boardRecipe(place,context) {

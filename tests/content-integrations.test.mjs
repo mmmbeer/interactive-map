@@ -13,6 +13,7 @@ import { catalogFor } from '../public/js/generation/config.js';
 import { validateMap } from '../public/js/map-contract.js';
 import { variationModel } from '../public/js/local-maps/variations.js';
 import { serializeMap } from '../public/js/authoring/model.js';
+import { matches, searchPlaces } from '../public/js/spatial.js';
 
 const options={quests:{apiVersion:'1',locations:['guild','tavern','watch','temple','harbor','college','roadside','forest','desert','grassland','hills','mountain','swamp','underdark'].map(id=>({id})),tones:['Mixed','Grim']},
   sorrow:{apiVersion:'1',races:Object.keys(ancestries).map(r=>r.replaceAll('_','-')),sexes:['male','female','nonbinary'],ages:['child','adolescent','young adult','adult','middle-aged','old','ancient'],occupations:['commoner','mason','healer']}};
@@ -127,4 +128,25 @@ test('closing a callout cancels pending requests and prevents stale rendering',a
   }};
   const pending=panel.load('quests');await new Promise(done=>setImmediate(done));panel.close();resolve(board());await pending;
   assert.equal(aborted,true);assert.equal(renders,1);assert.deepEqual(panel.states,{});
+});
+test('directory searches find quest boards without loading remote content',async()=>{
+  const guild={...place('one','guild'),name:'The Brass Compass',featured:false};
+  for(const query of ['quest board','quest boards','quest-board','notice board','job board','help board','side quests'])assert.ok(matches(guild,{query}),query);
+  const merchant={...place('two','shop'),name:'The Copper Scale'};
+  const disabled={...place('three','guild'),integrations:{quests:{enabled:false}}};
+  const custom={...place('four'),integrations:{quests:{enabled:true}}};
+  assert.deepEqual(await searchPlaces([guild,merchant,disabled,custom],{query:'quest boards'}),[guild,merchant,custom]);
+  assert.equal(matches(guild,{query:'quest board',category:'temple'}),false);
+  assert.equal(matches(guild,{query:'quest board',district:'Elsewhere'}),false);
+  assert.ok(matches({...place('five','landmark','adventurers_guild')},{query:'adventurers guild'}));
+});
+test('directory searches find burial types, synonyms and explicitly enabled story locations',async()=>{
+  const m=source(),burial=rendered(m,'burial');
+  for(const query of ['burial site','burial sites','burial ground','grave site','graveyard','cemetery','cemeteries','NPC Sorrow'])assert.ok(matches(burial,{query}),query);
+  const crypt={...place('crypt-place','landmark','crypt'),name:'The Quiet Door',integrations:{sorrow:{enabled:false}}};
+  assert.ok(matches(crypt,{query:'crypt'}));assert.ok(matches(crypt,{query:'burial sites'}));
+  const custom={...place('memorial'),integrations:{sorrow:{enabled:true}}};
+  assert.ok(matches(custom,{query:'burial site'}));
+  const house=place('home','home');assert.equal(matches(house,{query:'burial sites'}),false);
+  assert.deepEqual(await searchPlaces([burial,crypt,custom,house],{query:'burial sites',category:'landmark',district:'ward'}),[crypt,custom]);
 });

@@ -9,6 +9,8 @@ The map calls two public APIs directly from the browser:
 
 Select a location and use **Load grave stories** or **Load quest board**. Player view is the default. **DM view** explicitly loads board secrets and exposes DM links. Both services' DM views are public presentations, not authentication. Sorrow has no separate secret narrative.
 
+Search the directory for **quest board**, **notice board**, **side quests**, **burial site**, **graveyard**, **cemetery** or a saved location type such as **crypt**. Search includes all locations, including unfeatured sites, and retains category and neighborhood filters. Enabled providers add search terms without loading an API. Burial types remain searchable when Sorrow is disabled. Explicitly enabled boards and story locations are searchable under their corresponding feature terms.
+
 Requests run only after a load or view action. Closing the callout, selecting another place or leaving the map cancels pending requests. Errors retain a retry action. Browser credentials are omitted. Content is escaped text. Links are restricted to the relevant provider's HTTPS origin. Cloudflare Pages permits API connections to these two origins.
 
 ## Location eligibility
