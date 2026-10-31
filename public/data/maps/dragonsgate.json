@@ -34,6 +34,9 @@
           "dragonborn": 2,
           "goblin": 1
         }
+      },
+      "settlement": {
+        "type": "port"
       }
     },
     "catalog": {
@@ -615,7 +618,15 @@
           "fortified citadel",
           "court officials",
           "stone terraces"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "records",
+            "arts",
+            "civic",
+            "metal"
+          ]
+        }
       }
     },
     {
@@ -701,7 +712,15 @@
           "temple precinct",
           "pilgrim lodging",
           "public gardens"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "records",
+            "medicine",
+            "hospitality",
+            "arts"
+          ]
+        }
       }
     },
     {
@@ -842,7 +861,15 @@
           "old lanes",
           "shared courtyards",
           "neighborhood trades"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "commerce",
+            "food",
+            "wood",
+            "leather"
+          ]
+        }
       }
     },
     {
@@ -996,7 +1023,17 @@
           "island docks",
           "fish auctions",
           "salt trade"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "maritime",
+            "food",
+            "transport"
+          ],
+          "environment": [
+            "coastal"
+          ]
+        }
       }
     },
     {
@@ -1130,7 +1167,17 @@
           "lantern makers",
           "textile workshops",
           "waterfront households"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "textiles",
+            "commerce",
+            "glass"
+          ],
+          "environment": [
+            "coastal"
+          ]
+        }
       }
     },
     {
@@ -1280,7 +1327,17 @@
           "southern island wharves",
           "bathhouses",
           "weaving halls"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "textiles",
+            "hospitality",
+            "medicine"
+          ],
+          "environment": [
+            "coastal"
+          ]
+        }
       }
     },
     {
@@ -1386,7 +1443,14 @@
           "grain markets",
           "western gate traffic",
           "merchant lodging"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "agriculture",
+            "transport",
+            "food"
+          ]
+        }
       }
     },
     {
@@ -1547,7 +1611,14 @@
           "metalworkers",
           "public theatre",
           "dense housing"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "metal",
+            "arts",
+            "wood"
+          ]
+        }
       }
     },
     {
@@ -1737,7 +1808,17 @@
           "mainland quays",
           "ship chandlers",
           "pilots and ferries"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "maritime",
+            "transport",
+            "commerce"
+          ],
+          "environment": [
+            "coastal"
+          ]
+        }
       }
     },
     {
@@ -1883,7 +1964,17 @@
           "inner harbor",
           "warehouses",
           "rope makers"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "maritime",
+            "transport",
+            "textiles"
+          ],
+          "environment": [
+            "coastal"
+          ]
+        }
       }
     },
     {
@@ -2061,7 +2152,17 @@
           "canal bridges",
           "watch barracks",
           "eastern waterfront"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "maritime",
+            "metal",
+            "transport"
+          ],
+          "environment": [
+            "coastal"
+          ]
+        }
       }
     },
     {
@@ -2259,7 +2360,14 @@
           "gardens",
           "glass workshops",
           "southern civic courts"
-        ]
+        ],
+        "settlement": {
+          "industries": [
+            "agriculture",
+            "glass",
+            "civic"
+          ]
+        }
       }
     },
     {
@@ -2582,7 +2690,24 @@
           "enclosed farm plots",
           "orchards",
           "country lanes"
-        ]
+        ],
+        "settlement": {
+          "type": "farming_village",
+          "industries": [
+            "agriculture",
+            "food",
+            "wood"
+          ],
+          "resources": [
+            "grain",
+            "fruit",
+            "farmland",
+            "pasture"
+          ],
+          "environment": [
+            "farmland"
+          ]
+        }
       }
     },
     {
@@ -2821,7 +2946,18 @@
           "signal towers",
           "island garrisons",
           "small boat landings"
-        ]
+        ],
+        "settlement": {
+          "type": "fortress",
+          "industries": [
+            "metal",
+            "maritime",
+            "civic"
+          ],
+          "environment": [
+            "coastal"
+          ]
+        }
       }
     }
   ],
@@ -3060,7 +3196,7 @@
     {"id":"street-drowned-saint-landing","category":"street","type":"lane","district":"watch-isles","x":861,"y":631,"shape":{"kind":"polyline","width":2,"points":[[849,619],[849,622],[856,629],[859,629],[861,631],[860,636],[863,636],[865,638]]},"overrides":{"name":"Drowned Saint Walk"},"siteNumber":9806},
     {"id":"street-harbor-fort-landing","category":"street","type":"lane","district":"watch-isles","x":763,"y":299,"shape":{"kind":"polyline","width":2,"points":[[749,303],[747,296],[750,293],[757,293],[763,299],[763,302],[764,303],[764,312]]},"overrides":{"name":"Harbor Fort Walk"},"siteNumber":9818},
     {"id":"dg-0001","category":"landmark","overrides":{"name":"The Dragonseat","description":"A basalt keep built around the rib bones of an ancient sea dragon. The city council meets beneath a ceiling stained by centuries of torch smoke.","person":"Lady Maren Voss, keeper of the city seal","rumor":"A sealed stair beneath the council chamber is warm even in winter."},"bounds":[292,166,27,26],"featured":true,"type":"landmark","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":305.5,"y":179.0,"district":"crown-hill","context":{"street":"street-crown-ring","terrain":"terrain-city-island"},"siteNumber":3},
-    {"id":"dg-0002","category":"guild","overrides":{"name":"The Ninefold Archive","description":"Nine reading rooms surround a locked courtyard. Copyists preserve shipping contracts, family trees and maps with conspicuous blank spaces.","person":"Archivist Pell, who remembers every overdue book","rumor":"A surveyor returned a map showing a street that does not exist yet."},"bounds":[325,207,24,21],"featured":true,"type":"guild","generation":{"demographics":{"race":"gnome","gender":"male","age":"adult"}},"x":337.0,"y":217.5,"district":"crown-hill","context":{"street":"street-crown-ring","terrain":"terrain-city-island"},"siteNumber":4},
+    {"id":"dg-0002","category":"guild","overrides":{"name":"The Ninefold Archive","description":"Nine reading rooms surround a locked courtyard. Copyists preserve shipping contracts, family trees and maps with conspicuous blank spaces.","person":"Archivist Pell, who remembers every overdue book","rumor":"A surveyor returned a map showing a street that does not exist yet."},"bounds":[325,207,24,21],"featured":true,"type":"guild","generation":{"demographics":{"race":"gnome","gender":"male","age":"adult"},"trade":"scribe"},"x":337.0,"y":217.5,"district":"crown-hill","context":{"street":"street-crown-ring","terrain":"terrain-city-island"},"siteNumber":4},
     {"id":"dg-0003","category":"temple","overrides":{"name":"Shrine of the First Flame","description":"A black-roofed sanctuary keeps a blue flame burning in a shallow bronze bowl. Sailors leave small clay boats at its steps.","person":"Sister Ilyra, a former navigator","rumor":"The flame bends toward the harbor whenever an unregistered ship arrives."},"bounds":[505,76,28,35],"featured":true,"type":"temple","generation":{"demographics":{"race":"elf","gender":"female","age":"adult"}},"x":519.0,"y":93.5,"district":"temple-heights","context":{"street":"street-northwall","terrain":"terrain-city-island"},"siteNumber":5},
     {"id":"dg-0004","category":"landmark","overrides":{"name":"The Astronomer’s Stair","description":"A narrow stair climbs above the northern roofs to a brass telescope and a platform open to the wind.","person":"Orren Vale, astronomer without a guild","rumor":"Last night a familiar star appeared twice."},"bounds":[466,62,9,11],"featured":true,"type":"landmark","generation":{"demographics":{"race":"gnome","gender":"male","age":"elder"}},"x":470.5,"y":67.5,"district":"temple-heights","context":{"street":"street-northwall","terrain":"terrain-city-island"},"siteNumber":6},
     {"id":"dg-0005","category":"temple","overrides":{"name":"Saint Orla’s House","description":"A quiet hospice offers broth, clean beds and a place to mend. No visitor is asked which banner they serve.","person":"Brother Fen, herbalist and patient listener","rumor":"A patient keeps drawing the same door while asleep."},"bounds":[469,116,7,10],"featured":true,"type":"temple","generation":{"demographics":{"race":"human","gender":"male","age":"adult"}},"x":472.5,"y":121.0,"district":"temple-heights","context":{"street":"street-northwall","terrain":"terrain-city-island"},"siteNumber":7},
@@ -3068,17 +3204,17 @@
     {"id":"dg-0007","category":"tavern","overrides":{"name":"The Brass Heron","description":"An upstairs tavern where dock pilots trade news over peppered mussels and dark beer. The windows face the busiest approach to the quays.","person":"Tamsin Rook, retired pilot","rumor":"A pilot was paid to guide a ship with no crew and no wake."},"bounds":[573,154,8,7],"featured":true,"type":"tavern","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":577.0,"y":157.5,"district":"north-quays","context":{"street":"street-temple-avenue","terrain":"terrain-city-island"},"siteNumber":9},
     {"id":"dg-0008","category":"harbor","overrides":{"name":"Harbormaster’s Hall","description":"Cargo tags hang from rafters above a long counter. Every berth, bonded crate and overdue vessel passes through this office.","person":"Harbormaster Edric Thane","rumor":"Three ships with different names are using the same registration seal."},"bounds":[625,171,18,17],"featured":true,"type":"harbor","generation":{"demographics":{"race":"human","gender":"male","age":"adult"}},"x":634.0,"y":179.5,"district":"north-quays","context":{"street":"street-quay-north","terrain":"terrain-city-island","water":"water-northern-bay"},"siteNumber":10},
     {"id":"dg-0009","category":"harbor","overrides":{"name":"Gullhook Pier","description":"A crooked timber pier serves the small coastal traders. Crates of salt fish compete for room with baskets of bright blue crabs.","person":"Mira Tallow, quay foreman","rumor":"A crate has been ticking since the last low tide."},"bounds":[573,231,14,14],"featured":true,"type":"harbor","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":580.0,"y":238.0,"district":"north-quays","context":{"street":"street-pier-01","terrain":"terrain-city-island","water":"water-northern-bay"},"siteNumber":11},
-    {"id":"dg-0010","category":"shop","overrides":{"name":"The Salt Exchange","description":"Merchants weigh sea salt, lamp oil and cured fish beneath a whitewashed arcade. Deals are agreed with a pinch of salt on the tongue.","person":"Dessa Brine, broker","rumor":"A merchant will pay handsomely for salt that has never touched the sea."},"bounds":[520,273,14,10],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":527.0,"y":278.0,"district":"north-quays","context":{"street":"street-quay-shore","terrain":"terrain-city-island"},"siteNumber":12},
+    {"id":"dg-0010","category":"shop","overrides":{"name":"The Salt Exchange","description":"Merchants weigh sea salt, lamp oil and cured fish beneath a whitewashed arcade. Deals are agreed with a pinch of salt on the tongue.","person":"Dessa Brine, broker","rumor":"A merchant will pay handsomely for salt that has never touched the sea."},"bounds":[520,273,14,10],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"female","age":"adult"},"trade":"provisioner"},"x":527.0,"y":278.0,"district":"north-quays","context":{"street":"street-quay-shore","terrain":"terrain-city-island"},"siteNumber":12},
     {"id":"dg-0011","category":"harbor","overrides":{"name":"The Chainhouse","description":"A capstan house controls the great harbor chain. Its iron links are wide enough for a child to crawl through.","person":"Captain Harl, chain watch","rumor":"Someone opens the chain for seven minutes on moonless nights."},"bounds":[624,366,16,14],"featured":true,"type":"harbor","generation":{"demographics":{"race":"orc","gender":"male","age":"adult"}},"x":632.0,"y":373.0,"district":"southwater","context":{"street":"street-pier-12","terrain":"terrain-city-island","water":"water-northern-bay"},"siteNumber":13},
-    {"id":"dg-0012","category":"shop","overrides":{"name":"The Gilded Compass","description":"A cramped shop sells charts, compasses and little glass globes of captured fog. The owner corrects every map before selling it.","person":"Vessa Quill, cartographer","rumor":"A customer wants a chart of the city as it stood three centuries ago."},"bounds":[454,215,8,9],"featured":true,"type":"shop","generation":{"demographics":{"race":"elf","gender":"female","age":"adult"}},"x":458.0,"y":219.5,"district":"north-quays","context":{"street":"street-temple-descent","terrain":"terrain-city-island"},"siteNumber":14},
-    {"id":"dg-0013","category":"workshop","overrides":{"name":"Bellfounder’s Yard","description":"Bronze bells cool in sand pits beside the foundry. Each bell is tested at dusk, filling nearby lanes with clashing notes.","person":"Master Dorrik, hard of hearing","rumor":"A bell cast yesterday rings when no one touches it."},"bounds":[371,327,20,23],"featured":true,"type":"workshop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"elder"}},"x":381.0,"y":338.5,"district":"old-town","context":{"street":"street-old-town-lane","terrain":"terrain-city-island"},"siteNumber":15},
+    {"id":"dg-0012","category":"shop","overrides":{"name":"The Gilded Compass","description":"A cramped shop sells charts, compasses and little glass globes of captured fog. The owner corrects every map before selling it.","person":"Vessa Quill, cartographer","rumor":"A customer wants a chart of the city as it stood three centuries ago."},"bounds":[454,215,8,9],"featured":true,"type":"shop","generation":{"demographics":{"race":"elf","gender":"female","age":"adult"},"trade":"cartographer"},"x":458.0,"y":219.5,"district":"north-quays","context":{"street":"street-temple-descent","terrain":"terrain-city-island"},"siteNumber":14},
+    {"id":"dg-0013","category":"workshop","overrides":{"name":"Bellfounder’s Yard","description":"Bronze bells cool in sand pits beside the foundry. Each bell is tested at dusk, filling nearby lanes with clashing notes.","person":"Master Dorrik, hard of hearing","rumor":"A bell cast yesterday rings when no one touches it."},"bounds":[371,327,20,23],"featured":true,"type":"workshop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"elder"},"trade":"bellfounder"},"x":381.0,"y":338.5,"district":"old-town","context":{"street":"street-old-town-lane","terrain":"terrain-city-island"},"siteNumber":15},
     {"id":"dg-0014","category":"tavern","overrides":{"name":"The Crooked Crown","description":"Low beams and an enormous hearth make this old inn a favorite of messengers. The best table is reserved for someone who has never arrived.","person":"Bera Flint, innkeeper","rumor":"A messenger left a letter addressed to the next person who sits by the fire."},"bounds":[274,277,6,7],"featured":true,"type":"tavern","generation":{"demographics":{"race":"dwarf","gender":"female","age":"adult"}},"x":277.0,"y":280.5,"district":"old-town","context":{"street":"street-island-crossing","terrain":"terrain-city-island"},"siteNumber":16},
-    {"id":"dg-0015","category":"shop","overrides":{"name":"The Ink & Thorn","description":"A stationer and bookbinder selling weatherproof journals, sealing wax and politely forbidden histories.","person":"Lio Sable, bookbinder","rumor":"A bound diary adds one sentence to itself every dawn."},"bounds":[323,304,7,8],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"nonbinary","age":"adult"}},"x":326.5,"y":308.0,"district":"old-town","context":{"street":"street-old-court","terrain":"terrain-city-island"},"siteNumber":17},
+    {"id":"dg-0015","category":"shop","overrides":{"name":"The Ink & Thorn","description":"A stationer and bookbinder selling weatherproof journals, sealing wax and politely forbidden histories.","person":"Lio Sable, bookbinder","rumor":"A bound diary adds one sentence to itself every dawn."},"bounds":[323,304,7,8],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"nonbinary","age":"adult"},"trade":"bookbinder"},"x":326.5,"y":308.0,"district":"old-town","context":{"street":"street-old-court","terrain":"terrain-city-island"},"siteNumber":17},
     {"id":"dg-0016","category":"temple","overrides":{"name":"Mercy Bell Chapel","description":"A small neighborhood chapel keeps its door open through the night. Neighbors ring the hand bell to ask for help.","person":"Caretaker Anwen Moss","rumor":"The hand bell rang underwater during the last storm."},"bounds":[330,411,13,16],"featured":true,"type":"temple","generation":{"demographics":{"race":"elf","gender":"female","age":"adult"}},"x":336.5,"y":419.0,"district":"lantern-ward","context":{"street":"street-ink-row","terrain":"terrain-city-island"},"siteNumber":18},
-    {"id":"dg-0017","category":"workshop","overrides":{"name":"Tanners’ Court","description":"Leather awnings shade a courtyard of vats and drying hides. The workers make the strongest sail harnesses in Dragonsgate.","person":"Rufus Dane, leatherworker","rumor":"A hide delivered from upriver cannot be cut with steel."},"bounds":[270,449,9,12],"featured":true,"type":"workshop","generation":{"demographics":{"race":"human","gender":"male","age":"adult"}},"x":274.5,"y":455.0,"district":"lantern-ward","context":{"street":"street-tanners","terrain":"terrain-city-island"},"siteNumber":19},
+    {"id":"dg-0017","category":"workshop","overrides":{"name":"Tanners’ Court","description":"Leather awnings shade a courtyard of vats and drying hides. The workers make the strongest sail harnesses in Dragonsgate.","person":"Rufus Dane, leatherworker","rumor":"A hide delivered from upriver cannot be cut with steel."},"bounds":[270,449,9,12],"featured":true,"type":"workshop","generation":{"demographics":{"race":"human","gender":"male","age":"adult"},"trade":"tanner"},"x":274.5,"y":455.0,"district":"lantern-ward","context":{"street":"street-tanners","terrain":"terrain-city-island"},"siteNumber":19},
     {"id":"dg-0018","category":"tavern","overrides":{"name":"The Moonlit Eel","description":"A blue lantern marks a tavern popular with actors, night watchmen and people waiting for discreet introductions.","person":"Nessa Vane, proprietor","rumor":"A masked guest buys two drinks each night and pours one into the hearth."},"bounds":[493,469,7,7],"featured":true,"type":"tavern","generation":{"demographics":{"race":"halfling","gender":"female","age":"adult"}},"x":496.5,"y":472.5,"district":"southwater","context":{"street":"street-southwater-cross","terrain":"terrain-city-island"},"siteNumber":20},
-    {"id":"dg-0019","category":"shop","overrides":{"name":"Lantern Market","description":"A knot of stalls sells spiced sweets, paper lanterns and small household charms well after sunset.","person":"Perrin Hale, market steward","rumor":"Every lantern made by one vendor shows the same unfamiliar face."},"bounds":[573,456,9,8],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"male","age":"adult"}},"x":577.5,"y":460.0,"district":"southwater","context":{"street":"street-southwater-baths","terrain":"terrain-city-island"},"siteNumber":21},
-    {"id":"dg-0020","category":"guild","overrides":{"name":"The Weavers’ Hall","description":"Colored wool hangs across a long hall where apprentices compete to weave the finest tide-blue cloth.","person":"Guildmistress Cala Wren","rumor":"A bolt of cloth unravels into a map when left in moonlight."},"bounds":[643,483,10,9],"featured":true,"type":"guild","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":648.0,"y":487.5,"district":"southwater","context":{"street":"street-southwater-baths","terrain":"terrain-city-island"},"siteNumber":22},
+    {"id":"dg-0019","category":"shop","overrides":{"name":"Lantern Market","description":"A knot of stalls sells spiced sweets, paper lanterns and small household charms well after sunset.","person":"Perrin Hale, market steward","rumor":"Every lantern made by one vendor shows the same unfamiliar face."},"bounds":[573,456,9,8],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"male","age":"adult"},"trade":"chandler"},"x":577.5,"y":460.0,"district":"southwater","context":{"street":"street-southwater-baths","terrain":"terrain-city-island"},"siteNumber":21},
+    {"id":"dg-0020","category":"guild","overrides":{"name":"The Weavers’ Hall","description":"Colored wool hangs across a long hall where apprentices compete to weave the finest tide-blue cloth.","person":"Guildmistress Cala Wren","rumor":"A bolt of cloth unravels into a map when left in moonlight."},"bounds":[643,483,10,9],"featured":true,"type":"guild","generation":{"demographics":{"race":"human","gender":"female","age":"adult"},"trade":"weaver"},"x":648.0,"y":487.5,"district":"southwater","context":{"street":"street-southwater-baths","terrain":"terrain-city-island"},"siteNumber":22},
     {"id":"dg-0021","category":"landmark","overrides":{"name":"The Southwater Baths","description":"Warm pools occupy a grand building near the southern wall. Mosaic sea creatures curl beneath the water.","person":"Attendant Selwin, collector of gossip","rumor":"A locked pool fills with fresh water though it has no inlet."},"bounds":[663,509,25,27],"featured":true,"type":"landmark","generation":{"demographics":{"race":"human","gender":"nonbinary","age":"adult"}},"x":675.5,"y":522.5,"district":"southwater","context":{"street":"street-southwater-baths","terrain":"terrain-city-island"},"siteNumber":23},
     {"id":"dg-0022","category":"landmark","overrides":{"name":"Warden’s Rest","description":"An outlying watchtower guards the southern approach to the island. A narrow landing admits one boat at a time.","person":"Warden Elra Stone","rumor":"The watch has heard knocks from below the tower’s foundation."},"bounds":[743,552,17,22],"featured":true,"type":"landmark","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":751.5,"y":563.0,"district":"southwater","context":{"street":"street-southwater-baths","terrain":"terrain-city-island"},"siteNumber":24},
     {"id":"dg-0023","category":"landmark","overrides":{"name":"The Western Teeth","description":"A squat stone outpost watches the western channel. Its signal shutters are patched with mismatched planks.","person":"Watch sergeant Bram Hest","rumor":"A signal from the abandoned tower was answered last night."},"bounds":[65,342,26,28],"featured":true,"type":"landmark","generation":{"demographics":{"race":"orc","gender":"male","age":"adult"}},"x":78.0,"y":356.0,"district":"watch-isles","context":{"street":"street-west-watch-landing"},"siteNumber":25},
@@ -3089,38 +3225,38 @@
     {"id":"dg-0028","category":"harbor","overrides":{"name":"Westgate Custom House","description":"Incoming river cargo is weighed and taxed at a row of broad tables. Clerks stamp everything from barley sacks to live geese.","person":"Clerk Jana Rill","rumor":"A crate that passed inspection yesterday weighs twice as much today."},"bounds":[445,806,8,9],"featured":true,"type":"harbor","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":449.0,"y":810.5,"district":"southbank","context":{"street":"street-pier-17","water":"water-city-channel"},"siteNumber":30},
     {"id":"dg-0029","category":"harbor","overrides":{"name":"The Long Wharf","description":"A crowded finger of piers reaches into the channel. Coasters from half a dozen ports unload alongside local fishing boats.","person":"Dockmaster Tomren Pike","rumor":"A boat tied here has a different cargo every morning."},"bounds":[578,781,9,6],"featured":true,"type":"harbor","generation":{"demographics":{"race":"human","gender":"male","age":"adult"}},"x":582.5,"y":784.0,"district":"southbank","context":{"street":"street-north-quays-road","water":"water-mainland-harbor"},"siteNumber":31},
     {"id":"dg-0030","category":"tavern","overrides":{"name":"The Copper Kettle","description":"Breakfast starts before dawn at this busy coaching inn. The kitchen serves oat cakes and a stew that never quite leaves the fire.","person":"Halla Wick, innkeeper","rumor":"A regular guest pays with coins minted next year."},"bounds":[273,843,6,7],"featured":true,"type":"tavern","generation":{"demographics":{"race":"halfling","gender":"female","age":"adult"}},"x":276.0,"y":846.5,"district":"westgate","context":{"street":"street-westgate-north"},"siteNumber":32},
-    {"id":"dg-0031","category":"shop","overrides":{"name":"The Grain Steps","description":"Grain sellers stack sacks under striped awnings beside the old western road. Small hand mills grind flour to order.","person":"Miller Joss Venn","rumor":"Someone has been buying every sack from a particular field."},"bounds":[165,816,8,5],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"male","age":"elder"}},"x":169.0,"y":818.5,"district":"westgate","context":{"street":"street-westgate-north"},"siteNumber":33},
-    {"id":"dg-0032","category":"guild","overrides":{"name":"The Open Hand","description":"Carters, porters and laborers gather at a broad guildhall to find work and settle disputes.","person":"Foreman Rell Moss","rumor":"A porter was hired to move a locked chest that begged not to be delivered."},"bounds":[153,1006,22,29],"featured":true,"type":"guild","generation":{"demographics":{"race":"orc","gender":"male","age":"adult"}},"x":164.0,"y":1020.5,"district":"copperside","context":{"street":"street-copper-hall"},"siteNumber":34},
+    {"id":"dg-0031","category":"shop","overrides":{"name":"The Grain Steps","description":"Grain sellers stack sacks under striped awnings beside the old western road. Small hand mills grind flour to order.","person":"Miller Joss Venn","rumor":"Someone has been buying every sack from a particular field."},"bounds":[165,816,8,5],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"male","age":"elder"},"trade":"miller"},"x":169.0,"y":818.5,"district":"westgate","context":{"street":"street-westgate-north"},"siteNumber":33},
+    {"id":"dg-0032","category":"guild","overrides":{"name":"The Open Hand","description":"Carters, porters and laborers gather at a broad guildhall to find work and settle disputes.","person":"Foreman Rell Moss","rumor":"A porter was hired to move a locked chest that begged not to be delivered."},"bounds":[153,1006,22,29],"featured":true,"type":"guild","generation":{"demographics":{"race":"orc","gender":"male","age":"adult"},"trade":"freight_broker"},"x":164.0,"y":1020.5,"district":"copperside","context":{"street":"street-copper-hall"},"siteNumber":34},
     {"id":"dg-0033","category":"landmark","overrides":{"name":"The Roundhouse Theatre","description":"An oval playhouse stages comedies by day and ambitious tragedies after dark. Street vendors gather outside for the interval.","person":"Director Syra Vale","rumor":"The leading actor’s reflection has started rehearsing a different play."},"bounds":[195,1030,57,38],"featured":true,"type":"landmark","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":223.5,"y":1049.0,"district":"copperside","context":{"street":"street-theatre"},"siteNumber":35},
-    {"id":"dg-0034","category":"workshop","overrides":{"name":"Morrow’s Forge","description":"A smith makes ship nails, locks and finely balanced knives in a shop blackened by generations of smoke.","person":"Morrow Reed, smith","rumor":"A customer left a sword that is heavier when someone lies nearby."},"bounds":[233,1139,7,5],"featured":true,"type":"workshop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"adult"}},"x":236.5,"y":1141.5,"district":"copperside","context":{"street":"street-theatre"},"siteNumber":36},
-    {"id":"dg-0035","category":"shop","overrides":{"name":"The Red Thread","description":"A clothier repairs work clothes downstairs and tailors extravagant coats upstairs. Measurements are kept in a book with a red clasp.","person":"Tailor Della Penn","rumor":"A coat returned for repair has a pocket that was never sewn into it."},"bounds":[151,1193,12,10],"featured":true,"type":"shop","generation":{"demographics":{"race":"halfling","gender":"female","age":"adult"}},"x":157.0,"y":1198.0,"district":"greenward","context":{"street":"street-garden-north"},"siteNumber":37},
-    {"id":"dg-0036","category":"guild","overrides":{"name":"The Pilots’ Hearth","description":"River pilots meet beneath painted beams to exchange charts and assign the next day’s passages.","person":"Pilot master Gerrin Ash","rumor":"A newly exposed sandbar bears the foundations of a house."},"bounds":[484,1072,22,19],"featured":true,"type":"guild","generation":{"demographics":{"race":"human","gender":"male","age":"elder"}},"x":495.0,"y":1081.5,"district":"southbank","context":{"street":"street-southbank-quay"},"siteNumber":38},
+    {"id":"dg-0034","category":"workshop","overrides":{"name":"Morrow’s Forge","description":"A smith makes ship nails, locks and finely balanced knives in a shop blackened by generations of smoke.","person":"Morrow Reed, smith","rumor":"A customer left a sword that is heavier when someone lies nearby."},"bounds":[233,1139,7,5],"featured":true,"type":"workshop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"adult"},"trade":"blacksmith"},"x":236.5,"y":1141.5,"district":"copperside","context":{"street":"street-theatre"},"siteNumber":36},
+    {"id":"dg-0035","category":"shop","overrides":{"name":"The Red Thread","description":"A clothier repairs work clothes downstairs and tailors extravagant coats upstairs. Measurements are kept in a book with a red clasp.","person":"Tailor Della Penn","rumor":"A coat returned for repair has a pocket that was never sewn into it."},"bounds":[151,1193,12,10],"featured":true,"type":"shop","generation":{"demographics":{"race":"halfling","gender":"female","age":"adult"},"trade":"tailor"},"x":157.0,"y":1198.0,"district":"greenward","context":{"street":"street-garden-north"},"siteNumber":37},
+    {"id":"dg-0036","category":"guild","overrides":{"name":"The Pilots’ Hearth","description":"River pilots meet beneath painted beams to exchange charts and assign the next day’s passages.","person":"Pilot master Gerrin Ash","rumor":"A newly exposed sandbar bears the foundations of a house."},"bounds":[484,1072,22,19],"featured":true,"type":"guild","generation":{"demographics":{"race":"human","gender":"male","age":"elder"},"trade":"chartmaker"},"x":495.0,"y":1081.5,"district":"southbank","context":{"street":"street-southbank-quay"},"siteNumber":38},
     {"id":"dg-0037","category":"tavern","overrides":{"name":"The Black Gull","description":"A sailors’ tavern leans over the water on oak piles. The dice tables are honest, according to the owner.","person":"Corra Finch, host","rumor":"Someone is offering passage aboard a ship that sank ten years ago."},"bounds":[440,1011,9,11],"featured":true,"type":"tavern","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":444.5,"y":1016.5,"district":"southbank","context":{"street":"street-harbor-rim"},"siteNumber":39},
-    {"id":"dg-0038","category":"workshop","overrides":{"name":"Seven Sails Shipwrights","description":"Sawhorses and timber cradles fill a busy waterfront yard. A half-built cutter sits beneath a patchwork canvas roof.","person":"Master shipwright Ilven Marr","rumor":"The newest hull hums when the tide turns."},"bounds":[582,958,22,12],"featured":true,"type":"workshop","generation":{"demographics":{"race":"elf","gender":"male","age":"adult"}},"x":593.0,"y":964.0,"district":"harborward","context":{"street":"street-harborward-loop","water":"water-mainland-harbor"},"siteNumber":40},
-    {"id":"dg-0039","category":"workshop","overrides":{"name":"The Ropewalk","description":"Long narrow sheds produce rope for fishing boats and ocean traders. Apprentices race along the twisting lanes of hemp.","person":"Sella Tern, rope maker","rumor":"A finished coil keeps tying itself into the same knot."},"bounds":[687,1111,9,7],"featured":true,"type":"workshop","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":691.5,"y":1114.5,"district":"harborward","context":{"street":"street-harborward-radial"},"siteNumber":41},
-    {"id":"dg-0040","category":"shop","overrides":{"name":"The Pearl Ledger","description":"An appraiser buys pearls, coral and curiosities brought up by local divers. Every purchase is recorded in green ink.","person":"Oris Vell, appraiser","rumor":"A diver found a pearl with a tiny moving shadow inside."},"bounds":[722,1027,7,7],"featured":true,"type":"shop","generation":{"demographics":{"race":"gnome","gender":"male","age":"adult"}},"x":725.5,"y":1030.5,"district":"harborward","context":{"street":"street-harborward-radial"},"siteNumber":42},
+    {"id":"dg-0038","category":"workshop","overrides":{"name":"Seven Sails Shipwrights","description":"Sawhorses and timber cradles fill a busy waterfront yard. A half-built cutter sits beneath a patchwork canvas roof.","person":"Master shipwright Ilven Marr","rumor":"The newest hull hums when the tide turns."},"bounds":[582,958,22,12],"featured":true,"type":"workshop","generation":{"demographics":{"race":"elf","gender":"male","age":"adult"},"trade":"shipwright"},"x":593.0,"y":964.0,"district":"harborward","context":{"street":"street-harborward-loop","water":"water-mainland-harbor"},"siteNumber":40},
+    {"id":"dg-0039","category":"workshop","overrides":{"name":"The Ropewalk","description":"Long narrow sheds produce rope for fishing boats and ocean traders. Apprentices race along the twisting lanes of hemp.","person":"Sella Tern, rope maker","rumor":"A finished coil keeps tying itself into the same knot."},"bounds":[687,1111,9,7],"featured":true,"type":"workshop","generation":{"demographics":{"race":"human","gender":"female","age":"adult"},"trade":"ropemaker"},"x":691.5,"y":1114.5,"district":"harborward","context":{"street":"street-harborward-radial"},"siteNumber":41},
+    {"id":"dg-0040","category":"shop","overrides":{"name":"The Pearl Ledger","description":"An appraiser buys pearls, coral and curiosities brought up by local divers. Every purchase is recorded in green ink.","person":"Oris Vell, appraiser","rumor":"A diver found a pearl with a tiny moving shadow inside."},"bounds":[722,1027,7,7],"featured":true,"type":"shop","generation":{"demographics":{"race":"gnome","gender":"male","age":"adult"},"trade":"jeweler"},"x":725.5,"y":1030.5,"district":"harborward","context":{"street":"street-harborward-radial"},"siteNumber":42},
     {"id":"dg-0041","category":"harbor","overrides":{"name":"The Eastwater Lock","description":"Lock gates regulate the narrow eastern waterway. Children line the rail to watch barges rise with the incoming tide.","person":"Lockkeeper Brin Alder","rumor":"Something large brushes the lower gate at midnight."},"bounds":[827,1115,8,9],"featured":true,"type":"harbor","generation":{"demographics":{"race":"human","gender":"male","age":"adult"}},"x":831.0,"y":1119.5,"district":"eastbank","context":{"street":"street-eastbank-inner","water":"water-eastern-canal"},"siteNumber":43},
-    {"id":"dg-0042","category":"shop","overrides":{"name":"The Blue Door Apothecary","description":"Dried herbs fill jars behind a deep blue door. The owner makes remedies for seasickness and unusually vivid dreams.","person":"Apothecary Neri Moss","rumor":"A dream remedy is causing different patients to meet in the same place."},"bounds":[880,952,7,7],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":883.5,"y":955.5,"district":"eastbank","context":{"street":"street-eastbank-waterfront"},"siteNumber":44},
+    {"id":"dg-0042","category":"shop","overrides":{"name":"The Blue Door Apothecary","description":"Dried herbs fill jars behind a deep blue door. The owner makes remedies for seasickness and unusually vivid dreams.","person":"Apothecary Neri Moss","rumor":"A dream remedy is causing different patients to meet in the same place."},"bounds":[880,952,7,7],"featured":true,"type":"shop","generation":{"demographics":{"race":"human","gender":"female","age":"adult"},"trade":"apothecary"},"x":883.5,"y":955.5,"district":"eastbank","context":{"street":"street-eastbank-waterfront"},"siteNumber":44},
     {"id":"dg-0043","category":"landmark","overrides":{"name":"Eastbank Watchhouse","description":"A square watchhouse stands at the bend in the eastern road. Its courtyard is always full of confiscated handcarts.","person":"Sergeant Edda Marr","rumor":"Every night someone moves one of the confiscated carts outside the gate."},"bounds":[867,880,23,35],"featured":true,"type":"landmark","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":878.5,"y":897.5,"district":"eastbank","context":{"street":"street-eastbank-waterfront"},"siteNumber":45},
     {"id":"dg-0044","category":"tavern","overrides":{"name":"The Quiet Oar","description":"A modest waterside inn rents clean rooms and rowing boats. Guests leave before sunrise to fish the eastern reaches.","person":"Pella Wren, boat keeper","rumor":"One rented boat came back with an extra set of wet footprints."},"bounds":[841,820,8,9],"featured":true,"type":"tavern","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":845.0,"y":824.5,"district":"eastbank","context":{"street":"street-eastbank-waterfront"},"siteNumber":46},
-    {"id":"dg-0045","category":"workshop","overrides":{"name":"The Greenward Glassworks","description":"Three furnace halls glow beside the southern wall. Their glass floats are sold to fishing fleets across the coast.","person":"Glassworker Tovin Reed","rumor":"A batch of green glass shows a harbor with no ships in it."},"bounds":[428,1316,30,21],"featured":true,"type":"workshop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"adult"}},"x":443.0,"y":1326.5,"district":"greenward","context":{"street":"street-civic-road"},"siteNumber":47},
+    {"id":"dg-0045","category":"workshop","overrides":{"name":"The Greenward Glassworks","description":"Three furnace halls glow beside the southern wall. Their glass floats are sold to fishing fleets across the coast.","person":"Glassworker Tovin Reed","rumor":"A batch of green glass shows a harbor with no ships in it."},"bounds":[428,1316,30,21],"featured":true,"type":"workshop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"adult"},"trade":"glassworker"},"x":443.0,"y":1326.5,"district":"greenward","context":{"street":"street-civic-road"},"siteNumber":47},
     {"id":"dg-0046","category":"landmark","overrides":{"name":"The Laurel Court","description":"An enclosed triangular garden offers shade between the southern lanes. Neighbors play tiles on worn stone tables.","person":"Groundskeeper Merra Hest","rumor":"A tree in the garden blossoms only when someone makes a promise."},"bounds":[659,1294,29,29],"featured":true,"type":"landmark","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":673.5,"y":1308.5,"district":"greenward","context":{"street":"street-laurel"},"siteNumber":48},
-    {"id":"dg-0047","category":"shop","overrides":{"name":"The Herb Garden","description":"A walled kitchen garden supplies rare greens and medicinal roots to the city. Visitors may buy cuttings at the gate.","person":"Gardener Aline Vale","rumor":"The oldest root bed is growing around a buried brass lid."},"bounds":[328,1290,6,8],"featured":true,"type":"shop","generation":{"demographics":{"race":"elf","gender":"female","age":"adult"}},"x":331.0,"y":1294.0,"district":"greenward","context":{"street":"street-south-greenward"},"siteNumber":49},
+    {"id":"dg-0047","category":"shop","overrides":{"name":"The Herb Garden","description":"A walled kitchen garden supplies rare greens and medicinal roots to the city. Visitors may buy cuttings at the gate.","person":"Gardener Aline Vale","rumor":"The oldest root bed is growing around a buried brass lid."},"bounds":[328,1290,6,8],"featured":true,"type":"shop","generation":{"demographics":{"race":"elf","gender":"female","age":"adult"},"trade":"herbalist"},"x":331.0,"y":1294.0,"district":"greenward","context":{"street":"street-south-greenward"},"siteNumber":49},
     {"id":"dg-0048","category":"landmark","overrides":{"name":"The Southern Gate","description":"A broad gate opens onto the field roads. A worn dragon above the arch has had its missing tooth replaced with copper.","person":"Gate captain Ressa Holt","rumor":"Travelers have started leaving teeth beneath the arch."},"bounds":[530,1396,14,14],"featured":true,"type":"landmark","generation":{"demographics":{"race":"orc","gender":"female","age":"adult"}},"x":537.0,"y":1403.0,"district":"greenward","context":{"street":"street-southgate"},"siteNumber":50},
     {"id":"dg-0049","category":"tavern","overrides":{"name":"The Last Lantern","description":"A roadside inn offers a final hot meal before the city. Its stable is larger than its common room.","person":"Host Renna Pike","rumor":"A traveler left a horse that knows how to open every latch."},"bounds":[439,1506,9,10],"featured":true,"type":"tavern","generation":{"demographics":{"race":"halfling","gender":"female","age":"adult"}},"x":443.5,"y":1511.0,"district":"outer-fields","context":{"street":"street-southern-country-road"},"siteNumber":51},
     {"id":"dg-0050","category":"home","overrides":{"name":"Orchard House","description":"An old farmhouse stands beyond the southern walls among neatly tended fruit trees. A cider press works through the harvest.","person":"The Alder family","rumor":"A tree planted this spring already bears fruit with silver seeds."},"bounds":[696,1454,6,7],"featured":true,"type":"home","generation":{"demographics":{"race":"halfling","gender":"nonbinary","age":"adult"}},"x":699.0,"y":1457.5,"district":"outer-fields","context":{"street":"street-country-east"},"siteNumber":52},
     {"id":"dg-0051","category":"landmark","overrides":{"name":"The Old Mill Road","description":"A cluster of cottages marks a crossroads used by farmers bringing produce to market. The milestone has been turned around.","person":"Road keeper Dessa Hale","rumor":"All four faces of the milestone now point toward Dragonsgate."},"bounds":[532,1562,9,11],"featured":true,"type":"landmark","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":536.5,"y":1567.5,"district":"outer-fields","context":{"street":"street-south-country"},"siteNumber":53},
-    {"id":"dg-0052","category":"shop","overrides":{"name":"The Stone & Scale","description":"A mason sells carved signs, hearthstones and tiny stone dragons. Samples crowd every surface of the workshop.","person":"Stonecutter Tobin Flint","rumor":"A small carved dragon has been found facing a different direction each morning."},"bounds":[403,549,7,9],"featured":true,"type":"shop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"adult"}},"x":406.5,"y":553.5,"district":"lantern-ward","context":{"street":"street-southern-island-road","terrain":"terrain-city-island"},"siteNumber":54},
+    {"id":"dg-0052","category":"shop","overrides":{"name":"The Stone & Scale","description":"A mason sells carved signs, hearthstones and tiny stone dragons. Samples crowd every surface of the workshop.","person":"Stonecutter Tobin Flint","rumor":"A small carved dragon has been found facing a different direction each morning."},"bounds":[403,549,7,9],"featured":true,"type":"shop","generation":{"demographics":{"race":"dwarf","gender":"male","age":"adult"},"trade":"stonemason"},"x":406.5,"y":553.5,"district":"lantern-ward","context":{"street":"street-southern-island-road","terrain":"terrain-city-island"},"siteNumber":54},
     {"id":"dg-0053","category":"home","overrides":{"name":"The Amber Window","description":"A retired navigator keeps a house with amber panes and a rooftop full of wind vanes.","person":"Captain Ysra Venn","rumor":"The wind vanes have begun pointing toward a single house inland."},"bounds":[603,544,9,7],"featured":true,"type":"home","generation":{"demographics":{"race":"human","gender":"female","age":"adult"}},"x":607.5,"y":547.5,"district":"southwater","context":{"street":"street-southwater-east","terrain":"terrain-city-island"},"siteNumber":55},
     {"id":"dg-0054","category":"harbor","overrides":{"name":"The Ferry Bell","description":"A bell at the end of the long quay summons the cross-channel ferry. Its timetable follows the tides rather than the clock.","person":"Ferrier Colm Rill","rumor":"A passenger has been waiting here since before the ferrier was born."},"bounds":[671,773,11,12],"featured":true,"type":"harbor","generation":{"demographics":{"race":"human","gender":"male","age":"adult"}},"x":676.5,"y":779.0,"district":"southbank","context":{"street":"street-north-quays-road","water":"water-mainland-harbor"},"siteNumber":56},
     {"id":"northwest-bastion","category":"landmark","type":"landmark","bounds":[163,249,23,24],"featured":true,"overrides":{"name":"Westwall Bastion","description":"A detached bastion projects from the northwest island wall. Its yard opens onto the wall road.","person":"","rumor":"","services":"Public access during the day."},"x":174.5,"y":261.0,"district":"old-town","context":{"street":"street-island-crossing","terrain":"terrain-city-island"},"siteNumber":995},
     {"id":"east-isle-fort","category":"landmark","type":"landmark","bounds":[740,291,20,25],"featured":true,"overrides":{"name":"Harbor Mouth Fort","description":"A small fort occupies the rocky islet off the eastern harbor mouth.","person":"","rumor":"","services":"Public access during the day."},"x":750.0,"y":303.5,"district":"watch-isles","context":{"street":"street-harbor-fort-landing","water":"water-northern-bay"},"siteNumber":59},
     {"id":"temple-garden","category":"landmark","type":"landmark","bounds":[497,115,46,30],"featured":true,"overrides":{"name":"First Flame Gardens","description":"Rows of planted trees frame the approach to the temple. This public precinct lies inside the northern walls.","person":"","rumor":"","services":"Public access during the day."},"x":520.0,"y":130.0,"district":"temple-heights","context":{"street":"street-northwall","terrain":"terrain-city-island"},"siteNumber":9898},
-    {"id":"island-market-hall","category":"guild","type":"guild","bounds":[354,485,26,25],"featured":true,"overrides":{"name":"Lantern Ward Cloth Hall","description":"Two long halls stand beside Lantern Road. Weavers and cloth merchants inspect bolts and settle measures here.","person":null,"rumor":""},"x":367.0,"y":497.5,"district":"lantern-ward","context":{"street":"street-southern-island-road","terrain":"terrain-city-island"},"siteNumber":64},
-    {"id":"west-trade-halls","category":"guild","type":"guild","bounds":[143,995,41,41],"featured":true,"overrides":{"name":"Copperworkers Hall","description":"A group of large workshops occupies the block west of the theatre. The hall maintains public weights and apprenticeship records.","person":null,"rumor":""},"x":163.5,"y":1015.5,"district":"copperside","context":{"street":"street-copper-hall"},"siteNumber":10030},
+    {"id":"island-market-hall","category":"guild","type":"guild","bounds":[354,485,26,25],"featured":true,"overrides":{"name":"Lantern Ward Cloth Hall","description":"Two long halls stand beside Lantern Road. Weavers and cloth merchants inspect bolts and settle measures here.","person":null,"rumor":""},"x":367.0,"y":497.5,"district":"lantern-ward","context":{"street":"street-southern-island-road","terrain":"terrain-city-island"},"siteNumber":64,"generation":{"trade":"weaver"}},
+    {"id":"west-trade-halls","category":"guild","type":"guild","bounds":[143,995,41,41],"featured":true,"overrides":{"name":"Copperworkers Hall","description":"A group of large workshops occupies the block west of the theatre. The hall maintains public weights and apprenticeship records.","person":null,"rumor":""},"x":163.5,"y":1015.5,"district":"copperside","context":{"street":"street-copper-hall"},"siteNumber":10030,"generation":{"trade":"coppersmith"}},
     {"id":"greenward-courts","category":"landmark","type":"landmark","bounds":[429,1354,33,24],"featured":true,"overrides":{"name":"Southern Council Halls","description":"Large parallel halls form a civic precinct close to the southern city wall.","person":"","rumor":"","services":"Public access during the day."},"x":445.5,"y":1366.0,"district":"greenward","context":{"street":"street-civic-road"},"siteNumber":62},
     {"id":"greenward-colonnade","category":"temple","type":"temple","bounds":[420,1282,35,29],"featured":true,"overrides":{"name":"Chapel of the Clear Glass","description":"A long rectangular sanctuary anchors the northern end of the glassworkers precinct.","person":null,"rumor":""},"x":437.5,"y":1296.5,"district":"greenward","context":{"street":"street-south-greenward"},"siteNumber":61},
-    {"id":"east-market","category":"shop","type":"shop","bounds":[769,1093,31,21],"featured":true,"overrides":{"name":"Eastwater Market","description":"A cluster of larger buildings faces the road beside the canal bridges. Stalls supply the eastern neighborhoods.","person":null,"rumor":""},"x":784.5,"y":1103.5,"district":"harborward","context":{"street":"street-harborward-loop","water":"water-eastern-canal"},"siteNumber":60},
+    {"id":"east-market","category":"shop","type":"shop","bounds":[769,1093,31,21],"featured":true,"overrides":{"name":"Eastwater Market","description":"A cluster of larger buildings faces the road beside the canal bridges. Stalls supply the eastern neighborhoods.","person":null,"rumor":""},"x":784.5,"y":1103.5,"district":"harborward","context":{"street":"street-harborward-loop","water":"water-eastern-canal"},"siteNumber":60,"generation":{"trade":"provisioner"}},
     {"id":"harborward-warehouse","category":"harbor","type":"harbor","bounds":[753,987,25,28],"featured":true,"overrides":{"name":"Seven Sails Bonded Stores","description":"Large roofs near the inner harbor shelter cargo awaiting inspection.","person":null,"rumor":""},"x":765.5,"y":1001.0,"district":"harborward","context":{"street":"street-harborward-loop"},"siteNumber":63},
     {"id":"country-hamlet","category":"home","type":"home","bounds":[455,1548,11,12],"featured":true,"overrides":{"name":"Wagoners House","description":"A farmhouse stands beside the southern road near the mill-road junction.","person":null,"rumor":""},"x":460.5,"y":1554.0,"district":"outer-fields","context":{"street":"street-southern-country-road"},"siteNumber":2},
     {"id":"northgate-square","category":"street","type":"square","bounds":[501,139,32,22],"featured":false,"overrides":{"name":"First Flame Square","description":"The small round monument and surrounding open paving mark the head of the harbor road.","person":"","rumor":""},"x":517.0,"y":150.0,"district":"temple-heights","siteNumber":994},

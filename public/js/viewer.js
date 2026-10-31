@@ -19,7 +19,7 @@ export class AtlasViewer {
     root.innerHTML=viewerHTML(data);
     if (this.source.generator && this.onGenerationChange) {
       const button=document.createElement('button');button.id='settlement-settings';button.className='button quiet';
-      button.setAttribute('aria-label','Settlement ancestry and generation seed');
+      button.setAttribute('aria-label','Settlement ancestry, type and generation seed');
       const label=ancestries[this.generationSettings.ancestry] || 'As authored';
       button.title=`${label} settlement. Seed: ${this.generationSettings.seed}`;
       button.innerHTML=`${icon('dice')}<span>Settlement: ${escape(label)}</span>`;

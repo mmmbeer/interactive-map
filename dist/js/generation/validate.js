@@ -1,3 +1,5 @@
+import { validateSettlement } from './economy-settlements.js';
+import { economyTokens, tradeCatalog } from './economy-catalog.js';
 import { catalogFor, configFor, dimensions, fields } from './config.js';
 import { render } from './random.js';
 import { nameStyles } from './locations-v2.js';
@@ -11,7 +13,7 @@ const safeKey = key => /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(key) && !['__proto__','co
 const tokenTables = ['adjective','animal','symbol','street','detail','history','habit','task','complication'];
 const v2Banks = ['root','waterRoot','streetRoot','epithet'];
 const tokens = Object.fromEntries('first surname partnerSurname fullName label nameLabel subject race raceLabel gender age ageLabel culture wealth population district region map traits pronoun noun role service number houseNumber adjective animal symbol street detail history habit task complication root compound head water terrain landmark setting displayName address firstPossessive surnamePossessive fullNamePossessive epithetPossessive article'.split(' ').map(k => [k,'test']));
-Object.assign(tokens,Object.fromEntries([...detailTokens].map(k=>[k,'test'])));
+Object.assign(tokens,Object.fromEntries([...detailTokens,...economyTokens].map(k=>[k,'test'])));
 export function validateTables(tables,prefix,extra=[],strict=false) {
   check(object(tables),`${prefix}: tables must be an object.`);
   for (const [key,table] of Object.entries(tables)) {
@@ -38,7 +40,7 @@ export function validateTables(tables,prefix,extra=[],strict=false) {
 }
 export function validateSettings(settings,prefix,catalog) {
   check(object(settings),`${prefix}: generation settings must be an object.`);
-  check(Object.keys(settings).every(k => ['fields','demographics','tables','traits','seed','revision','version','nameStyle'].includes(k)),`${prefix}: unknown generation setting.`);
+  check(Object.keys(settings).every(k => ['fields','demographics','tables','traits','seed','revision','version','nameStyle','settlement','trade'].includes(k)),`${prefix}: unknown generation setting.`);
   if (settings.version !== undefined) check([1,2].includes(settings.version),`${prefix}: unsupported generator version.`);
   if (settings.nameStyle !== undefined) check(catalog.version===2 && nameStyles.includes(settings.nameStyle),`${prefix}: unknown name style.`);
   if (settings.seed !== undefined) check(typeof settings.seed==='string' || Number.isFinite(settings.seed),`${prefix}: seed must be text or a finite number.`);
@@ -46,6 +48,8 @@ export function validateSettings(settings,prefix,catalog) {
   if (settings.fields !== undefined) check(Array.isArray(settings.fields) && settings.fields.every(f=>fields.includes(f) || Object.hasOwn(catalog.sections,f)) && new Set(settings.fields).size===settings.fields.length,`${prefix}: invalid generated fields.`);
   if (settings.traits !== undefined) check(Array.isArray(settings.traits) && settings.traits.every(text),`${prefix}: traits must be text values.`);
   if (settings.tables !== undefined) validateTables(settings.tables,prefix,Object.keys(catalog.sections),catalog.version===2);
+  if (settings.trade!==undefined) check(typeof settings.trade==='string' && Object.hasOwn(tradeCatalog,settings.trade),`${prefix}: unknown trade focus.`);
+  if (settings.settlement!==undefined) validateSettlement(settings.settlement,check,prefix);
   if (settings.demographics === undefined) return;
   const d = settings.demographics;
   check(object(d),`${prefix}: demographics must be an object.`);

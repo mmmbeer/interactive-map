@@ -34,5 +34,5 @@ export function render(template, tokens) {
   return template.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g, (all, key) => {
     if (!Object.hasOwn(tokens, key)) throw new Error(`Unknown generation token: ${key}`);
     return String(tokens[key]);
-  });
+  }).replace(/\s+([.,!?])/g,'$1');
 }

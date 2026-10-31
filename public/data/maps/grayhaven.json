@@ -50,8 +50,14 @@
         "waterNotes",
         "terrainNotes",
         "landmarkNotes",
-        "openingHours"
-      ]
+        "openingHours",
+        "livelihood",
+        "tradeLinks",
+        "craftTradition"
+      ],
+      "settlement": {
+        "type": "town"
+      }
     },
     "catalog": {
       "types": {
@@ -453,7 +459,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["commerce","food","hospitality"]}}
     },
     {
       "id": "garden-ward",
@@ -905,7 +912,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["agriculture","medicine","food"]}}
     },
     {
       "id": "north-market",
@@ -1505,7 +1513,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["commerce","food","textiles"]}}
     },
     {
       "id": "western-commons",
@@ -1581,7 +1590,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["agriculture","food","wood"],"environment":["farmland"]}}
     },
     {
       "id": "craft-quarter",
@@ -1685,7 +1695,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["metal","wood","stone","textiles"]}}
     },
     {
       "id": "south-gate",
@@ -1745,7 +1756,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["transport","leather","hospitality"]}}
     },
     {
       "id": "crossroads",
@@ -2913,7 +2925,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["transport","commerce","food"]}}
     },
     {
       "id": "south-wharves",
@@ -3398,7 +3411,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["maritime","transport","wood"],"environment":["coastal"]}}
     },
     {
       "id": "crown-ward",
@@ -3462,7 +3476,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["records","learning","arts"]}}
     },
     {
       "id": "diamond-ward",
@@ -3758,7 +3773,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["stone","glass","commerce"]}}
     },
     {
       "id": "east-ward",
@@ -3830,7 +3846,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["textiles","wood","food"]}}
     },
     {
       "id": "east-quays",
@@ -4926,7 +4943,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "generation": {"settlement":{"industries":["maritime","transport","textiles"],"environment":["coastal"]}}
     }
   ],
   "nextSiteNumber": 1541,
@@ -5254,7 +5272,7 @@
     {"id":"west-column-hall","category":"temple","type":"temple","district":"western-commons","x":54.0,"y":560.0,"shape":{"kind":"polygon","points":[[40.0,544.0],[68.0,544.0],[68.0,576.0],[38.0,576.0]]},"featured":true,"overrides":{"name":"Hall of the West Wind","description":"A column-fronted hall beside Crossing Way, overlooking the western farms."},"context":{"street":"north-crossing","terrain":"commons-fields"},"siteNumber":1519},
     {"id":"west-court-house","category":"landmark","type":"landmark","district":"western-commons","x":110.0,"y":564.0,"shape":{"kind":"polygon","points":[[102.0,544.0],[152.0,544.0],[152.0,568.0],[138.0,572.0],[138.0,556.0],[118.0,556.0],[118.0,572.0],[130.0,572.0],[130.0,580.0],[102.0,580.0]]},"featured":true,"overrides":{"name":"Westhaven Court House","description":"A square courtyard building beside the western road. Residents use it as their local meeting house."},"context":{"street":"north-crossing","terrain":"commons-fields"},"siteNumber":1520},
     {"id":"garden-grange","category":"landmark","type":"landmark","district":"garden-ward","x":1042.0,"y":218.0,"shape":{"kind":"polygon","points":[[1020.0,206.0],[1068.0,218.0],[1064.0,232.0],[1016.0,220.0]]},"featured":true,"overrides":{"name":"Garden Grange","description":"The long north range of a walled farmstead surrounding a planted courtyard."},"context":{"street":"north-coast-lane","terrain":"grange-north-pasture"},"siteNumber":45},
-    {"id":"north-croft-hall","category":"guild","type":"guild","district":"north-market","x":1422.0,"y":268.0,"shape":{"kind":"polygon","points":[[1410.0,252.0],[1434.0,254.0],[1434.0,282.0],[1410.0,282.0]]},"featured":true,"overrides":{"name":"North Croft Hall","description":"A long hall among the north-coast crofts, used by the local growers guild."},"context":{"street":"north-coast-lane"},"siteNumber":282},
+    {"id":"north-croft-hall","category":"guild","type":"guild","district":"north-market","x":1422.0,"y":268.0,"shape":{"kind":"polygon","points":[[1410.0,252.0],[1434.0,254.0],[1434.0,282.0],[1410.0,282.0]]},"featured":true,"overrides":{"name":"North Croft Hall","description":"A long hall among the north-coast crofts, used by the local growers guild."},"context":{"street":"north-coast-lane"},"siteNumber":282,"generation":{"trade":"market_gardener"}},
     {"id":"eastern-temple","category":"temple","type":"temple","district":"east-ward","x":3258.0,"y":358.0,"shape":{"kind":"polygon","points":[[3228.0,362.0],[3270.0,328.0],[3288.0,350.0],[3240.0,388.0]]},"featured":true,"overrides":{"name":"Temple of the Tides","description":"A large roofed hall near the eastern waterfront. Its religious use is part of Grayhaven’s fictional setting."},"context":{"street":"square-east"},"siteNumber":42},
     {"id":"east-court","category":"landmark","type":"landmark","district":"east-ward","x":3262.0,"y":50.0,"shape":{"kind":"polygon","points":[[3240.0,58.0],[3272.0,28.0],[3284.0,40.0],[3250.0,70.0]]},"featured":true,"overrides":{"name":"East Ward Court","description":"An elongated civic hall within the eastern town blocks."},"context":{"street":"lane-3195-0082"},"siteNumber":38},
     {"id":"diamond-guildhall","category":"guild","type":"guild","district":"crossroads","x":2422.0,"y":1246.0,"shape":{"kind":"polygon","points":[[2398.0,1242.0],[2420.0,1228.0],[2446.0,1250.0],[2422.0,1266.0]]},"featured":true,"overrides":{"name":"Diamond Guildhall","description":"A ridge-roofed hall beside the lower town approaches, assigned as the ward’s guild meeting place."},"context":{"street":"lane-2405-1250"},"siteNumber":35},

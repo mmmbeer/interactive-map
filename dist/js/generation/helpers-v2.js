@@ -58,6 +58,6 @@ export function streams(seed) {
   const stable = canonical(seed);
   return (label, input = '') => { validate(input); return random([2,stable,label,input]); };
 }
-export const title = text => text.replace(/\b\p{L}/gu, c => c.toUpperCase());
+export const title = text => text.replace(/(^|[\s-])(\p{L})/gu, (_,lead,c) => lead+c.toUpperCase());
 export const possessive = text => /s$/i.test(text) ? `${text}’` : `${text}’s`;
 export const article = text => /^[aeiou]/i.test(text) ? 'an' : 'a';

@@ -1,3 +1,4 @@
+import { prepareEconomy } from './economy.js';
 import { render } from './random.js';
 import { catalogFor, configFor, dimensions, availableFields } from './config.js';
 import { choose, distribution, streams, integer, title, possessive, article } from './helpers-v2.js';
@@ -81,19 +82,23 @@ export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), 
   tokens.landmark = context.landmark || '';
   tokens.setting = [context.street && `on ${context.street}`,context.water && `beside ${context.water}`,context.terrain && `near ${context.terrain}`,context.landmark && `near ${context.landmark}`].filter(Boolean).join(', ') || `on ${tokens.street}`;
   tokens.address = feature ? `${tokens.district}, ${tokens.region}` : `${tokens.houseNumber} ${tokens.street}`;
+  const economy=prepareEconomy(map,place,{tokens,config,catalog,type});
   const pattern = config.nameStyle ? (feature ? styles : businessStyles)[config.nameStyle] : null;
   const customName=config.tables.name || map.generator.catalog?.tables?.name || map.generator.catalog?.types?.[kind]?.tables?.name;
   const nameTemplate = !customName && pattern || choose(tables.name,roll('name-pattern',kind));
   const generatedName = render(nameTemplate,tokens);
   tokens.displayName = place.overrides?.name || (config.fields.includes('name') ? generatedName : place.id);
+  economy?.ready?.();
   const featureDefaults = feature ? featureText(kind,tokens,context,roll,place.category) : {};
-  prepareDetails(map,place,{tokens,config});
+  prepareDetails(map,place,{tokens,config,context:economy?.context});
+  economy?.finish();
   const result = {...place,districtId:place.district,district:tokens.district,extra:{}};
   if (!feature) result.demographics=demographics;
   for (const field of availableFields(map)) {
     let value;
     if (Object.hasOwn(place.overrides || {},field)) value=place.overrides[field] ?? '';
     else if (!config.fields.includes(field)) value=field==='name' ? place.id : '';
+    else if (field==='person' && place.category==='home' && demographics.population===0) value='';
     else if (field==='name') value=generatedName;
     else if (feature && Object.hasOwn(featureDefaults,field) && !config.tables[field] && !map.generator.catalog?.tables?.[field]) value=featureDefaults[field];
     else value=render(choose(tables[field],roll(`field:${field}`,kind)),tokens);

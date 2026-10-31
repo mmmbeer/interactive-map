@@ -1,3 +1,5 @@
+import { tradeCatalog } from '../generation/economy-catalog.js';
+import { settlementTypes } from '../generation/economy-settlements.js';
 import { escape, categories } from '../ui.js';
 import { catalogFor, configFor, districtList, availableFields } from '../generation/config.js';
 import { nameStyles } from '../generation/locations-v2.js';
@@ -33,6 +35,13 @@ export function placeForm(map,place,isNew) {
     ${select('wealth','Wealth',choices([...new Set(['modest','comfortable','wealthy',...Object.keys(setting.demographics.wealths || {}),d.wealth].filter(Boolean))]),d.wealth || '')}
     ${input('population','Population (optional)',d.population,'number','min="0" step="1"')}
     </div></fieldset>
+    <fieldset class="editor-wide"><legend>Local economy</legend><div class="editor-grid">
+    ${select('trade','Trade or guild focus',[...inherit,...Object.entries(tradeCatalog).map(([id,t])=>({id,name:t.role}))],g.trade || '')}
+    ${select('settlementType','Settlement type',[...inherit,...Object.entries(settlementTypes).map(([id,p])=>({id,name:p.label}))],g.settlement?.type || '')}
+    ${input('localResources','Local resources (comma separated)',g.settlement?.resources?.join(', ') || '')}
+    ${input('localIndustries','Economic focus (comma separated)',g.settlement?.industries?.join(', ') || '')}
+    ${input('localEnvironment','Environment tags (comma separated)',g.settlement?.environment?.join(', ') || '')}
+    </div><small>Blank entries inherit. Examples: resources: timber, herbs; focus: wood, medicine; environment: woodland. Link mapped geography above for named streets, water and terrain.</small></fieldset>
     ${input('seed','Location seed (optional)',g.seed ?? '')}${input('revision','Variation',g.revision || 0,'number','min="0" step="1" required')}
     <fieldset class="editor-wide"><legend>Generated content</legend><div class="editor-checks">${fields.map(f=>`<label><input type="checkbox" name="field-${f}" ${(g.fields || setting.fields).includes(f)?'checked':''}>${f}</label>`).join('')}</div><small>A text override takes priority. A blank override deliberately hides that field.</small></fieldset>
     <details class="editor-wide"><summary>Text overrides</summary><div class="override-fields">${fields.map(f=>`<label><span><input type="checkbox" name="override-${f}" ${Object.hasOwn(place.overrides || {},f)?'checked':''}>Override ${f}</span><textarea name="text-${f}" rows="2">${escape(place.overrides?.[f] ?? '')}</textarea></label>`).join('')}</div></details>
@@ -56,6 +65,13 @@ export function readPlace(form,original) {
   const generation=JSON.parse(value('advanced') || '{}');
   if (!generation || typeof generation!=='object' || Array.isArray(generation)) throw new Error('Advanced settings must be an object.');
   generation.demographics ||= {};
+  if(value('trade'))generation.trade=value('trade');else if(generation.trade===original.generation?.trade)delete generation.trade;
+  const economy={...generation.settlement};
+  if(value('settlementType'))economy.type=value('settlementType');else if(economy.type===original.generation?.settlement?.type)delete economy.type;
+  for(const [key,field] of Object.entries({resources:'localResources',industries:'localIndustries',environment:'localEnvironment'})) {
+    if(value(field).trim())economy[key]=value(field).split(',').map(v=>v.trim()).filter(Boolean);else if(JSON.stringify(economy[key])===JSON.stringify(original.generation?.settlement?.[key]))delete economy[key];
+  }
+  if(Object.keys(economy).length)generation.settlement=economy;else delete generation.settlement;
   generation.version=Number(value('version'));
   if (value('nameStyle')) generation.nameStyle=value('nameStyle');else delete generation.nameStyle;
   const originalD=original.generation?.demographics || {};

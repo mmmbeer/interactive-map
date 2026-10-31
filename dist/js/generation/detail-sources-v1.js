@@ -1,3 +1,4 @@
+import { tradeStockRecipes } from './economy-catalog.js';
 import { recipe } from './detail-helpers-v1.js';
 import { stockSources } from './trade-details-v1.js';
 
@@ -14,6 +15,8 @@ const rooms = {
 const guests = 'A visiting cartographer|A traveling instrument maker|A retired courier|A bookbinder between commissions|A merchant’s clerk|A pilgrim copying local inscriptions|A journeyman potter|A collector of folk songs|A surveyor’s assistant|A traveling cook|A letter carrier|A visiting schoolteacher';
 const guestBusiness = 'is waiting for a parcel at {address}.|is comparing notes about {district}.|is looking for an old lease in {district}.|has an appointment with a local registrar.|is writing a letter home.|is checking a list of delivery addresses.|is searching for a misplaced notebook.|is asking about the next market day.|is arranging a meeting in {district}.|is transcribing a borrowed travel diary.';
 export const detailSources = {
+  ...tradeStockRecipes,
+  teaMeals:recipe('Mint infusion|Rosehip tea|Chamomile tea|Black tea|Green tea|Jasmine tea|Roasted barley tea|Hibiscus tea|Lemon balm tea|Spiced tea','with sesame biscuits|with almond cakes|with honey buns|with oat crackers|with plum pastries|with fruit slices|with rice cakes|with walnut cookies|with seed rolls|with small sandwiches'),
   meals:recipe(`${vegetables}|${suppers}`,sides),
   vegetarianMeals:recipe(vegetables,sides),
   waterMeals:recipe(waterMeals,sides),
