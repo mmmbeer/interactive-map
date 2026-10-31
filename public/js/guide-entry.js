@@ -1,3 +1,4 @@
+import { socialLinksHTML } from './social-links.js';
 import { categories, escape, icon } from './ui.js';
 import { boundsFor } from './geometry.js';
 export function guideCrop(place) {
@@ -8,7 +9,7 @@ export function guideEntryHTML(place,index,data) {
   const category=categories[place.category],crop=guideCrop(place);
   const facts=[['People',place.person],['Services',place.services],...Object.values(place.extra || {}).filter(s=>s.text).map(s=>[s.label,s.text])].filter(([,text])=>text);
   const people=Object.entries(place.demographics || {}).map(([key,value])=>{
-    const text=String(value).replaceAll('_',' ')+(key==='population'?' residents':'');
+    const text=String(value).replaceAll('_',' ')+(key==='population'?(place.category==='home'?' residents':' people'):'');
     return `<span title="${escape(key)}: ${escape(text)}"><span class="guide-sr">${escape(key)}: </span>${escape(text)}</span>`;
   }).join('');
   return `<article class="guide-entry" data-entry="${escape(place.id)}" tabindex="-1" style="--category:${category.color}">
@@ -20,6 +21,7 @@ export function guideEntryHTML(place,index,data) {
     ${place.description?`<p class="guide-description">${escape(place.description)}</p>`:''}
     ${facts.length?`<dl class="guide-facts">${facts.map(([label,text])=>`<div><dt>${escape(label)}</dt><dd>${escape(String(text))}</dd></div>`).join('')}</dl>`:''}
     ${place.rumor?`<div class="guide-rumor"><span>${icon('book')}Word on the street</span><p>${escape(place.rumor)}</p></div>`:''}
+    ${socialLinksHTML(place,true)}
     ${people?`<div class="guide-demographics" aria-label="Demographics">${people}</div>`:''}
   </article>`;
 }

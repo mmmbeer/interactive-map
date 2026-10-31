@@ -26,3 +26,8 @@ export { districtColors, districtAdjacency, districtsAdjacent } from './district
 export { buildRoadGraph } from './travel/graph.js';
 export { roadRoute } from './travel/routing.js';
 export { pathLength, calibration, formatDistance, travelTime } from './travel/geometry.js';
+
+export { socialGraph, residentAt, householdAt, storiesAt } from './generation/social/index.js';
+export { socialSources, scenarios } from './generation/social/sources.js';
+export { householdTypes } from './generation/social/household-types.js';
+export { compatibleProducts } from './generation/social/goods.js';

@@ -322,3 +322,60 @@ Additional template tokens are `industry`, `trade`, `tradeRole`, `product`, `mat
 Custom `detailSources` conditions now also accept `races`, `cultures`, `trades`, `settlements`, `industries`, `resources`, `environments`, `waterTypes` and `terrainTypes`. Scalar dimensions match any listed value. Resource and environment conditions require every listed value. Existing type, category, wealth, trait and linked-feature conditions still apply. Validation checks 100 positive-weight matching entries for every possible configured race, culture and wealth used by an active source. Do not reference other output-note tokens from source banks.
 
 The **Settlement** dialog includes a settlement-type selector. Its choice travels in `?settlement=academy` alongside ancestry and seed, persists per map and saves only into the local variation. **As authored** uses inherited map settings. The location editor also exposes trade or guild focus, settlement type, resources, economic focus and environment tags.
+
+
+## Shared residents, households and situations
+
+Set `generator.socialVersion: 1` to enable the social layer. Both published maps and newly uploaded maps enable it. This adds three ordinary generated fields: `residents`, `connections` and `requests`. Explicit field lists must include the sections you want. The existing `household` field gains a roster and household account. The default `rumor` becomes a perspective on a shared situation when one is available. Authored overrides and custom rumor tables retain precedence.
+
+The social layer deliberately uses four phases:
+
+1. Index compact location inputs and inherited settings. Cache demographic facts without reading name pools or generating prose.
+2. Establish household capacities and match workplaces to compatible adult resident slots. Explicit bindings reserve slots first. A person has one residence and at most one mapped workplace.
+3. Connect real locations through trade needs, household/workplace links and neighboring residences. Each situation stores one cast, product, state and objective. A site has at most three situations.
+4. Render names and prose lazily. A separate identity-only resolver supplies exact displayed place names and addresses without recursively generating another site's stories.
+
+This separation matters. Writing a rumor never rolls a new person, house, amount, delivery state or objective. Both ends expose the same structured situation id, facts and request. Their rumor voices can differ. The same resident id, name, life stage, naming culture and habit travel between home and workplace. The local wealth setting remains a property of the site for prices and order conditions.
+
+### Households and life stages
+
+The ten household structures are `solitary`, `partners`, `siblings`, `extended_family`, `guardian_dependents`, `shared_lodging`, `craft_household`, `multigenerational`, `companions` and `care_household`. Structure eligibility uses population. Partners have two residents. A dependent primary resident gets a guardian household when capacity permits. Child and adolescent residents never receive adult workplaces. A resident receiving care is not assigned a workplace.
+
+An explicit `demographics.population` is authoritative, including zero and one. When omitted, the layer generates a small household count. A forced household structure guides that default count. No more than twelve residents are individually listed; a larger population retains its exact count and states how many are unlisted. Vacant homes have no residents, jobs or situations.
+
+Family members may share a surname when they use the same naming tradition. Housemates use independent names. Member names use the inherited ancestry distribution and naming culture, including custom pools. Age stages describe roles without imposing human lifespans on elves, dwarves or other ancestries. Race does not assign household morality or determine occupations. All eleven built-in traditions support every compatible structure.
+
+### Pinning shared identities
+
+The location editor has a **Shared residents and households** section. Choose a nearby residence for a workplace, a workplace for a home's primary resident, a household structure or a full name for an authored profile. Nearby choices show up to 120 same-district locations. The advanced JSON supports any valid mapped id.
+
+```json
+{
+  "id": "cooper-001",
+  "category": "workshop",
+  "type": "cooper",
+  "generation": {"social":{"home":"home-004"}}
+}
+```
+
+A home can instead pin its primary resident with `generation.social.workplace`. Reciprocal references are allowed when they agree. Conflicting homes, incompatible demographics, empty residences, duplicate primary jobs and impossible household structures fail validation. `social.enabled: false` excludes a location. Shared `personName`, `home` and `workplace` settings belong on individual locations. Household style and enabled status can inherit through normal generation layers.
+
+Authored person text is opaque. The generator does not parse a biography or invent a second named keeper. Such a contact is referenced by its existing workplace until an author supplies `generation.social.personName`. That explicit name can be shared with a residence while the authored profile stays literal. Direct field overrides still control what is shown.
+
+### Connected situations and variety
+
+Seventeen situation families include overdue deliveries, unsettled accounts, damaged orders, replacements, unclaimed work, misdirected parcels, missing references, conflicting copies, booking conflicts, borrowed possessions, shared responsibilities, gathering preparations, missing animals, disputed heirlooms, unfamiliar makers' marks, unexplained arcane work and map annotations.
+
+Selection filters by the source trade and its workflow. A service business does not generate a damaged physical batch. Arcane anomalies require an arcane trade. A map fragment can name a road only when the source links that actual mapped road. Trade partners must have compatible industries and share a district or region. Product tags further filter the actual item: a food business can request a pot hook or hinge from a smith, while horseshoes require transport or agricultural demand and weapons require an appropriate trade or fortress setting. Street and water references, and specific dependencies such as cooper-to-brewer or miller-to-baker, weight partner choice. A source never becomes its own buyer.
+
+Every household structure has at least 100 compiled narratives. Every situation has 100 shared-account presentations and 100 compatible objective variants. Rumor and request structures each have at least 100 variants, as do household tasks, resident habits and errands. The canonical event is rolled once per shared situation; viewpoint wording uses separate labeled streams. Full prose is cached only when requested.
+
+`generator.catalog.socialRecipes` can replace a named bank from `socialSources`. Entries support strings or `{value,weight,when}`. Each active context needs at least 100 distinct positive-weight choices. The existing detail-source conditions apply, with `households` and `situations` added. Source validation rejects unknown banks, malformed templates, unavailable tokens and insufficient matching choices. `residentHabits`, `residentErrands` and `domesticTasks` are literal vocabulary banks. Narrative banks use the contextual token lists exported in `social/sources.js`.
+
+Use ordinary section tables and overrides to change presentation. `{residentNote}`, `{connectionNote}` and `{requestNote}` are available in output templates but cannot define a place's name. Search, callouts, site guides and PDF entries include enabled social prose. **Connected places** buttons navigate to the actual homes, workplaces and other ends of situations.
+
+### Helpers and stability
+
+`mapping-tools.js` exports `socialGraph()`, `residentAt()`, `householdAt()` and `storiesAt()`, plus `socialSources`, `scenarios`, `householdTypes` and `compatibleProducts()` for product-level matching. Resolved locations expose `community` with resident records, household metadata, shared situations and related-location references. Treat returned data and source snapshots as immutable.
+
+Numeric coordinates, array order, enabled prose fields and unrelated geographic additions do not affect matching. Changes to the map seed, relevant household inputs, demographic constraints, available residents or working locations can change assignments. Pins preserve deliberate relationships. A resident's identity is anchored to its household slot, so rerolling a workplace does not rename that resident. Local variations preserve the original generation identity. Generated community records are never written to compact map source.

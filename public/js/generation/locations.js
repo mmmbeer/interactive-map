@@ -1,3 +1,5 @@
+import { prepareSharedIdentity, applySocialContent } from './social/runtime.js';
+import { socialEnabled } from './social/sections.js';
 import { prepareEconomy } from './economy.js';
 import { random, pick, weighted, render } from './random.js';
 import { resolveV2 } from './locations-v2.js';
@@ -6,7 +8,7 @@ import { prepareDetails } from './details-v1.js';
 import { catalogFor, configFor, dimensions, districtList, availableFields } from './config.js';
 
 const label = text => text.replaceAll('_',' ');
-function contextFor(map, location, catalog) {
+function contextFor(map, location, catalog,mode='full') {
   const {config,district,region} = configFor(map,location);
   const base = [1,map.generationId ?? map.id,map.generator.seed,location.id,config.seed ?? '',config.revision ?? 0];
   const stream = (field,input = '') => random([base,field,input]);
@@ -49,26 +51,30 @@ function contextFor(map, location, catalog) {
     // Pools use third-person singular verbs. Keep neutral pronouns grammatical.
     tokens.habit = tokens.habit.replace(/^(keeps|remembers|collects|offers|repairs|always carries|knows|speaks|sends|hums|supports)\b/, word => ({keeps:'keep',remembers:'remember',collects:'collect',offers:'offer',repairs:'repair','always carries':'always carry',knows:'know',speaks:'speak',sends:'send',hums:'hum',supports:'support'}[word]));
   }
-  const economy=prepareEconomy(map,location,{tokens,config,catalog,type});
+  const shared=prepareSharedIdentity(map,location,tokens,demographics);
+  const economy=shared?.skipEconomy ? null : prepareEconomy(map,location,{tokens,config:shared?.config || config,catalog,type});
   tokens.displayName=location.overrides?.name || (config.fields.includes('name') ? render(pick(localTables.name,roll('field:name')),tokens) : location.id);
   tokens.address=location.overrides?.address ?? render(pick(localTables.address,roll('field:address')),tokens);
+  if(mode==='identity')return {config,demographics,tokens,localTables,roll,social:null};
   economy?.ready?.();
   prepareDetails(map,location,{tokens,config,context:economy?.context});
   economy?.finish();
-  return {config,demographics,tokens,localTables,roll};
+  const social=mode==='full' ? applySocialContent(map,location,{tokens,config,shared,resolve:(m,p)=>resolveLocation(m,p,undefined,undefined,'identity')}) : null;
+  return {config,demographics,tokens,localTables,roll,social};
 }
-export function resolveLocation(map, location, catalog, stack) {
+export function resolveLocation(map, location, catalog, stack,mode='full') {
   catalog ||= catalogFor(map,location);
   if (!map.generator) return {...location}; // Legacy maps remain readable.
-  if (versionFor(map,location) === 2) return resolveV2(map,location,resolveLocation,catalog,stack);
+  if (versionFor(map,location) === 2) return resolveV2(map,location,resolveLocation,catalog,stack,mode);
   if (versionFor(map,location) !== 1) throw new Error(`Unsupported generator version: ${map.generator.version}`);
   let context;
-  const getContext = () => context ||= contextFor(map,location,catalog);
+  const getContext = () => context ||= contextFor(map,location,catalog,mode);
   const district = districtList(map).find(d => d.id === location.district);
   const result = {...location,districtId:location.district,district:district?.name || location.district};
   Object.defineProperty(result,'demographics',{enumerable:true,get:()=>getContext().demographics});
   const overrides = location.overrides || {};
   result.extra={};
+  if(socialEnabled(map) && mode==='full')Object.defineProperty(result,'community',{enumerable:true,get:()=>getContext().social?.community});
   for (const field of availableFields(map)) {
     let cached;
     let ready = false;
@@ -78,7 +84,7 @@ export function resolveLocation(map, location, catalog, stack) {
         if (Object.hasOwn(overrides,field)) cached = overrides[field] ?? '';
         else if (getContext().config.fields.includes(field)) {
           const ctx=getContext();
-          cached = field==='person' && location.category==='home' && ctx.demographics.population===0 ? '' : render(pick(ctx.localTables[field],ctx.roll(`field:${field}`)),ctx.tokens);
+          cached = field==='rumor' && ctx.social?.rumor ? ctx.social.rumor : field==='person' && ctx.social?.profile ? ctx.social.profile : field==='person' && location.category==='home' && ctx.demographics.population===0 ? '' : render(pick(ctx.localTables[field],ctx.roll(`field:${field}`)),ctx.tokens);
         } else cached = field === 'name' ? location.id : '';
         ready = true;
       }
@@ -96,7 +102,7 @@ export function materializeMap(source) {
     if (versionFor(source,p) === 1) return resolveLocation(source,p,source.generator.version === 1 ? catalog : catalogFor(source,p));
     let cached;
     const result = {...p,districtId:p.district,district:districtNames.get(p.district) || p.district};
-    for (const key of [...availableFields(source),'demographics','extra']) Object.defineProperty(result,key,{enumerable:true,get:()=> (cached ||= resolveLocation(source,p))[key]});
+    for (const key of [...availableFields(source),'demographics','extra',...(socialEnabled(source)?['community']:[])]) Object.defineProperty(result,key,{enumerable:true,get:()=> (cached ||= resolveLocation(source,p))[key]});
     return result;
   })};
 }

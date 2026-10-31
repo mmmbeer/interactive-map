@@ -53,7 +53,10 @@
         "openingHours",
         "livelihood",
         "tradeLinks",
-        "craftTradition"
+        "craftTradition",
+        "residents",
+        "connections",
+        "requests"
       ],
       "settlement": {
         "type": "town"
@@ -87,7 +90,8 @@
         }
       }
     },
-    "detailsVersion": 2
+    "detailsVersion": 2,
+    "socialVersion": 1
   },
   "regions": [
     {

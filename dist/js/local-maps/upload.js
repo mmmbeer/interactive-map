@@ -1,3 +1,4 @@
+import { removeSocialReference } from '../authoring/social-form.js';
 import { saveSettings } from '../generation/settlement-settings.js';
 import { localMapId } from './identity.js';
 import { toast } from '../ui.js';
@@ -65,6 +66,7 @@ export function openMapUpload(onSaved,signal) {
     const place=candidates.find(p=>p.category==='home')||candidates[0];if(!place)return;
     map.locations=map.locations.filter(p=>p.id!==place.id);
     for(const p of map.locations)if(p.context)for(const [key,id] of Object.entries(p.context))if(id===place.id)delete p.context[key];
+    for(const p of map.locations)removeSocialReference(p,place.id);
     draw();status.textContent=`Removed ${place.category} candidate. ${map.locations.length} features remain.`;
   });
   on(form,'submit',async e=>{

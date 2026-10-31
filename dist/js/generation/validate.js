@@ -1,3 +1,5 @@
+import { validateSocialSettings, validateSocialRecipes, validateHouseholdInputs } from './social/validation.js';
+import { socialTokens } from './social/sections.js';
 import { validateSettlement } from './economy-settlements.js';
 import { economyTokens, tradeCatalog } from './economy-catalog.js';
 import { catalogFor, configFor, dimensions, fields } from './config.js';
@@ -13,7 +15,7 @@ const safeKey = key => /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(key) && !['__proto__','co
 const tokenTables = ['adjective','animal','symbol','street','detail','history','habit','task','complication'];
 const v2Banks = ['root','waterRoot','streetRoot','epithet'];
 const tokens = Object.fromEntries('first surname partnerSurname fullName label nameLabel subject race raceLabel gender age ageLabel culture wealth population district region map traits pronoun noun role service number houseNumber adjective animal symbol street detail history habit task complication root compound head water terrain landmark setting displayName address firstPossessive surnamePossessive fullNamePossessive epithetPossessive article'.split(' ').map(k => [k,'test']));
-Object.assign(tokens,Object.fromEntries([...detailTokens,...economyTokens].map(k=>[k,'test'])));
+Object.assign(tokens,Object.fromEntries([...detailTokens,...economyTokens,...socialTokens].map(k=>[k,'test'])));
 export function validateTables(tables,prefix,extra=[],strict=false) {
   check(object(tables),`${prefix}: tables must be an object.`);
   for (const [key,table] of Object.entries(tables)) {
@@ -29,7 +31,7 @@ export function validateTables(tables,prefix,extra=[],strict=false) {
       if ([...fields,...extra].includes(key)) {
         if (strict) {
           check(!/[{}]/.test(value.replace(/\{[a-zA-Z][a-zA-Z0-9_]*\}/g,'')),`${prefix}: malformed template.`);
-          check(key!=='name' || !value.includes('{displayName}'),`${prefix}: name cannot reference itself.`);
+          check(key!=='name' || !value.includes('{displayName}') && !socialTokens.some(t=>value.includes('{'+t+'}')),`${prefix}: name cannot reference itself.`);
         }
         const available=strict ? tokens : Object.fromEntries(Object.entries(tokens).filter(([key])=>!['root','compound','head','water','terrain','landmark','setting','displayName','address','firstPossessive','surnamePossessive','fullNamePossessive','epithetPossessive','article'].includes(key)));
         render(value,available);
@@ -40,7 +42,7 @@ export function validateTables(tables,prefix,extra=[],strict=false) {
 }
 export function validateSettings(settings,prefix,catalog) {
   check(object(settings),`${prefix}: generation settings must be an object.`);
-  check(Object.keys(settings).every(k => ['fields','demographics','tables','traits','seed','revision','version','nameStyle','settlement','trade'].includes(k)),`${prefix}: unknown generation setting.`);
+  check(Object.keys(settings).every(k => ['fields','demographics','tables','traits','seed','revision','version','nameStyle','settlement','trade','social'].includes(k)),`${prefix}: unknown generation setting.`);
   if (settings.version !== undefined) check([1,2].includes(settings.version),`${prefix}: unsupported generator version.`);
   if (settings.nameStyle !== undefined) check(catalog.version===2 && nameStyles.includes(settings.nameStyle),`${prefix}: unknown name style.`);
   if (settings.seed !== undefined) check(typeof settings.seed==='string' || Number.isFinite(settings.seed),`${prefix}: seed must be text or a finite number.`);
@@ -49,6 +51,7 @@ export function validateSettings(settings,prefix,catalog) {
   if (settings.traits !== undefined) check(Array.isArray(settings.traits) && settings.traits.every(text),`${prefix}: traits must be text values.`);
   if (settings.tables !== undefined) validateTables(settings.tables,prefix,Object.keys(catalog.sections),catalog.version===2);
   if (settings.trade!==undefined) check(typeof settings.trade==='string' && Object.hasOwn(tradeCatalog,settings.trade),`${prefix}: unknown trade focus.`);
+  if (settings.social!==undefined) validateSocialSettings(settings.social,check,prefix);
   if (settings.settlement!==undefined) validateSettlement(settings.settlement,check,prefix);
   if (settings.demographics === undefined) return;
   const d = settings.demographics;
@@ -75,8 +78,10 @@ export function validateGenerator(map,categories) {
   check(object(g) && [1,2].includes(g.version),'Unsupported generator version. Expected 1 or 2.');
   check(text(g.seed) || Number.isFinite(g.seed),'A generator needs a map seed.');
   check(g.detailsVersion===undefined || [1,2].includes(g.detailsVersion),'Unsupported detail catalog version.');
+  check(g.socialVersion===undefined || g.socialVersion===1,'Unsupported social generator version.');
   const custom = g.catalog || {};
-  check(object(custom) && Object.keys(custom).every(k => ['people','types','tables','cultures','sections','detailSources'].includes(k)),'Invalid generation catalog.');
+  check(object(custom) && Object.keys(custom).every(k => ['people','types','tables','cultures','sections','detailSources','socialRecipes'].includes(k)),'Invalid generation catalog.');
+  validateSocialRecipes(map,check);
   validateDetailSources(map,check,value=>validateTables({description:[value]},'Detail source',[],true));
   for (const group of ['people','types','cultures','sections']) if (custom[group] !== undefined) check(object(custom[group]),`Catalog ${group} must be an object.`);
   const catalog = catalogFor(map);
@@ -105,5 +110,6 @@ export function validateResolvedSettings(map,place,catalog) {
   const {config} = configFor(map,place);
   validateSettings(config,place.id,catalog);
   validateDetailContext(map,place,config,check);
+  if(map.generator.socialVersion===1)validateHouseholdInputs(place,config,check);
 }
 

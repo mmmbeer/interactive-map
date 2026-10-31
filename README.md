@@ -57,6 +57,7 @@ See [docs/adding-maps.md](docs/adding-maps.md) for the format and complete workf
 - Extensible name pools, location types, template tables and content sections.
 - 115 explicit trades across 18 industries with linked products, work orders, supplies and resident occupations.
 - 14 settlement profiles, local resources and geographic context, plus craft-label traditions for all 11 ancestries.
+- Shared residents and workplaces, 10 household structures and 17 connected situation families with consistent rumors and requests.
 - Compact JSON import/export, legacy migration and authored text overrides.
 - Category and neighborhood filters, highlights and a full directory.
 - District boundary overlays with multipart polygons and neighborhood labels.

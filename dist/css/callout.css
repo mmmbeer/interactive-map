@@ -40,3 +40,5 @@
 @keyframes callout-in{from{opacity:0}to{opacity:1}}
 @media(max-width:760px){.detail-panel{width:min(320px,calc(100% - 24px));bottom:auto;right:auto;z-index:8}.detail-content{padding:14px 16px}.detail-content h2{font-size:23px}.detail-close{width:38px;height:38px}.detail-banner{display:flex;align-items:center;height:46px;min-height:46px}.detail-actions .button{min-height:40px}.detail-grip{min-height:40px}}
 @media(prefers-reduced-motion:reduce){.detail-panel{animation:none}}
+
+.social-links>div{display:flex;flex-wrap:wrap;gap:6px}.social-links .button{min-height:36px;max-width:100%;font-size:11px;text-align:left}.social-links .button span{white-space:normal;overflow-wrap:anywhere}
