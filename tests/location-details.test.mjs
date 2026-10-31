@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { detailSources } from '../public/js/generation/detail-sources-v1.js';
-import { detailFields, detailSections } from '../public/js/generation/details-v1.js';
+import { detailFields, detailSections, detailApplies } from '../public/js/generation/details-v1.js';
 import { recipe, matchingSources, uniqueChoices, priceFor } from '../public/js/generation/detail-helpers-v1.js';
 import { streams } from '../public/js/generation/helpers-v2.js';
 import { types } from '../public/js/generation/catalog-v2.js';
@@ -38,7 +38,7 @@ test('all supported trades and geographies receive appropriate details without u
   assert.doesNotThrow(()=>validateMap(m));
   for (const p of materializeMap(m).locations) {
     for (const [field,section] of Object.entries(detailSections)) {
-      assert.equal(Boolean(p.extra[field].text),section.categories.includes(p.category),`${p.type}.${field}`);
+      assert.equal(Boolean(p.extra[field].text),detailApplies(field,p),`${p.type}.${field}`);
       assert.doesNotMatch(p.extra[field].text,/undefined|\{\w+\}|\.\./);
     }
     if (['shop','workshop'].includes(p.category)) assert.ok(detailSources[`stock_${p.type}`],p.type);
@@ -77,7 +77,7 @@ test('wealth, vegetarian traits, population and authored contacts remain coheren
   p.type='blacksmith';p.category='workshop';
   const smith=resolveLocation(m,p);
   assert.match(smith.extra.commissions.text,/Orders go through the keeper/);
-  assert.match(smith.extra.stock.text,/hinges|horseshoes|nails|chisels|axe heads|latches|hooks|chain|rivets|blades/i);
+  assert.match(smith.extra.stock.text,/hinge|horseshoe|nail|chisel|axe head|latch|hook|chain|rivet|blade/i);
   const home=place('empty','home');home.generation={demographics:{population:0}};
   assert.match(resolveLocation(m,home).extra.household.text,/No permanent residents/);
   home.generation.demographics.population=1;
@@ -128,5 +128,5 @@ test('detail fields support overrides, custom templates, search, callouts, guide
   const old=makeMap();old.generator.version=1;old.locations.pop();
   assert.doesNotThrow(()=>validateMap(old));
   assert.ok(resolveLocation(old,old.locations[0]).extra.meals.text);
-  assert.equal(detailFields.length,14);
+  assert.equal(detailFields.length,17);
 });

@@ -32,7 +32,7 @@ async function route() {
     if (signal.aborted || version !== routeVersion) return;
     if (!mapId) {
       const url=new URL(location.href);
-      url.searchParams.delete('ancestry');url.searchParams.delete('seed');
+      url.searchParams.delete('ancestry');url.searchParams.delete('seed');url.searchParams.delete('settlement');
       history.replaceState(null,'',url);
       document.title = 'The Wandering Atlas | Interactive fantasy maps';
       let local=[];

@@ -1,3 +1,5 @@
+import { economySections } from './economy.js';
+import { economicContext, chooseTrade } from './economy-context.js';
 import { detailSources } from './detail-sources-v1.js';
 import { detailSourcesFor } from './detail-catalog.js';
 import { streams } from './helpers-v2.js';
@@ -6,6 +8,7 @@ import { render } from './random.js';
 
 const section = (label,token,categories) => ({label,templates:[`{${token}}`],categories});
 export const detailSections = {
+  ...economySections,
   meals:section('Meals','meal',['tavern']),
   guests:section('Guests and regulars','guest',['tavern']),
   lodgings:section('Guest rooms','lodging',['tavern']),
@@ -21,28 +24,34 @@ export const detailSections = {
   landmarkNotes:section('At the landmark','landmarkNote',['landmark']),
   openingHours:section('Visiting hours','openingHours',['shop','workshop','temple','guild','harbor'])
 };
+export const detailApplies=(field,place)=>detailSections[field].categories.includes(place.category) && !(field==='lodgings' && ['teahouse','cookshop'].includes(place.type));
 export const detailFields = Object.freeze(Object.keys(detailSections));
 
-// Separate labeled streams preserve the released location engines and all existing fields.
-export function detailContext(place,config,wealth) {
-  return {type:place.type || place.category,category:place.category,wealth,traits:config.traits,
+// Detail rolls use labeled streams separate from identity and naming.
+export function detailContext(place,config,wealth,map,demographics={}) {
+  const context={...(map ? economicContext(map,place,config,{...demographics,wealth}) : {}),type:place.type || place.category,category:place.category,wealth,traits:config.traits,
     water:place.context?.water,terrain:place.context?.terrain,street:place.context?.street};
+  if(map)context.trade=chooseTrade(map,place,config,context)?.id || '';
+  if(map)context.industry=chooseTrade(map,place,config,context)?.industry || (place.category==='tavern' ? 'hospitality' : place.category==='harbor' ? 'maritime' : place.category==='temple' ? 'civic' : '');
+  return context;
 }
 export function sourceFor(field,context,custom={}) {
+  if (field==='meals' && context.type==='teahouse')return 'teaMeals';
   if (field==='meals') return context.traits.includes('vegetarian') ? 'vegetarianMeals' : context.water ? 'waterMeals' : 'meals';
   if (field==='lodgings') return `lodging_${['modest','comfortable','wealthy'].includes(context.wealth) ? context.wealth : 'modest'}`;
   if (field==='stock') {
-    const name=`stock_${context.type}`;
+    const name=`stock_${context.type}`,focused=`stock_${context.trade}`;
+    if(!Object.hasOwn(custom,name) && context.trade && Object.hasOwn(custom,focused))return focused;
     return Object.hasOwn(custom,name) || Object.hasOwn(detailSources,name) ? name : 'stock_service';
   }
   return field;
 }
-export function prepareDetails(map,place,{tokens,config}) {
+export function prepareDetails(map,place,{tokens,config,context:economyContext}) {
   // Honor displayed address overrides in additional content without rerolling legacy prose.
   const shared=tokens;
   tokens={...tokens,address:place.overrides?.address ?? tokens.address};
   const kind = place.type || place.category;
-  const context = detailContext(place,config,tokens.wealth);
+  const context = {...detailContext(place,config,tokens.wealth,map,tokens),...economyContext};
   const stream = streams(['details-v1',map.generationId ?? map.id,map.generator.seed,place.id,config.seed ?? '',config.revision ?? 0]);
   const input = [kind,place.category,context.wealth,config.traits,tokens.race,tokens.culture];
   const draw = (source,count=1) => {
@@ -53,7 +62,7 @@ export function prepareDetails(map,place,{tokens,config}) {
     const selected = uniqueChoices(matchingSources(values,context),count,stream(source,input),distinctBy);
     return selected.map(text=>render(text,tokens).replace(/([.!?])?$/,'.')).join(' ');
   };
-  const enabled = field => config.fields.includes(field) && detailSections[field].categories.includes(place.category);
+  const enabled = field => config.fields.includes(field) && detailApplies(field,place);
   // Tokens are shared with the existing person/name/service and geographic references.
   Object.assign(tokens,Object.fromEntries([...detailTokens].map(k=>[k,''])));
   const contact=Object.hasOwn(place.overrides || {},'person') ? 'the keeper' : tokens.fullName;

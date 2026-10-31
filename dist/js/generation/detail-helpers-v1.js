@@ -7,13 +7,15 @@ export function recipe(left, right, join = ' ') {
   return bank(a.flatMap(x => b.map(y => x + join + y)), 'Detail recipe');
 }
 export const detailTokens = new Set('meal guest lodging stock commission observance contract household portActivity routeNote waterNote terrainNote landmarkNote openingHours price'.split(' '));
-export const conditionKeys = ['types','categories','wealths','traits','water','terrain','street'];
+export const conditionKeys = ['types','categories','wealths','traits','water','terrain','street','races','cultures','trades','settlements','industries','resources','environments','waterTypes','terrainTypes'];
 export function eligible(entry, context) {
   const when = typeof entry === 'object' ? entry.when || {} : {};
   return (!when.types || when.types.includes(context.type)) &&
     (!when.categories || when.categories.includes(context.category)) &&
     (!when.wealths || when.wealths.includes(context.wealth)) &&
-    (!when.traits || when.traits.every(t => context.traits.includes(t))) &&
+    (!when.traits || when.traits.every(t => (context.traits || []).includes(t))) &&
+    Object.entries({races:'race',cultures:'culture',trades:'trade',settlements:'settlementType',industries:'industry',waterTypes:'waterType',terrainTypes:'terrainType'}).every(([key,field])=>!when[key] || when[key].includes(context[field])) &&
+    Object.entries({resources:'resources',environments:'environment'}).every(([key,field])=>!when[key] || when[key].every(v=>(context[field] || []).includes(v))) &&
     ['water','terrain','street'].every(key => when[key] === undefined || when[key] === Boolean(context[key]));
 }
 export function matchingSources(entries, context) {

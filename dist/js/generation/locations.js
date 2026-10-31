@@ -1,3 +1,4 @@
+import { prepareEconomy } from './economy.js';
 import { random, pick, weighted, render } from './random.js';
 import { resolveV2 } from './locations-v2.js';
 import { versionFor } from './config.js';
@@ -48,9 +49,12 @@ function contextFor(map, location, catalog) {
     // Pools use third-person singular verbs. Keep neutral pronouns grammatical.
     tokens.habit = tokens.habit.replace(/^(keeps|remembers|collects|offers|repairs|always carries|knows|speaks|sends|hums|supports)\b/, word => ({keeps:'keep',remembers:'remember',collects:'collect',offers:'offer',repairs:'repair','always carries':'always carry',knows:'know',speaks:'speak',sends:'send',hums:'hum',supports:'support'}[word]));
   }
+  const economy=prepareEconomy(map,location,{tokens,config,catalog,type});
   tokens.displayName=location.overrides?.name || (config.fields.includes('name') ? render(pick(localTables.name,roll('field:name')),tokens) : location.id);
   tokens.address=location.overrides?.address ?? render(pick(localTables.address,roll('field:address')),tokens);
-  prepareDetails(map,location,{tokens,config});
+  economy?.ready?.();
+  prepareDetails(map,location,{tokens,config,context:economy?.context});
+  economy?.finish();
   return {config,demographics,tokens,localTables,roll};
 }
 export function resolveLocation(map, location, catalog, stack) {
@@ -74,7 +78,7 @@ export function resolveLocation(map, location, catalog, stack) {
         if (Object.hasOwn(overrides,field)) cached = overrides[field] ?? '';
         else if (getContext().config.fields.includes(field)) {
           const ctx=getContext();
-          cached = render(pick(ctx.localTables[field],ctx.roll(`field:${field}`)),ctx.tokens);
+          cached = field==='person' && location.category==='home' && ctx.demographics.population===0 ? '' : render(pick(ctx.localTables[field],ctx.roll(`field:${field}`)),ctx.tokens);
         } else cached = field === 'name' ? location.id : '';
         ready = true;
       }

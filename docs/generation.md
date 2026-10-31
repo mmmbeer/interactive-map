@@ -12,7 +12,7 @@ Visitor settings are separate from authoring drafts. `applySettings(source, sett
 
 Settings are remembered per map on the current device. `?ancestry=elf&seed=my-world#map/dragonsgate` is a reproducible link that takes priority over stored preferences. Place links and PDF links retain both query parameters. Returning to the collection clears them before choosing another map, so each map retains its own seed. If browser storage is blocked, the current visit and shared links still work.
 
-`settlement-pools-v1.js` supplies optional catalog inputs without editing the frozen v1/v2 engines or defaults. Every nonhuman tradition has at least 100 unique place roots, route roots, water roots and surnames. Each resident name pool has at least 100 entries per gender. Human uses the released v2 word banks. Half-elf and Half-orc combine the corresponding traditions with Human banks. These conventions affect naming, not occupation, wealth or personality. Custom author-supplied people pools and templates keep precedence. Future changes to these released optional banks require a new profile version.
+`settlement-pools-v1.js` supplies optional catalog inputs without editing the frozen v1/v2 engines or defaults. Every nonhuman tradition has at least 100 unique place roots, route roots, water roots and surnames. Each resident name pool has at least 100 entries per gender. Human uses the released v2 word banks. Half-elf and Half-orc combine the corresponding traditions with Human banks. These naming conventions also select the corresponding optional craft-label tradition. The economy layer below selects occupations from local context and keeps every trade available to every ancestry. Custom author-supplied people pools and templates keep precedence. Future changes to these released optional banks require a new profile version.
 
 ## Stable output
 
@@ -209,7 +209,7 @@ Version 2 additionally accepts literal token banks `root`, `waterRoot`, `streetR
 
 ## Type-specific location details
 
-Location details are available by default with either engine. Existing name, resident, address, description, service and rumor rolls are unchanged. The detail layer uses separate labeled streams. No version selection is needed.
+Location details are available by default with either engine. The current economy expansion deliberately changes generated occupations, commercial services, descriptions, rumors and detail recipes. It does not preserve old generated trade text. Identity and economic choices use separate labeled streams. Authored text remains authoritative.
 
 | Category | Detail fields |
 | --- | --- |
@@ -226,7 +226,7 @@ Location details are available by default with either engine. Existing name, res
 
 The resolved fields appear under `extra`, with the same `{label,text}` structure as custom sections. Callouts, search, site guides and PDF exports include them automatically. Inapplicable sections stay empty. The editor exposes their field and override controls. Setting `overrides.meals` supplies an authored menu. Setting `overrides.lodgings` to `null` suppresses rooms. Explicit inherited field lists still control which details are generated.
 
-Meals and guests are sampled without repeating a dish or guest role within an entry. Each of the 31 built-in shops and workshops has a dedicated stock bank. Custom trades can provide `stock_<type>`; otherwise their stock information refers to the trade's existing service token. Custom trades never inherit arbitrary general-store wares.
+Meals and guests are sampled without repeating a dish or guest role within an entry. Each supported shop and workshop has a dedicated stock bank. The economy catalog adds 86 explicit trades across 18 industries to the original trade set. Custom trades can provide `stock_<type>`; otherwise their stock information refers to the trade's existing service token. Custom trades never inherit arbitrary general-store wares.
 
 A linked water feature selects water-oriented meals. The inherited `vegetarian` trait takes precedence over that selection. Ancestry and culture do not prescribe diet, wealth, behavior or occupation. Wealth selects room standards and price ranges. An unknown wealth key uses modest prices and rooms. Household counts use the inherited population, including zero and one, and never invent a count when none is supplied. Details share the displayed place name, authored address and generated resident identity. If the resident profile is authored, bookings and orders refer to the keeper instead of inventing a second named resident. Geographic records use the exact displayed feature name and its actual type, without adding residents, shops or physical features that were not mapped.
 
@@ -268,3 +268,57 @@ Custom `catalog.sections` and normal output `tables` can use these detail tokens
 - `priceFor(wealth, rng, unit)`: deterministic meal or bed prices in silver pieces with a modest fallback.
 
 Use independent `streams(seed)(label, input)` streams for each recipe. Keep numeric geometry and unrelated locations out of seeds. Catalogs and authoring snapshots should be treated as immutable while resolving content.
+
+
+## Contextual economies and expanded trades
+
+The shared economy layer supplies 115 explicit trades across 18 industries: agriculture, food, textiles, leather, wood, metal, stone, glass, maritime, transport, records, learning, arcane, medicine, hospitality, arts, commerce and civic services. Added trades include millers, dyers, saddlers, wheelwrights, bellfounders, shipwrights, freight brokers, notaries, translators, alchemists, bathkeepers and wellkeepers. All types appear in the location editor under their corresponding categories.
+
+Generic `shop` and `workshop` inputs select a specific trade at read time. Their generated names, practitioner roles, services, stock and commissions share that selection. Generic homes receive a primary resident's occupation. Generic guilds receive a trade focus for contracts. Specific authored types keep their trade even when local inputs are unavailable. Set `generation.trade` to a trade id to pin a generic building, household or guild to an explicit trade focus. An existing specific type takes precedence over that focus. Changing settlement type can change a generic building's specialization. It does not change saved type identifiers or map geometry.
+
+### Settlement and local context
+
+Add `settlement` to any generation settings layer. Its properties inherit independently through map, region, district and location. An explicit list replaces the inherited list for that property.
+
+```json
+{
+  "generation": {
+    "settlement": {
+      "type": "forest_hold",
+      "resources": ["timber", "herbs"],
+      "industries": ["wood", "medicine"],
+      "environment": ["woodland"]
+    }
+  }
+}
+```
+
+The 14 settlement types are `hamlet`, `village`, `town`, `city`, `metropolis`, `port`, `mining_outpost`, `forest_hold`, `farming_village`, `fortress`, `monastery`, `academy`, `caravan_stop` and `undercity`. An unspecified type uses `city`. Mining, forest and farming profiles supply default local resources. An explicit `resources` list replaces those defaults. Mapped terrain adds its recognized resources. Industries weight selection rather than banning unrelated ordinary trades.
+
+Environment keys are `coastal`, `river`, `lake`, `woodland`, `hills`, `mountain`, `wetland`, `farmland`, `underground` and `arid`. Resource keys are exported as `resourceKeys` in `economy-settlements.js`. They include grain, fruit, herbs, livestock, wool, flax, hemp, silk, hides, timber, willow, reed, ore, iron, copper, coal, stone, clay, sand, quartz, ash, fish, silver, honey, oil, paper, pigments, cloth, farmland, pasture and orchard.
+
+Saved street, water and terrain links provide exact displayed route names and geographic types. Terrain links distinguish fields, woods, hills, mountains and shores. A pond does not imply a navigable harbor. Maritime specialization requires a navigable water reference or an explicitly waterside setting. An authored maritime trade remains valid inland and can request outside supplies. Resources control whether a material has a recorded local source. The generator never invents a named mine, farm, harbor, supplier or mapped road to justify a choice.
+
+Settlement scale and industries weight occupations. Customer pools reflect the settlement. Wealth weights luxury trades and selects practical, standard or custom order requirements. The featured product appears in stock, services, commissions and current work. Document trades use document tasks, appointment businesses use service tasks, food sellers use provision tasks and makers use craft tasks. A teahouse serves tea and accompaniments. Cookshops and teahouses do not acquire guest rooms from the tavern category. Empty homes have no generated resident or livelihood.
+
+The published Dragonsgate and Grayhaven district settings now describe their economic focus. Their existing location ids, geometry, geographic links and authored overrides remain intact. Known authored workshops and guilds now pin their matching trade focus, including the shipyard, ropewalk, foundry, cloth halls and growers guild.
+
+### Traditions and new fields
+
+All eleven ancestries have 100 craft-label recipes each. Human, Orc, Elf, Dwarf, Halfling, Dragonborn, Gnome, Goblin, Tiefling, Half-elf and Half-orc each supply motifs and order-record practices. A custom naming culture's `namePool` selects the matching tradition when available. Other custom pools use the fallback label recipe. These traditions affect labels and sample books. They do not restrict professions, dictate diet or assign morality.
+
+Three sections are enabled by default: `livelihood` for homes, shops and workshops, `tradeLinks` for shops, workshops, guilds and harbors, and `craftTradition` for shops and workshops. Explicit `generation.fields` lists must include the sections you want. Each section supports ordinary field overrides, search, callouts, site guides and PDF output.
+
+Additional template tokens are `industry`, `trade`, `tradeRole`, `product`, `material`, `customer`, `workTask`, `supplyRoute`, `settlementType`, `tradition`, `budgetNote`, `livelihoodNote`, `tradeLinksNote` and `craftTraditionNote`. Unavailable economic tokens are empty for geography. Template tokens are plain text and never execute code.
+
+### Helpers and source conditions
+
+- `economicContext()` resolves inherited settlement settings and stable geographic references. It does not inspect coordinates or infer an industry from a resident's name.
+- `tradeChoices()`, `scoreTrade()` and `chooseTrade()` expose deterministic eligibility and weighting. `materialIsLocal()` resolves known material-to-resource relationships.
+- `workflowFor()` selects appropriate work and rumor recipes. `traditionFor()` selects a naming-culture tradition with a fallback for custom pools.
+- `recipe()` compiles compatible recipe parts and rejects fewer than 100 distinct outputs. `uniqueChoices()` supports weighted sampling without repeating the same underlying product.
+- Stock, workflow, rumor, budget, settlement demand, guest and tradition banks each have at least 100 compiled variations. New trade stocks combine at least ten substantive products or services with ten handling records. Existing expanded inventories retain their 100 substantive item variants.
+
+Custom `detailSources` conditions now also accept `races`, `cultures`, `trades`, `settlements`, `industries`, `resources`, `environments`, `waterTypes` and `terrainTypes`. Scalar dimensions match any listed value. Resource and environment conditions require every listed value. Existing type, category, wealth, trait and linked-feature conditions still apply. Validation checks 100 positive-weight matching entries for every possible configured race, culture and wealth used by an active source. Do not reference other output-note tokens from source banks.
+
+The **Settlement** dialog includes a settlement-type selector. Its choice travels in `?settlement=academy` alongside ancestry and seed, persists per map and saves only into the local variation. **As authored** uses inherited map settings. The location editor also exposes trade or guild focus, settlement type, resources, economic focus and environment tags.
