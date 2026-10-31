@@ -13,7 +13,7 @@ export function openSettlementSettings(viewer) {
     <label for="settlement-ancestry">Settlement ancestry</label><select id="settlement-ancestry" name="ancestry">${Object.entries(ancestries).map(([key,label])=>`<option value="${key}"${current.ancestry===key?' selected':''}>${escape(label)}</option>`).join('')}<option value="original"${current.ancestry==='original'?' selected':''}>As authored (map demographics)</option></select>
     <label for="settlement-seed">Generation seed</label><div class="seed-input"><input id="settlement-seed" name="seed" type="text" value="${escape(current.seed)}" required maxlength="128" spellcheck="false" autocomplete="off" aria-describedby="seed-help"><button type="button" class="button" data-new-seed title="Choose a new seed">${icon('dice')}<span>New seed</span></button></div>
     <p id="seed-help">Enter any word or number. Changing the seed regenerates names, residents and stories. It keeps locations and map shapes fixed.</p>
-    <p class="settlement-note">Human is the default. Authored landmark names and text stay as written. Settings apply to search, labels and the site guide. Shared links include your settings.</p>
+    <p class="settlement-note">Human is the default. Authored landmark names and text stay as written. Settings apply to search, labels and the site guide. Saving keeps them in your local variation.</p>
     <p class="settlement-error" role="status" aria-live="polite"></p>
     <footer><button type="button" class="button" data-reset>Reset to Human</button><button type="submit" class="button primary">Apply settings</button></footer>
   </form>`;
@@ -32,12 +32,13 @@ export function openSettlementSettings(viewer) {
       error.textContent='New seed ready. Apply settings to regenerate this map.';
     }
   });
-  form.addEventListener('submit',event=>{
+  form.addEventListener('submit',async event=>{
     event.preventDefault();
     try {
       const settings=normalizeSettings(viewer.source,{ancestry:form.elements.ancestry.value,seed:form.elements.seed.value});
-      dialog.close();const saved=viewer.onGenerationChange(settings);
-      toast(saved ? 'Settlement settings applied.' : 'Settings applied for this visit. Browser storage is unavailable. Copy a link to keep them.');
+      const button=form.querySelector('[type=submit]');button.disabled=true;
+      try {await viewer.onGenerationChange(settings);dialog.close();toast('Settlement settings saved to your local variation.');}
+      finally {button.disabled=false;}
     } catch(e) {error.textContent=e.message;}
   });
   const dispose=()=>dialog.remove();

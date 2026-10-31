@@ -132,6 +132,71 @@
         "highlights"
       ],
       "description": "Initial directory tab. Defaults to highlights."
+    },
+    "generationId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Stable generation namespace preserved when a published map is copied to a local variation."
+    },
+    "nextSiteNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Next unused site number. Keep the high-water mark after deleting places."
+    },
+    "measurement": {
+      "type": "object",
+      "properties": {
+        "metersPerPixel": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "enum": [
+            "m",
+            "km",
+            "ft",
+            "mi"
+          ]
+        }
+      },
+      "required": [
+        "metersPerPixel",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "localVariation": {
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "type": "string"
+        },
+        "sourceName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sourceId",
+        "sourceName"
+      ]
+    },
+    "settlementSettings": {
+      "type": "object",
+      "properties": {
+        "ancestry": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "ancestry",
+        "seed"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -664,6 +729,10 @@
         "labelMinScale": {
           "type": "number",
           "minimum": 0
+        },
+        "siteNumber": {
+          "type": "integer",
+          "minimum": 1
         }
       },
       "required": [
@@ -925,6 +994,12 @@
           },
           "required": [],
           "additionalProperties": false
+        },
+        "detailsVersion": {
+          "enum": [
+            1,
+            2
+          ]
         }
       },
       "required": [

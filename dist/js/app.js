@@ -6,6 +6,8 @@ import { validateMap } from './map-contract.js';
 import { AtlasViewer } from './viewer.js';
 import { applySettings, readSettings, saveSettings, settingsURL } from './generation/settlement-settings.js';
 import { listLocalMaps, readLocalMap, hydrateLocalMap, saveLocalMap, deleteLocalMap } from './local-maps/store.js';
+import { saveVariation } from './local-maps/variations.js';
+import { numberSites } from './site-index.js';
 import { exportBackup } from './local-maps/files.js';
 const root = document.querySelector('#app');
 let viewer, maps, loadController, routeVersion = 0;
@@ -44,13 +46,15 @@ async function route() {
     const entry = record ? record.map : maps.find(map => map.id === mapId);
     if (!entry) throw new Error(mapId.startsWith('local-') ? 'This local map is not stored in this browser. Restore its atlas backup from the collection.' : 'This map is not in the atlas. Return to the collection to choose another.');
     root.innerHTML = `<div class="loading-screen">${icon('compass')}<p>Unfolding ${escape(entry.name)}…</p></div>`;
-    const source = record ? record.map : await loadJSON(entry.data, signal);
+    const source = numberSites(record ? record.map : await loadJSON(entry.data, signal));
     validateMap(source);
-    const draft = record ? {map:source} : readDraft(source);
-    let generationSettings=source.generator ? readSettings(draft.map,location.href) : null;
+    const oldDraft = record ? {} : readDraft(source);
+    const draft = {map:source,stale:oldDraft.local ? oldDraft.map : oldDraft.stale};
+    let generationSettings=source.generator ? readSettings(draft.map,location.href,record ? undefined : {getItem:()=>null}) : null;
     if (signal.aborted || version !== routeVersion) return;
     document.body.classList.add('viewer-open');
     document.title = `${source.name} | The Wandering Atlas`;
+    let saving;
     const mount = (next,placeId,settings=generationSettings) => {
       const previous=viewer?.stage;
       const view=previous && {scale:previous.scale,tx:previous.tx,ty:previous.ty};
@@ -62,16 +66,29 @@ async function route() {
       const previousURLs=localURLs;localURLs=[];
       const snapshot=settings ? applySettings(next,settings) : next;
       const data=materializeMap(record ? hydrateLocalMap(snapshot,record,localURLs) : snapshot);
-      const onGenerationChange=settings=>{
-        const saved=saveSettings(next,settings);
-        mount(next,undefined,settings);
-        return saved;
+      const saveEdit=map=>{
+        if(saving)return saving;
+        const owner=viewer;
+        saving=(async()=>{
+          if(record)record=await saveLocalMap(numberSites(map,next),record.image,record.thumbnail,record.initialMap);
+          else record=await saveVariation(map,source,generationSettings,{signal:owner.signal});
+          const url=new URL(`#map/${record.id}`,location.href);
+          if(!owner.signal.aborted)history.replaceState(null,'',generationSettings ? settingsURL(url,generationSettings) : url);
+          return record.map;
+        })().finally(()=>{saving=null;});
+        return saving;
+      };
+      const onGenerationChange=async settings=>{
+        const owner=viewer,saved=await saveEdit({...next,settlementSettings:settings});
+        if(owner.signal.aborted)return;
+        saveSettings(saved,settings);mount(saved,undefined,settings);
+        return true;
       };
       viewer?.destroy();previousURLs.forEach(url=>URL.revokeObjectURL(url));
       viewer = new AtlasViewer(root, data, {source:next,published:source,onChange:mount,local:next!==source,stale:draft.stale,generationSettings:settings,onGenerationChange,
         localMap:Boolean(record),
-        onSave:record ? async map=>{record=await saveLocalMap(map,record.image,record.thumbnail,record.initialMap);} : null,
-        onRestore:record ? async()=>{const map=record.initialMap;record=await saveLocalMap(map,record.image,record.thumbnail,map);return map;} : null,
+        onSave:saveEdit,
+        onRestore:record ? async()=>{const map=numberSites(record.initialMap,record.map);record=await saveLocalMap(map,record.image,record.thumbnail,record.initialMap);return record.map;} : null,
         onBackup:record ? ()=>exportBackup(record,generationSettings) : null,
         onDelete:record ? async()=>{await deleteLocalMap(record.id);location.hash='';} : null});
       if(filters) {

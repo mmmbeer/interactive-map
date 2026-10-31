@@ -70,6 +70,7 @@ export function validateGenerator(map,categories) {
   const g = map.generator;
   check(object(g) && [1,2].includes(g.version),'Unsupported generator version. Expected 1 or 2.');
   check(text(g.seed) || Number.isFinite(g.seed),'A generator needs a map seed.');
+  check(g.detailsVersion===undefined || [1,2].includes(g.detailsVersion),'Unsupported detail catalog version.');
   const custom = g.catalog || {};
   check(object(custom) && Object.keys(custom).every(k => ['people','types','tables','cultures','sections','detailSources'].includes(k)),'Invalid generation catalog.');
   validateDetailSources(map,check,value=>validateTables({description:[value]},'Detail source',[],true));

@@ -1,3 +1,4 @@
+import { TravelTools } from './travel/tools.js';
 import { siteNumbers } from './site-index.js';
 import { openGuide } from './guide.js';
 import { openEditor } from './authoring/editor.js';
@@ -26,7 +27,7 @@ export class AtlasViewer {
     }
     if(options.localMap || options.local || options.stale) {
       const note=document.createElement('div');note.className='local-draft-note';
-      note.innerHTML=options.localMap ? 'Local map · Saved in this browser.<button id="draft-tools">Edit, backup or delete</button>' : options.local ? 'Local draft · Changes are saved on this device.<button id="draft-tools">Export or restore</button>' : 'A draft from an older published map is stored on this device. Export it before restoring.<button id="draft-tools">Open draft tools</button>';
+      note.innerHTML=options.localMap ? 'Local variation · Saved only in this browser.<button id="draft-tools">Edit, backup or delete</button>' : options.local ? 'Local draft · Changes are saved on this device.<button id="draft-tools">Export or restore</button>' : 'A previous local draft is stored on this device. Export it to keep its edits.<button id="draft-tools">Open draft tools</button>';
       root.querySelector('.atlas-header').after(note);
     }
     this.sidebar=root.querySelector('.place-sidebar');
@@ -35,6 +36,7 @@ export class AtlasViewer {
       select:p=>this.select(p,false),selectDistrict:d=>this.selectDistrict(d),hoverDistrict:(d,e)=>this.hoverDistrict(d,e),hover:(p,e)=>this.hover(p,e),view:v=>this.updateOverview(v)
     },this.signal);
     this.callout=new MapCallout(this.detail,this.stage,this.signal);
+    this.travel=new TravelTools(this);
     this.listen(root.querySelector('#place-search'),'input',e=>{
       this.filters.query=e.target.value.trim();
       if(this.filters.query) this.setScope('all',false);
@@ -74,14 +76,16 @@ export class AtlasViewer {
     if(target.classList.contains('detail-close')) return this.closeDetail(true);
     if(target.classList.contains('sidebar-close')) return this.closeDirectory(true);
     if(target.classList.contains('detail-share')) return this.share();
-    if(target.classList.contains('detail-edit')) return openEditor(this,this.selected);
-    if(target.id==='edit-map' || target.id==='draft-tools') return openEditor(this);
+    if(target.classList.contains('detail-route'))return this.travel.open('route',this.selected);
+    if(target.classList.contains('detail-edit')) {this.travel.close();return openEditor(this,this.selected);}
+    if(target.id==='edit-map' || target.id==='draft-tools') {this.travel.close();return openEditor(this);}
     const handlers={
       'zoom-in':()=>this.stage.zoom(1.4,undefined,true),'zoom-out':()=>this.stage.zoom(1/1.4,undefined,true),
       'native-map':()=>this.stage.native(),'fit-map':()=>this.stage.fit(),'reset-map':()=>this.stage.reset(),
       'toggle-markers':()=>target.setAttribute('aria-pressed',this.stage.toggleMarkers()),
       'toggle-streets':()=>target.setAttribute('aria-pressed',this.stage.toggleStreets()),
       'toggle-numbers':()=>target.setAttribute('aria-pressed',this.stage.toggleNumbers()),
+      'open-travel':()=>this.travel.open(),
       'open-guide':()=>openGuide(this),
       'settlement-settings':()=>openSettlementSettings(this),
       'toggle-districts':()=>target.setAttribute('aria-pressed',this.stage.toggleDistricts()),
@@ -177,7 +181,7 @@ export class AtlasViewer {
     this.tooltip.style.left=`${Math.max(10,x)}px`;this.tooltip.style.top=`${Math.max(10,y)}px`;
   }
   updateOverview(view) {
-    this.callout?.update();
+    this.callout?.update();this.travel?.renderOverlay();
     this.root.querySelector('#zoom-status').textContent=`${Math.round(view.scale/view.min*100)}%`;
     if(view.raster)this.root.querySelector('#zoom-status').title=`${Math.round(view.raster.enlargement*100)}% of source pixel size. Use Native resolution to see the image without enlargement.`;
     const box=this.root.querySelector('.overview-viewport');

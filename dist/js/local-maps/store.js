@@ -1,3 +1,4 @@
+import { numberSites } from '../site-index.js';
 import { validateMap } from '../map-contract.js';
 import { buildSpatialIndex } from '../spatial.js';
 const DB='wandering-atlas-local-maps',VERSION=1;
@@ -29,6 +30,7 @@ export function localIndexes(map) {
   return {version:1,cellSize,cells:[...spatial.cells].map(([cell,places])=>[cell,places.map(p=>p.id)]),byId,categories,districts};
 }
 export async function saveLocalMap(map,image,thumbnail,initialMap=map,{create=false}={}) {
+  map=numberSites(map);initialMap=numberSites(initialMap);
   validateMap(map);
   if(!map.id.startsWith('local-'))throw new Error('Local map ids must start with local-.');
   if(!(image instanceof Blob) || !image.size || !(thumbnail instanceof Blob))throw new Error('The map image is missing.');
@@ -45,7 +47,7 @@ export async function listLocalMaps() {
     request.onsuccess=()=>{
       const cursor=request.result;if(!cursor)return;
       const {map,thumbnail,updatedAt}=cursor.value;
-      entries.push({id:map.id,name:map.name,theme:'On this device',region:map.region,subtitle:map.subtitle,locationCount:map.locations.length,tags:map.tags||[],local:true,thumbnailBlob:thumbnail,updatedAt});cursor.continue();
+      entries.push({id:map.id,name:map.localVariation ? `${map.name} · Local variation` : map.name,theme:'On this device',region:map.region,subtitle:map.subtitle,locationCount:map.locations.length,tags:map.tags||[],local:true,thumbnailBlob:thumbnail,updatedAt});cursor.continue();
     };
     tx.oncomplete=()=>resolve(entries.sort((a,b)=>b.updatedAt-a.updatedAt));tx.onerror=()=>reject(new Error('Could not read your local maps.'));
   });

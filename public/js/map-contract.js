@@ -1,3 +1,4 @@
+import { normalizeSettings } from './generation/settlement-settings.js';
 import { validateDistrictGeometry } from './districts.js';
 import { catalogFor, versionFor } from './generation/config.js';
 import { validateGeography } from './generation/geography-validation.js';
@@ -9,6 +10,13 @@ const number = value => typeof value==='number' && Number.isFinite(value);
 const text = value => typeof value==='string' && value.trim().length>0;
 export function validateMap(map) {
   check(map && typeof map==='object' && !Array.isArray(map),'Map must be an object.');
+  if(map.settlementSettings!==undefined)normalizeSettings(map,map.settlementSettings);
+  if(map.generationId!==undefined)check(slug(map.generationId),'Invalid generation identity.');
+  if(map.nextSiteNumber!==undefined)check(Number.isSafeInteger(map.nextSiteNumber) && map.nextSiteNumber>0,'Invalid next site number.');
+  if(map.measurement!==undefined) {
+    check(map.measurement && number(map.measurement.metersPerPixel) && map.measurement.metersPerPixel>0,'Scale must have positive meters per pixel.');
+    check(['m','km','ft','mi'].includes(map.measurement.unit),'Invalid distance unit.');
+  }
   check(slug(map.id),'Map id must be a lowercase hyphenated slug.');
   for (const key of ['name','subtitle','description','image','thumbnail','region','theme']) check(text(map[key]),`Missing map ${key}.`);
   for(const key of ['image','thumbnail']) {
@@ -40,8 +48,13 @@ export function validateMap(map) {
     }
   }
   check(Array.isArray(map.locations) && map.locations.length,'A map needs at least one location.');
-  const ids = new Set();
+  const ids = new Set(),siteNumbers=new Set();
   for (const p of map.locations) {
+    if(p?.siteNumber!==undefined) {
+      check(Number.isSafeInteger(p.siteNumber) && p.siteNumber>0 && !siteNumbers.has(p.siteNumber),'Invalid or duplicate site number.');
+      check(map.nextSiteNumber===undefined || map.nextSiteNumber>p.siteNumber,'Next site number must exceed assigned numbers.');
+      siteNumbers.add(p.siteNumber);
+    }
     const prefix = `${map.id}: ${p?.id || 'unnamed place'}`;
     check(p && slug(p.id),`${prefix}: invalid id.`);
     check(!ids.has(p.id),`${prefix}: duplicate id.`); ids.add(p.id);

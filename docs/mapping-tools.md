@@ -114,3 +114,21 @@ The PDF modules use standard browser APIs and do not require a package or backen
 `districtAdjacency(districts)` constructs a graph from polygon contacts, overlaps and near boundaries. `districtColors(districts)` first assigns distinct hues while enforcing contrast across graph edges. For graphs that cannot use that assignment within the search budget, it uses contrasting color families and unique shades. Adjacent Dragonsgate districts differ by at least 60 degrees of hue. Both helpers use geometry and stable IDs without resolving location text or changing source data.
 
 `hitTestDistrict(districts, x, y, {enabled, object})` returns a containing district only when the layer is enabled and `object` is absent. Pass the result of the regular location hit test as `object` to retain object priority. Multipart districts and polygon holes are supported. `MapStage` exposes `selectDistrict` and `hoverDistrict` callbacks separately from location callbacks, so district selection does not create a synthetic place or alter shared location URLs.
+
+## Measurement and road routing
+
+`public/js/travel/geometry.js` exports `pathLength`, `calibration`, `formatDistance` and `travelTime`. Measurements use original-image coordinates. Until calibrated, lengths are explicitly shown in pixels and no travel time is estimated. A calibration records `measurement: {metersPerPixel, unit}` on the compact local map. Supported display units are `m`, `km`, `ft` and `mi`.
+
+`buildRoadGraph(roads, {joinTolerance: 3})` from `travel/graph.js` splits street polylines at crossings, T junctions and overlapping endpoints. A spatial grid bounds intersection checks. It can join endpoint gaps up to the explicitly selected tolerance in source-image pixels, including their actual distance. It never joins arbitrary disconnected components. Road crossings are assumed to be junctions because the current map contract has no elevation or turn restrictions.
+
+`roadRoute(graph, points, {maxSnapDistance: 80})` from `travel/routing.js` returns the shortest road path through 2 to 40 ordered stops. Stops project onto road segments, including multiple stops on the same segment. Access legs from stops to the road are included in the total and marked separately. Disconnected routes and stops too far from roads produce errors. Routes are based on saved survey geometry, independent of viewer filters. This is an artwork navigation tool rather than a live road-navigation service.
+
+The viewer runs graph construction and routing in a Web Worker. Use **Measure & route** for path measurements, road routes and two-point scale calibration. Drag and pinch still pan and zoom. **Add map center** supports keyboard selection. Enter on the focused map adds its center, Backspace removes a point, and Escape stops picking. **Finish picking** preserves the result. Travel paces are constant-speed estimates and can be customized.
+
+## Persistent site numbers and local variations
+
+Each compact location can carry a positive, unique `siteNumber`. A map's `nextSiteNumber` reserves the next available number, including numbers previously used by deleted sites. `numberSites(map, baseline)` assigns missing numbers and preserves baseline numbers for existing IDs. Call it before adding, importing or restoring geometry. Legacy maps receive their historical ID-sorted numbers once. All viewer and PDF consumers use `siteNumbers` to read the same assignments.
+
+Saving a published map in the viewer creates a separate IndexedDB record with a `local-` ID. The original stays in the public collection and always opens without saved content drafts. Local variations appear separately and can be backed up, restored or deleted. Earlier localStorage drafts remain available for export through the editor.
+
+`generationId` preserves the original map's randomization namespace when its local storage ID changes. This prevents copying a map from rerolling names, residents, addresses or lore. Only compact inputs and authored overrides are stored. `localVariation` records the source map's ID and name. Settlement ancestry and seed choices are saved to the local variation, including `settlementSettings` for recovery when localStorage is unavailable. No browser edit writes to the server or repository.

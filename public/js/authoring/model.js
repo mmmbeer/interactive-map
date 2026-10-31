@@ -1,7 +1,8 @@
+import { numberSites } from '../site-index.js';
 import { catalogFor } from '../generation/config.js';
 const contentFields = ['name','description','person','rumor','address','services'];
 export function migrateMap(input,{regenerateUnfeatured=false}={}) {
-  const map = structuredClone(input);
+  const map = numberSites(structuredClone(input));
   if (map.generator) return map;
   map.schemaVersion=2;
   map.generator={version:1,seed:`${map.id}-v1`,defaults:{}};
@@ -32,7 +33,7 @@ export function migrateMap(input,{regenerateUnfeatured=false}={}) {
   return map;
 }
 export function serializeMap(map) {
-  const {locations,...metadata}=map;
+  const {locations,...metadata}=numberSites(map);
   const head=JSON.stringify(metadata,null,2).slice(0,-2);
   return head+',\n  "locations": [\n'+locations.map(p=>'    '+JSON.stringify(p)).join(',\n')+'\n  ]\n}\n';
 }
@@ -42,13 +43,13 @@ export function newLocation(map,x=map.width/2,y=map.height/2) {
   return {id:`place-${String(n).padStart(4,'0')}`,category:'home',district:map.districts[0]?.id || map.districts[0],x,y,generation:{version:2,demographics:{}}};
 }
 export function saveLocation(map,place,originalId=null) {
-  const result=structuredClone(map),index=originalId===null ? -1 : result.locations.findIndex(p=>p.id===originalId);
+  const result=numberSites(structuredClone(map)),index=originalId===null ? -1 : result.locations.findIndex(p=>p.id===originalId);
   if (originalId!==null && index<0) throw new Error('The edited location no longer exists.');
   if (originalId!==null && originalId!==place.id) throw new Error('Existing location ids cannot be changed.');
   if (index<0) {
     if(result.locations.some(p=>p.id===place.id)) throw new Error('A location with this id already exists.');
     result.locations.push(structuredClone(place));
   } else result.locations[index]=structuredClone(place);
-  return result;
+  return numberSites(result);
 }
 

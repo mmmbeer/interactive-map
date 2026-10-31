@@ -22,8 +22,11 @@ export function readSettings(source,url,storage) {
   try {
     storage ||= globalThis.localStorage;
     const raw=storage.getItem(storageKey(source.id));
-    return normalizeSettings(source,raw ? JSON.parse(raw) : {});
-  } catch { return defaultSettings(source); }
+    return normalizeSettings(source,raw ? JSON.parse(raw) : source.settlementSettings || {});
+  } catch {
+    try {return normalizeSettings(source,source.settlementSettings || {});}
+    catch {return defaultSettings(source);}
+  }
 }
 export function saveSettings(source,settings,storage) {
   const normalized=normalizeSettings(source,settings);

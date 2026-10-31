@@ -52,7 +52,7 @@ See [docs/adding-maps.md](docs/adding-maps.md) for the format and complete workf
 - Touch drag, pinch zoom and tap-to-open stories.
 - Mouse-wheel zoom, zoom buttons, full-map fit and overview navigation.
 - Search across generated names, descriptions, residents, demographics, custom sections, addresses and neighborhoods.
-- Location editor with demographic inputs, hit shapes, live preview and local drafts.
+- Location editor with demographic inputs, hit shapes, live preview and separate local variations.
 - Map, region, district and location generation settings with weighted demographics.
 - Extensible name pools, location types, template tables and content sections.
 - Compact JSON import/export, legacy migration and authored text overrides.
@@ -90,7 +90,7 @@ sources/                    Original supplied map, excluded from deployment
 
 ## Generation and browser edits
 
-See [docs/generation.md](docs/generation.md) for seeds, inheritance, race/culture inputs, custom content and legacy migration. Use **Edit map** to add locations and **Edit location** on a place to update it. Saves create a draft on the current device. Export JSON, register the updated map, rebuild and commit to publish through Cloudflare. Generated results are never persisted in map JSON.
+See [docs/generation.md](docs/generation.md) for seeds, inheritance, race/culture inputs, custom content and legacy migration. Use **Edit map** to add locations and **Edit location** on a place to update it. Saves create a separate local variation in the collection. Published maps always remain unchanged. Subsequent edits and scale or settlement settings save only to that local variation. Use its atlas backup to move it to another device. Publishing remains a repository authoring workflow outside the browser editor. Generated results are never persisted in map JSON.
 
 The current survey stores more detailed geometry than the original map. Generated stories remain outside the source JSON.
 
@@ -112,7 +112,7 @@ Choose **Site guide** in the header to read full numbered entries. Export the cu
 
 **Export PDF** creates a real PDF locally in the browser. Full entries use a two-column layout with local map crops and inline field labels. It contains an overview, automatically divided detail map sheets, a linked number index and full descriptions, residents, rumors, services, demographics and custom sections. Numbered map markers and index rows link to entries. Entry links return to the correct map sheet and index position, or open the corresponding interactive site. Unicode fonts are bundled with their license. No PDF service or runtime package is required. **Cancel export** stops a large job. **Save PDF** lets you save the completed file again. **Open PDF** opens it in a PDF viewer.
 
-Site numbers are assigned by stable location ID order across the complete map. Filtering, zooming, directory order and export scope do not renumber sites. Adding or deleting IDs can change later numbers, so keep the map and its exported guide from the same map revision together. A complete Dragonsgate guide has thousands of pages. Use district or category filters to produce smaller guides.
+Site numbers are persisted with each location. The initial assignments preserve the historical ID order. Filtering, zooming, adding and deleting locations do not renumber existing sites. Deleted numbers remain reserved through the map’s next-site-number counter. A complete Dragonsgate guide has thousands of pages. Use district or category filters to produce smaller guides.
 
 The reusable modules are `site-index.js`, `guide-maps.js`, `guide-pdf.js`, `pdf-writer.js` and `pdf-font.js`. PDF generation never writes resolved content back into compact map data.
 
@@ -125,3 +125,12 @@ Dragonsgate now loads a lossless 948 x 1659 image from the supplied Reddit origi
 The Districts layer adds a mostly transparent color fill to each district. The normal fill is 14% opaque, hover is 20% and the selected neighborhood is 22%. District labels use the same color. Geometry-based adjacency coloring gives Dragonsgate fourteen distinct hues with strong separation between neighboring districts. The palette stays consistent across reloads and district input order.
 
 Districts are the last map hit target. Buildings, visible pins and number badges, streets, water and terrain retain click priority. A district responds only when no other currently clickable object occupies that point. Hidden district layers never respond. An unobstructed district click selects the neighborhood filter and opens its place directory on mobile. Existing search and category filters stay active.
+
+
+## Distance and route tools
+
+Choose **Measure & route** to mark a straight distance, a multi-point path, or a road route with intermediate stops. Route directions use the mapped street names. Access paths and small joined endpoint gaps are shown with dashed lines. Disconnected roads produce an explanation rather than an invented route.
+
+Use **Set scale** to mark two points and enter a known distance in meters, kilometers, feet or miles. Calibration saves only to a local variation. Uncalibrated artwork shows pixel distances. Calibrated maps also show estimated walking, riding or wagon times with an optional custom speed. Road crossings are assumed to connect. The routes use saved survey geometry and do not include live conditions or elevation.
+
+The expanded stock catalog supplies 100 substantive product variants for each of 31 supported trades. The prior detail catalog remains readable. Current maps and new image uploads select the expanded catalog explicitly.
