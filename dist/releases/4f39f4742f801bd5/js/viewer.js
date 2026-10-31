@@ -10,6 +10,7 @@ import { ancestries } from './generation/settlement-pools-v1.js';
 import { matches, searchPlaces } from './spatial.js';
 export class AtlasViewer {
   constructor(root,data,options={}) {
+    this.localMap=options.localMap;this.onSave=options.onSave;this.onRestore=options.onRestore;this.onBackup=options.onBackup;this.onDelete=options.onDelete;
     this.staleDraft=options.stale;this.source=options.source || data;this.published=options.published || this.source;this.onChange=options.onChange;
     this.generationSettings=options.generationSettings;this.onGenerationChange=options.onGenerationChange;
     this.root=root;this.data=data;this.numbers=siteNumbers(data.locations);this.controller=new AbortController();this.signal=this.controller.signal;
@@ -23,9 +24,9 @@ export class AtlasViewer {
       button.innerHTML=`${icon('dice')}<span>Settlement: ${escape(label)}</span>`;
       root.querySelector('.header-actions').prepend(button);
     }
-    if(options.local || options.stale) {
+    if(options.localMap || options.local || options.stale) {
       const note=document.createElement('div');note.className='local-draft-note';
-      note.innerHTML=options.local ? 'Local draft · Changes are saved on this device.<button id="draft-tools">Export or restore</button>' : 'A draft from an older published map is stored on this device. Export it before restoring.<button id="draft-tools">Open draft tools</button>';
+      note.innerHTML=options.localMap ? 'Local map · Saved in this browser.<button id="draft-tools">Edit, backup or delete</button>' : options.local ? 'Local draft · Changes are saved on this device.<button id="draft-tools">Export or restore</button>' : 'A draft from an older published map is stored on this device. Export it before restoring.<button id="draft-tools">Open draft tools</button>';
       root.querySelector('.atlas-header').after(note);
     }
     this.sidebar=root.querySelector('.place-sidebar');
@@ -197,6 +198,7 @@ export class AtlasViewer {
     this.root.querySelector('#open-directory').setAttribute('aria-expanded',String(!closed));
   }
   async share(place=true) {
+    if(this.localMap){toast('This map is stored in this browser. Use Edit map to export an atlas backup for another device.');return;}
     const url=new URL(location.href);url.hash=`map/${this.data.id}${place&&this.selected?'/'+this.selected.id:''}`;
     try {
       await navigator.clipboard.writeText(url.href);toast('Link copied. Share a little discovery.');

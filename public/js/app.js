@@ -5,8 +5,11 @@ import { materializeMap } from './generation/locations.js';
 import { validateMap } from './map-contract.js';
 import { AtlasViewer } from './viewer.js';
 import { applySettings, readSettings, saveSettings, settingsURL } from './generation/settlement-settings.js';
+import { listLocalMaps, readLocalMap, hydrateLocalMap, saveLocalMap, deleteLocalMap } from './local-maps/store.js';
+import { exportBackup } from './local-maps/files.js';
 const root = document.querySelector('#app');
 let viewer, maps, loadController, routeVersion = 0;
+let localURLs=[];
 async function route() {
   const version = ++routeVersion;
   loadController?.abort();
@@ -20,6 +23,7 @@ async function route() {
   }
   viewer?.destroy();
   viewer = null;
+  localURLs.forEach(url=>URL.revokeObjectURL(url));localURLs=[];
   document.body.classList.remove('viewer-open');
   try {
     maps ||= await loadJSON('data/maps.json', signal);
@@ -29,14 +33,20 @@ async function route() {
       url.searchParams.delete('ancestry');url.searchParams.delete('seed');
       history.replaceState(null,'',url);
       document.title = 'The Wandering Atlas | Interactive fantasy maps';
-      return renderLibrary(root, maps, signal);
+      let local=[];
+      try {local=await listLocalMaps();}catch(error){console.warn(error.message);}
+      if(signal.aborted || version!==routeVersion)return;
+      local=local.map(entry=>{const thumbnail=URL.createObjectURL(entry.thumbnailBlob);localURLs.push(thumbnail);return {...entry,thumbnail};});
+      return renderLibrary(root, [...local,...maps], signal);
     }
-    const entry = maps.find(map => map.id === mapId);
-    if (!entry) throw new Error('This map is not in the atlas. Return to the collection to choose another.');
+    let record=mapId.startsWith('local-') ? await readLocalMap(mapId) : null;
+    if(signal.aborted || version!==routeVersion)return;
+    const entry = record ? record.map : maps.find(map => map.id === mapId);
+    if (!entry) throw new Error(mapId.startsWith('local-') ? 'This local map is not stored in this browser. Restore its atlas backup from the collection.' : 'This map is not in the atlas. Return to the collection to choose another.');
     root.innerHTML = `<div class="loading-screen">${icon('compass')}<p>Unfolding ${escape(entry.name)}…</p></div>`;
-    const source = await loadJSON(entry.data, signal);
+    const source = record ? record.map : await loadJSON(entry.data, signal);
     validateMap(source);
-    const draft = readDraft(source);
+    const draft = record ? {map:source} : readDraft(source);
     let generationSettings=source.generator ? readSettings(draft.map,location.href) : null;
     if (signal.aborted || version !== routeVersion) return;
     document.body.classList.add('viewer-open');
@@ -49,14 +59,21 @@ async function route() {
       const selectedId=placeId || viewer?.selected?.id;
       generationSettings=settings;
       if(settings) history.replaceState(null,'',settingsURL(location.href,settings));
-      const data=materializeMap(settings ? applySettings(next,settings) : next);
+      const previousURLs=localURLs;localURLs=[];
+      const snapshot=settings ? applySettings(next,settings) : next;
+      const data=materializeMap(record ? hydrateLocalMap(snapshot,record,localURLs) : snapshot);
       const onGenerationChange=settings=>{
         const saved=saveSettings(next,settings);
         mount(next,undefined,settings);
         return saved;
       };
-      viewer?.destroy();
-      viewer = new AtlasViewer(root, data, {source:next,published:source,onChange:mount,local:next!==source,stale:draft.stale,generationSettings:settings,onGenerationChange});
+      viewer?.destroy();previousURLs.forEach(url=>URL.revokeObjectURL(url));
+      viewer = new AtlasViewer(root, data, {source:next,published:source,onChange:mount,local:next!==source,stale:draft.stale,generationSettings:settings,onGenerationChange,
+        localMap:Boolean(record),
+        onSave:record ? async map=>{record=await saveLocalMap(map,record.image,record.thumbnail,record.initialMap);} : null,
+        onRestore:record ? async()=>{const map=record.initialMap;record=await saveLocalMap(map,record.image,record.thumbnail,map);return map;} : null,
+        onBackup:record ? ()=>exportBackup(record,generationSettings) : null,
+        onDelete:record ? async()=>{await deleteLocalMap(record.id);location.hash='';} : null});
       if(filters) {
         viewer.filters={...filters};viewer.root.querySelector('#place-search').value=filters.query;
         viewer.root.querySelector('#district-filter').value=filters.district;
@@ -75,7 +92,7 @@ async function route() {
     };
     mount(draft.map,placeId);
   } catch (error) {
-    if (error.name === 'AbortError') return;
+    if (error.name === 'AbortError' || signal.aborted || version!==routeVersion) return;
     root.innerHTML = `<main class="error-page"><div class="eyebrow">A WRONG TURN</div><h1>The trail ends here.</h1><p>${escape(error.message)}</p><a class="button primary" href="#">Back to the atlas ${icon('arrow')}</a><button class="button" id="retry">Reload atlas</button></main>`;
     // Refresh the document and its release graph when an old open tab meets new data.
     document.querySelector('#retry').onclick = () => location.reload();

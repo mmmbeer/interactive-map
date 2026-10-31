@@ -13,11 +13,11 @@ export function openEditor(viewer,selected=null) {
   const originalId=selected?.id ?? null;
   const dialog=document.createElement('dialog');dialog.className='location-editor';
   dialog.innerHTML=`<header><div><span class="eyebrow">MAP AUTHORING</span><h2>${selected?'Edit location':'Add location'}</h2></div><button type="button" class="icon-button editor-close" aria-label="Close editor">×</button></header>
-    <p class="editor-notice">Save a draft on this device. Export the map JSON and commit it to publish changes.</p>
+    <p class="editor-notice">${viewer.localMap ? 'Changes save to your local map. Export an atlas backup to include its image and geometry.' : 'Save a draft on this device. Export the map JSON and commit it to publish changes.'}</p>
     <nav class="editor-tabs" aria-label="Editor section"><button type="button" data-tab="place" aria-pressed="true">Location</button><button type="button" data-tab="settings" aria-pressed="false">Map & district defaults</button></nav>
     <div class="editor-body"><section class="editor-form-pane"><form id="location-form"></form><section id="generator-settings" hidden></section></section><aside class="editor-preview"><div class="eyebrow">LIVE PREVIEW</div><div id="generated-preview"></div></aside></div>
-    <p class="editor-error" role="status" aria-live="polite"></p><footer><button class="button" type="button" id="editor-pick">Place on map</button><button class="button" type="button" id="editor-vary">New variation</button><button class="button primary" type="button" id="editor-save">Save location</button></footer>
-    <details class="editor-files"><summary>Map files & drafts</summary><p>Imports replace this map’s local draft after validation. Export current edits to include unsaved form changes. Export before restoring to keep your work.</p><div><button class="button" id="editor-export">Export saved map JSON</button><button class="button" id="export-current">Export current edits</button>${viewer.staleDraft?'<button class="button" id="export-older-draft">Export older draft</button>':''}<label class="button">Import map JSON<input type="file" accept=".json,application/json" id="editor-import" hidden></label><button class="button" id="editor-restore">Restore published map</button></div><label><input type="checkbox" id="confirm-restore">Discard the local draft when restoring</label></details>`;
+    <p class="editor-error" role="status" aria-live="polite"></p><footer><button class="button" type="button" id="editor-pick">Place on map</button>${selected&&viewer.localMap?'<button class="button" type="button" id="editor-delete-place">Delete location</button>':''}<button class="button" type="button" id="editor-vary">New variation</button><button class="button primary" type="button" id="editor-save">Save location</button></footer>
+    <details class="editor-files"><summary>Map files & drafts</summary><p>Imports replace this map’s local draft after validation. Export current edits to include unsaved form changes. Export before restoring to keep your work.</p><div><button class="button" id="editor-export">Export saved map JSON</button><button class="button" id="export-current">Export current edits</button>${viewer.staleDraft?'<button class="button" id="export-older-draft">Export older draft</button>':''}<label class="button">Import map JSON<input type="file" accept=".json,application/json" id="editor-import" hidden></label><button class="button" id="editor-restore">${viewer.localMap?'Restore imported geometry':'Restore published map'}</button>${viewer.localMap?'<button class="button" id="local-backup">Export atlas backup</button><button class="button" id="local-delete">Delete local map</button>':''}</div><label><input type="checkbox" id="confirm-restore">Discard saved edits when restoring or deleting</label></details>`;
   document.body.append(dialog);
   const controller=new AbortController();
   const on=(target,event,callback)=>target.addEventListener(event,callback,{signal:controller.signal});
@@ -42,14 +42,16 @@ export function openEditor(viewer,selected=null) {
       preview.querySelectorAll('button').forEach(el=>el.remove());
     } catch(e) { fail(e); }
   };
-  const finish=(map,message,placeId)=>{
-    writeDraft(map,published);dialog.close();viewer.onChange(map,placeId);toast(message);
+  const finish=async(map,message,placeId)=>{
+    if(viewer.onSave)await viewer.onSave(map);else writeDraft(map,published);
+    if(viewer.signal.aborted)return;
+    dialog.close();viewer.onChange(map,placeId);toast(message);
   };
   setForm();
   const settings=dialog.querySelector('#generator-settings');
   const settingsData={generator:source.generator,regions:source.regions || [],districts:source.districts};
   settings.innerHTML=`<h3>Inherited generation settings</h3><p>Map defaults → region → district → location. Weights are relative: human: 3 and elf: 1 means 75% human and 25% elf. Choose fields, traits, custom name pools, location types and template tables here.</p><p>Use tokens such as {first}, {district}, {service}, {raceLabel} and {traits} in output templates. See docs/generation.md for the full format.</p><label>Generator, regions and districts (JSON)<textarea id="settings-json" rows="23" spellcheck="false">${escape(JSON.stringify(settingsData,null,2))}</textarea></label><button type="button" class="button" id="apply-settings">Apply defaults to preview</button>`;
-  on(dialog,'click',e=>{
+  on(dialog,'click',async e=>{
     const button=e.target.closest('button');if(!button)return;
     try {
       if(button.classList.contains('editor-close')) dialog.close();
@@ -61,8 +63,13 @@ export function openEditor(viewer,selected=null) {
       }
       if(button.id==='apply-settings') applySettings();
       if(button.id==='editor-save') {
-        if(tab==='settings') {applySettings();finish(source,'Map defaults saved on this device.');}
-        else { const {p,map}=candidate();finish(map,'Location saved on this device.',p.id); }
+        if(tab==='settings') {applySettings();await finish(source,'Map defaults saved on this device.');}
+        else { const {p,map}=candidate();await finish(map,'Location saved on this device.',p.id); }
+      }
+      if(button.id==='editor-delete-place') {
+        const map=structuredClone(source);map.locations=map.locations.filter(p=>p.id!==originalId);
+        for(const p of map.locations)for(const [key,id] of Object.entries(p.context||{}))if(id===originalId)delete p.context[key];
+        validateMap(map);await finish(map,'Location deleted on this device.');
       }
       if(button.id==='editor-vary') {form.elements.revision.value=Number(form.elements.revision.value)+1;showPreview();}
       if(button.id==='editor-pick') {
@@ -85,9 +92,15 @@ export function openEditor(viewer,selected=null) {
         if(tab==='settings') {applySettings();downloadMap(source);}
         else downloadMap(candidate().map);
       }
+      if(button.id==='local-backup')await viewer.onBackup();
+      if(button.id==='local-delete') {
+        if(!dialog.querySelector('#confirm-restore').checked)throw new Error('Select the discard checkbox before deleting this map.');
+        await viewer.onDelete();dialog.close();
+      }
       if(button.id==='editor-restore') {
         if(!dialog.querySelector('#confirm-restore').checked) throw new Error('Select the discard checkbox before restoring.');
-        clearDraft(published.id);dialog.close();viewer.onChange(published);toast('Published map restored.');
+        if(viewer.onRestore){const map=await viewer.onRestore();dialog.close();viewer.onChange(map);toast('Imported geometry restored.');}
+        else {clearDraft(published.id);dialog.close();viewer.onChange(published);toast('Published map restored.');}
       }
     } catch(e) {fail(e);}
   });
@@ -129,8 +142,8 @@ export function openEditor(viewer,selected=null) {
       const map=migrateMap(JSON.parse(await file.text()));
       if(viewer.signal.aborted)return;
       validateMap(map);
-      if(map.id!==source.id) throw new Error('Import a file with this map’s id. Add new maps through the repository.');
-      finish(map,'Imported map saved as a local draft.');
+      if(map.id!==source.id) throw new Error('Import a file with this map’s id. Use Upload map in the collection to add another map.');
+      await finish(map,'Imported map saved as a local draft.');
     } catch(e) {fail(e);}
   });
   on(dialog,'close',()=>{

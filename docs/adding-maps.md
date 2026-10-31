@@ -56,3 +56,19 @@ District objects can include `boundaries`, a nonempty array of image-space polyg
 Polygon shapes can include `holes`, an array of point rings using the same `[[x,y], ...]` format as the exterior. These rings exclude land from a sea polygon or a courtyard from an area. Exclusions participate in hit testing, drawing, validation and the location editor.
 
 Locations can set `labelMinScale` to delay a small feature's label until a closer zoom. Building labels are automatic at close zoom. They do not need thousands of featured pins. Label culling changes presentation only; every entry remains searchable and selectable through the directory.
+
+## Visitor uploads and local maps
+
+Visitors can select **Upload map** in the collection. PNG, JPEG and WebP images stay on the visitor's browser. No image leaves the device and no AI service or API key is required. IndexedDB stores the original image Blob, a thumbnail, compact map geometry, the original import snapshot and category, district, ID and spatial-cell indexes. New local maps appear first in the collection. Edits rebuild and atomically replace the saved map and indexes.
+
+1. Choose an image and enter a name and deterministic generation seed.
+2. Select **Process map**. A module worker analyzes a copy up to 1200 pixels on its longest side. Display and geometry use original-image dimensions. The original image is retained at its uploaded resolution.
+3. Review the colored overlay and counts. Click a false match to remove it. For different art styles, sample building, road, water or terrain colors and adjust tolerance or building darkness. Process again to replace the unsaved candidates.
+4. Select **Save on this device**. Use the regular directory, district filters, map overlays, numbered guide and location editor.
+5. In **Edit map → Map files & drafts**, export an **atlas backup** to include the image, compact geometry and current ancestry/seed. Use **Restore backup** in the upload dialog to reopen it in another browser. Restores preserve map IDs and deterministic names. An existing map with the same ID is never overwritten by a restore.
+
+Recognition is approximate. Dark or red compact components become building candidates. Blue components become water areas. Green components become forest candidates. Bright narrow corridors are skeletonized into road segments. Connected land components separated by roads and water become suggested neighborhoods. Contours retain holes such as islands. Nearby buildings link to roads. Every candidate starts with a stable ID. No random coordinates or random building trades are invented.
+
+Text, roofs, walls, textures and decorations can create false positives. Small features can be missed at the analysis resolution. Monochrome artwork needs color sampling or manual editing. Water candidates default to lake and green areas to forest because pixels cannot establish semantic geography. District boundaries are suggestions, not inferred political boundaries. Correct types, trace missed features and edit district JSON in the existing editor. For an already surveyed map, attach compact map JSON alongside its image to import all annotated roads, districts, geography and locations exactly. The image dimensions must match the JSON.
+
+Images must be under 40 MB and up to 24 million pixels with neither side larger than 8192 pixels. Geometry imports are limited to 10 MB and backups to 60 MB. The processor stops above 12,000 candidates instead of silently truncating its inventory. Browser storage can be full, disabled or cleared. Saving errors keep the upload dialog or editor open. Export backups before clearing site data. A local map link works only in browsers holding that map or its restored backup. It does not publish or transfer the map.

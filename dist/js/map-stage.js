@@ -10,7 +10,10 @@ export class MapStage {
   constructor(element, data, callbacks, signal) {
     this.el = element; this.data = data; this.callbacks = callbacks;
     this.pointers = new Map(); this.visible = () => true; this.markers = true;
-    this.index = buildSpatialIndex(data.locations);
+    this.index = data.localIndexes ? {
+      cells:new Map(data.localIndexes.cells.map(([cell,ids])=>[cell,ids.map(id=>data.locations[data.localIndexes.byId[id]]).filter(Boolean)])),
+      cellSize:data.localIndexes.cellSize,featured:data.locations.filter(p=>p.featured)
+    } : buildSpatialIndex(data.locations);
     element.innerHTML = `<div class="map-world"><img class="map-image" src="${escape(data.image)}" width="${data.width}" height="${data.height}" alt="${escape(data.name)} city map" draggable="false"><canvas class="map-overlay" aria-hidden="true"></canvas><div class="map-pins"></div></div><div class="map-load-error" hidden><p>The map image could not be loaded.</p><button class="button" type="button">Reload image</button></div>`;
     this.world = element.querySelector('.map-world');
     this.world.style.width = `${data.width}px`; this.world.style.height = `${data.height}px`;
