@@ -910,6 +910,17 @@
                   "templates"
                 ]
               }
+            },
+            "detailSources": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "minItems": 100,
+                "items": {
+                  "$ref": "#/$defs/detailSourceEntry"
+                }
+              },
+              "description": "Literal detail fragments with base template tokens. Runtime validation requires 100 distinct positive-weight matching variants in every active context."
             }
           },
           "required": [],
@@ -919,6 +930,78 @@
       "required": [
         "version",
         "seed"
+      ]
+    },
+    "detailSourceEntry": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": "string",
+              "minLength": 1
+            },
+            "weight": {
+              "type": "number",
+              "minimum": 0
+            },
+            "when": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "types": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "categories": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "wealths": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "traits": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "water": {
+                  "type": "boolean"
+                },
+                "terrain": {
+                  "type": "boolean"
+                },
+                "street": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
       ]
     }
   }

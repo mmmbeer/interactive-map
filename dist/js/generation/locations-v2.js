@@ -3,6 +3,7 @@ import { catalogFor, configFor, dimensions, availableFields } from './config.js'
 import { choose, distribution, streams, integer, title, possessive, article } from './helpers-v2.js';
 import { featureText } from './geography-v2.js';
 import { featureHeads } from './catalog-v2.js';
+import { prepareDetails } from './details-v1.js';
 const labels = text => text.replaceAll('_',' ');
 const styles = {
   descriptive:'{adjective} {root} {head}',simple:'{root} {head}',
@@ -86,6 +87,7 @@ export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), 
   const generatedName = render(nameTemplate,tokens);
   tokens.displayName = place.overrides?.name || (config.fields.includes('name') ? generatedName : place.id);
   const featureDefaults = feature ? featureText(kind,tokens,context,roll,place.category) : {};
+  prepareDetails(map,place,{tokens,config});
   const result = {...place,districtId:place.district,district:tokens.district,extra:{}};
   if (!feature) result.demographics=demographics;
   for (const field of availableFields(map)) {
