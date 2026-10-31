@@ -4,7 +4,7 @@ import { identityTokens } from './identity.js';
 import { sharedHabit, labelsFor, personView, renderStory, storyView, householdText, contextForFact } from './presentation.js';
 import { socialEnabled, socialTokens } from './sections.js';
 import { sourceDraw } from './sources.js';
-import { streams } from '../helpers-v2.js';
+import { streams, article } from '../helpers-v2.js';
 import { adult } from './helpers.js';
 export function prepareSharedIdentity(map,place,tokens,demographics) {
   Object.assign(tokens,Object.fromEntries([...socialTokens,...economyTokens].map(k=>[k,''])));
@@ -40,16 +40,17 @@ export function applySocialContent(map,place,{tokens,config,shared,resolve}) {
   const context=contextForFact(map,graph.facts.get(place.id),{householdStyle:home?.style || ''},shared.person?.identity.demographics);
   const roll=streams(['resident-prose-v1',map.generationId ?? map.id,map.generator.seed,place.id,config.seed ?? '',config.revision ?? 0]);
   const roster=views.map(p=>{
-    const residence=p.home ? `Lives at ${p.home}.` : 'No mapped residence is assigned.';
-    const work=p.workplace ? `Works as ${p.occupation} at ${p.workplace}.` : adult(p.age) ? `Recorded occupation: ${p.occupation}; no separate workplace is linked.` : 'No adult occupation or workplace is assigned.';
-    const habit=p.profile ? `Authored profile: ${p.profile}` : `Known for ${sharedHabit(map,graph,people.find(person=>person.id===p.id))}.`;
-    return `${p.name}. ${residence} ${work} ${habit}`;
+    const work=p.workplace ? ` works as ${article(p.occupation)} ${p.occupation} at ${p.workplace}` : adult(p.age) ? ` is ${article(p.occupation)} ${p.occupation}` : ' is a dependent';
+    const residence=p.home ? ` and lives at ${p.home}` : '';
+    const subject=p.gender==='female'?'She':p.gender==='male'?'He':'They';
+    const habit=p.profile || `${subject} ${subject==='They'?'are':'is'} known for ${sharedHabit(map,graph,people.find(person=>person.id===p.id))}.`;
+    return `${p.name}${work}${residence}. ${habit}`;
   }).join(' ');
   tokens.residentNote=on('residents') ? roster : '';
   tokens.connectionNote=on('connections') ? events.map(e=>e.fact).join(' ') : '';
   tokens.requestNote=on('requests') ? events.map(e=>e.request).join(' ') : '';
   if(home && on('household') && !custom('household') && !map.generator.catalog?.detailSources?.household)tokens.household=householdText(map,graph,home,views,label);
-  if(home && shared.person?.workplaceId && on('livelihood') && !custom('livelihood'))tokens.livelihoodNote=`${views[0].name} works as ${views[0].occupation} at ${views[0].workplace}. The same resident belongs to this household.`;
+  if(home && shared.person?.workplaceId && on('livelihood') && !custom('livelihood'))tokens.livelihoodNote=`${views[0].name} works as ${article(views[0].occupation)} ${views[0].occupation} at ${views[0].workplace}.`;
   if(home && shared.person && !adult(shared.person.identity.demographics.age) && on('livelihood'))tokens.livelihoodNote='The primary resident is a dependent. No adult occupation is assigned.';
   const related=new Map();
   const add=(id,kind)=>{if(id && id!==place.id)related.set(id,{id,name:label(id).name,kind});};
