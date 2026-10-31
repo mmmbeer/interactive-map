@@ -1,0 +1,44 @@
+/* Location callouts share the map's coordinate space, with a fixed-size reading surface. */
+.detail-panel{position:absolute;inset:auto;width:min(360px,calc(100% - 24px));display:flex;flex-direction:column;overflow:hidden;max-height:560px;border:1px solid #b8c5a65c;background:var(--paper-light);box-shadow:0 12px 36px #11161066;z-index:8;animation:callout-in .16s ease-out;isolation:isolate;border-radius:8px;overscroll-behavior:contain}
+.callout-connector{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:7;filter:drop-shadow(0 1px 2px #0008)}
+.callout-connector line{stroke:var(--lime-cream);stroke-width:2}
+.callout-connector circle{fill:var(--paper);stroke:var(--lime-cream);stroke-width:2}
+.detail-banner{display:flex;align-items:center;height:44px;min-height:44px;padding:0 8px 0 16px;gap:8px;background:var(--surface);border-bottom:1px solid var(--line);position:relative}
+.detail-banner .category-badge{font-size:11px;margin-right:auto}
+.detail-grip{border:0;background:transparent;color:var(--muted);display:flex;align-items:center;gap:4px;min-height:36px;padding:4px 8px;cursor:grab;touch-action:none;font-size:17px;user-select:none}
+.detail-grip span{font-size:10px}
+.detail-grip:hover{color:var(--tea-green)}
+.detail-panel.is-dragging,.detail-panel.is-dragging .detail-grip{cursor:grabbing;user-select:none}
+.detail-close{position:static;width:34px;height:34px;flex-shrink:0}
+.detail-body{overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b3b6aa66 transparent;min-height:0}
+.detail-content{padding:17px 18px}
+.detail-content h2:focus{outline:none}
+.detail-close .icon{width:17px;height:17px}
+.detail-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.detail-heading .eyebrow{font-size:10px;letter-spacing:.7px}
+.detail-heading .site-index{margin:0;white-space:nowrap;flex-shrink:0}
+.detail-content h2{font-size:25px;line-height:1.15;letter-spacing:-.7px;margin:9px 0 10px;overflow-wrap:anywhere}
+.place-address{display:flex;gap:5px;color:var(--muted);font-size:11px;margin-top:0;line-height:1.5;align-items:flex-start}
+.place-address .icon{width:13px;height:13px;margin-top:2px;flex-shrink:0}
+.detail-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;margin:16px 0;padding:12px 0;border-block:1px solid var(--line)}
+.detail-facts div{min-width:0}
+.detail-facts dt{font-size:9px;line-height:1.4;text-transform:capitalize;color:var(--muted)}
+.detail-facts dd{font-size:11px;line-height:1.4;margin:3px 0 0;color:var(--tea-green);overflow-wrap:anywhere}
+.place-description{font-size:12px;line-height:1.65;color:var(--ink);margin:14px 0}
+.detail-section{border-top:1px solid var(--line);padding-top:12px;margin-top:13px}
+.detail-section h3,.story-hook h3{font-weight:600;color:var(--muted);font-size:10px;letter-spacing:.3px;text-transform:none}
+.detail-section p,.story-hook p{font-size:12px;line-height:1.65;margin-top:6px}
+.story-hook{border-left:2px solid var(--amber-glow);padding:11px 12px;margin-top:14px;background:#ffc15e0c}
+.story-hook h3{display:flex;align-items:center;gap:7px;color:var(--sunflower-gold)}
+.story-hook .icon{width:13px;height:13px}
+.detail-actions{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line);background:var(--surface);flex-shrink:0}
+.detail-actions .button{width:auto;flex:1;margin:0;min-height:34px;padding:7px 9px;font-size:10px;gap:7px}
+.detail-actions .detail-share{color:var(--tea-green)}
+.detail-actions .icon{width:13px;height:13px}
+.editor-preview .detail-grip,.editor-preview .detail-actions{display:none}
+.editor-preview .detail-body{overflow:visible}
+@keyframes callout-in{from{opacity:0}to{opacity:1}}
+@media(max-width:760px){.detail-panel{width:min(320px,calc(100% - 24px));bottom:auto;right:auto;z-index:8}.detail-content{padding:14px 16px}.detail-content h2{font-size:23px}.detail-close{width:38px;height:38px}.detail-banner{display:flex;align-items:center;height:46px;min-height:46px}.detail-actions .button{min-height:40px}.detail-grip{min-height:40px}}
+@media(prefers-reduced-motion:reduce){.detail-panel{animation:none}}
+
+.social-links>div{display:flex;flex-wrap:wrap;gap:6px}.social-links .button{min-height:36px;max-width:100%;font-size:11px;text-align:left}.social-links .button span{white-space:normal;overflow-wrap:anywhere}

@@ -1,3 +1,4 @@
+import { socialLinksHTML } from './social-links.js';
 import { brand, categories, categoryBadge, escape, icon, number } from './ui.js';
 export function viewerHTML(data) {
   return `<div class="atlas-shell">
@@ -37,12 +38,13 @@ export function detailHTML(place,index) {
   return `<div class="detail-banner" style="--category:${c.color}">${categoryBadge(place.category)}<button class="detail-grip" aria-label="Move callout. Drag or use arrow keys." title="Drag to move. Arrow keys move the callout when focused.">⠿ <span>Move</span></button><button class="icon-button detail-close" aria-label="Close location details" title="Close (Escape)">${icon('close')}</button></div>
     <div class="detail-body"><div class="detail-content"><div class="detail-heading"><span class="eyebrow">${escape(place.district)}</span>${index?`<span class="site-index">Site ${index}</span>`:''}</div><h2 tabindex="-1">${escape(place.name)}</h2>
       ${place.address?`<div class="place-address">${icon('pin')}${escape(place.address)}</div>`:''}
-      ${place.demographics?`<dl class="detail-facts">${Object.entries(place.demographics).map(([key,v])=>`<div><dt>${escape(key.replaceAll('_',' '))}</dt><dd>${escape(String(v).replaceAll('_',' '))}${key==='population'?' residents':''}</dd></div>`).join('')}</dl>`:''}
+      ${place.demographics?`<dl class="detail-facts">${Object.entries(place.demographics).map(([key,v])=>`<div><dt>${escape(key.replaceAll('_',' '))}</dt><dd>${escape(String(v).replaceAll('_',' '))}${key==='population'?(place.category==='home'?' residents':' people'):''}</dd></div>`).join('')}</dl>`:''}
       <p class="place-description">${escape(place.description)}</p>
       ${place.services?`<section class="detail-section"><h3>Available here</h3><p>${escape(place.services)}</p></section>`:''}
       ${place.person?`<section class="detail-section"><h3>A familiar face</h3><p>${escape(place.person)}</p></section>`:''}
       ${place.rumor?`<section class="story-hook"><h3>${icon('book')}Word on the street</h3><p>${escape(place.rumor)}</p></section>`:''}
       ${Object.values(place.extra || {}).filter(s=>s.text).map(s=>`<section class="detail-section"><h3>${escape(s.label)}</h3><p>${escape(s.text)}</p></section>`).join('')}
+      ${socialLinksHTML(place)}
     </div></div><footer class="detail-actions"><button class="button detail-share">${icon('share')}Copy link</button><button class="button detail-route">${icon('route')}Route from here</button><button class="button detail-edit">${icon('layers')}Edit location</button></footer>`;
 }
 export function tooltipHTML(place) {

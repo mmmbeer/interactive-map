@@ -487,7 +487,8 @@
         }
       }
     },
-    "detailsVersion": 2
+    "detailsVersion": 2,
+    "socialVersion": 1
   },
   "regions": [
     {

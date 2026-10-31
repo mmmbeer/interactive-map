@@ -1,3 +1,4 @@
+import { validateSocialMap } from './generation/social/validation.js';
 import { normalizeSettings } from './generation/settlement-settings.js';
 import { validateDistrictGeometry } from './districts.js';
 import { catalogFor, versionFor } from './generation/config.js';
@@ -117,6 +118,7 @@ export function validateMap(map) {
     }
   }
   validateGeography(map);
+  validateSocialMap(map,check);
   if (map.initialView) {
     const v=map.initialView;
     check(number(v.x) && number(v.y) && number(v.width) && v.x>=0 && v.x<=map.width && v.y>=0 && v.y<=map.height && v.width>0,'Invalid initial view.');

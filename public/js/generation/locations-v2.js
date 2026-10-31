@@ -1,3 +1,4 @@
+import { prepareSharedIdentity, applySocialContent } from './social/runtime.js';
 import { prepareEconomy } from './economy.js';
 import { render } from './random.js';
 import { catalogFor, configFor, dimensions, availableFields } from './config.js';
@@ -25,7 +26,7 @@ const businessStyles = {
 export const nameStyles = Object.freeze(Object.keys(styles));
 const cache = new WeakMap();
 // Cache is scoped to an immutable source snapshot. Editing creates a new map object.
-export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), stack = new Set()) {
+export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), stack = new Set(), mode='full') {
   if (stack.has(place.id)) throw new Error(`Cyclic geographic context at ${place.id}.`);
   const path = new Set([...stack,place.id]);
   const {config,district,region} = configFor(map,place);
@@ -82,22 +83,28 @@ export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), 
   tokens.landmark = context.landmark || '';
   tokens.setting = [context.street && `on ${context.street}`,context.water && `beside ${context.water}`,context.terrain && `near ${context.terrain}`,context.landmark && `near ${context.landmark}`].filter(Boolean).join(', ') || `on ${tokens.street}`;
   tokens.address = feature ? `${tokens.district}, ${tokens.region}` : `${tokens.houseNumber} ${tokens.street}`;
-  const economy=prepareEconomy(map,place,{tokens,config,catalog,type});
+  const shared=prepareSharedIdentity(map,place,tokens,demographics);
+  const economy=shared?.skipEconomy ? null : prepareEconomy(map,place,{tokens,config:shared?.config || config,catalog,type});
   const pattern = config.nameStyle ? (feature ? styles : businessStyles)[config.nameStyle] : null;
   const customName=config.tables.name || map.generator.catalog?.tables?.name || map.generator.catalog?.types?.[kind]?.tables?.name;
   const nameTemplate = !customName && pattern || choose(tables.name,roll('name-pattern',kind));
   const generatedName = render(nameTemplate,tokens);
   tokens.displayName = place.overrides?.name || (config.fields.includes('name') ? generatedName : place.id);
+  if(mode==='identity')return {...place,name:tokens.displayName,address:place.overrides?.address ?? (config.fields.includes('address')?tokens.address:''),districtId:place.district,district:tokens.district,...(!feature?{demographics}:{} )};
   economy?.ready?.();
   const featureDefaults = feature ? featureText(kind,tokens,context,roll,place.category) : {};
   prepareDetails(map,place,{tokens,config,context:economy?.context});
   economy?.finish();
+  const social=mode==='full' ? applySocialContent(map,place,{tokens,config,shared,resolve:(m,p)=>resolve(m,p,undefined,new Set(),'identity')}) : null;
   const result = {...place,districtId:place.district,district:tokens.district,extra:{}};
   if (!feature) result.demographics=demographics;
+  if(social)result.community=social.community;
   for (const field of availableFields(map)) {
     let value;
     if (Object.hasOwn(place.overrides || {},field)) value=place.overrides[field] ?? '';
     else if (!config.fields.includes(field)) value=field==='name' ? place.id : '';
+    else if (field==='rumor' && social?.rumor) value=social.rumor;
+    else if (field==='person' && social?.profile) value=social.profile;
     else if (field==='person' && place.category==='home' && demographics.population===0) value='';
     else if (field==='name') value=generatedName;
     else if (feature && Object.hasOwn(featureDefaults,field) && !config.tables[field] && !map.generator.catalog?.tables?.[field]) value=featureDefaults[field];

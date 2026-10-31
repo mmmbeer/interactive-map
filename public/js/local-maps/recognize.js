@@ -40,7 +40,7 @@ export function recognizeMap({rgba,w,h,width,height,id,name,seed,options={}},pro
   const sx=width/w,sy=height/h,locations=[];
   const map={schemaVersion:2,id,name,subtitle:'Your locally saved map',description:'A user map with editable image-recognition candidates.',
     image:`local/${id}/map`,thumbnail:`local/${id}/thumbnail`,width,height,theme:'Local map',region:'Your atlas',directoryScope:'all',
-    generator:{version:2,detailsVersion:2,seed:seed||id,defaults:{demographics:{race:'human'}}},districts:[],locations};
+    generator:{version:2,detailsVersion:2,socialVersion:1,seed:seed||id,defaults:{demographics:{race:'human'}}},districts:[],locations};
   progress('Finding water, terrain and buildings…');
   const masks=classify(rgba,w,h,options),land=new Uint8Array(w*h);
   const add=(category,item,labels)=>{

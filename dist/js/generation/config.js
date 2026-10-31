@@ -1,3 +1,4 @@
+import { socialSections, socialEnabled } from './social/sections.js';
 import { economyTypes } from './economy-catalog.js';
 import { defaults, people, tables, types } from './catalog-v1.js';
 import * as v2 from './catalog-v2.js';
@@ -12,16 +13,17 @@ export function regionList(map) { return map.regions || []; }
 export function catalogFor(map, location) {
   const base = versionFor(map,location) === 2 ? v2 : {people,types:{...types,...economyTypes},tables};
   const custom = map.generator?.catalog || {};
-  return {version:versionFor(map,location),people:{...base.people,...custom.people}, types:{...base.types,...custom.types}, tables:{...base.tables,...custom.tables}, cultures:custom.cultures || {},sections:{...detailSections,...custom.sections}};
+  return {version:versionFor(map,location),people:{...base.people,...custom.people}, types:{...base.types,...custom.types}, tables:{...base.tables,...custom.tables}, cultures:custom.cultures || {},sections:{...detailSections,...(socialEnabled(map)?socialSections:{}),...custom.sections}};
 }
-export function availableFields(map) { return [...fields,...new Set([...detailFields,...Object.keys(map.generator?.catalog?.sections || {})])]; }
+export function availableFields(map) { return [...fields,...new Set([...detailFields,...(socialEnabled(map)?Object.keys(socialSections):[]),...Object.keys(map.generator?.catalog?.sections || {})])]; }
 export function configFor(map, location) {
   const district = districtList(map).find(d => d.id === location.district);
   const region = regionList(map).find(r => r.id === (location.region || district?.region));
-  const layers = [{...defaults,fields:[...fields,...detailFields]},map.generator?.defaults,region?.generation,district?.generation,location.generation].filter(Boolean);
-  const config = {fields:fields,demographics:{},tables:{},traits:[],settlement:{}};
+  const layers = [{...defaults,fields:[...fields,...detailFields,...(socialEnabled(map)?Object.keys(socialSections):[])]},map.generator?.defaults,region?.generation,district?.generation,location.generation].filter(Boolean);
+  const config = {fields:fields,demographics:{},tables:{},traits:[],settlement:{},social:{}};
   for (const layer of layers) {
-    Object.assign(config, {...layer, demographics:config.demographics, tables:config.tables,settlement:config.settlement});
+    Object.assign(config, {...layer, demographics:config.demographics, tables:config.tables,settlement:config.settlement,social:config.social});
+    Object.assign(config.social,layer.social);
     Object.assign(config.settlement,layer.settlement);
     Object.assign(config.tables,layer.tables);
     for (const [single,plural] of Object.entries(dimensions)) {

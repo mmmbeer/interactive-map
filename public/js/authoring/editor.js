@@ -1,3 +1,4 @@
+import { removeSocialReference } from './social-form.js';
 import { numberSites } from '../site-index.js';
 import { escape, toast } from '../ui.js';
 import { validateMap } from '../map-contract.js';
@@ -70,6 +71,7 @@ export function openEditor(viewer,selected=null) {
       if(button.id==='editor-delete-place') {
         const map=structuredClone(source);map.locations=map.locations.filter(p=>p.id!==originalId);
         for(const p of map.locations)for(const [key,id] of Object.entries(p.context||{}))if(id===originalId)delete p.context[key];
+        for(const p of map.locations)removeSocialReference(p,originalId);
         validateMap(map);await finish(map,'Location deleted on this device.');
       }
       if(button.id==='editor-vary') {form.elements.revision.value=Number(form.elements.revision.value)+1;showPreview();}
