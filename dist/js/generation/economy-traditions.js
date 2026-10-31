@@ -15,7 +15,7 @@ const motifs = {
 const practices='the sample book records the customer’s preferred finish|measurements stay with the customer’s order|a plain version is available on request|the maker signs the delivery record|repeat orders cite an earlier sample|the customer approves the layout first|repair notes stay with the original record|a duplicate label accompanies each order|the order ledger names the responsible practitioner|customers can supply a design of their own';
 // All eleven traditions have 100 recipes. Motifs apply to labels and sample books,
 // not physiology, moral character, diet, or a restriction on who can do a trade.
-export const traditionRecipes=Object.fromEntries(Object.entries(motifs).map(([key,values])=>[key,recipe(values.split('|').map(m=>`Order labels at {displayName} use ${m};`),practices)]));
+export const traditionRecipes=Object.fromEntries(Object.entries(motifs).map(([key,values])=>[key,recipe(values.split('|').map(m=>`Order labels at {displayName} use ${m}.`),practices.split('|').map(v=>`${v[0].toUpperCase()}${v.slice(1)}`))]));
 export function traditionFor(race,culture,catalog) {
   const key=catalog?.cultures?.[culture]?.namePool || race;
   return {key:Object.hasOwn(traditionRecipes,key) ? key : 'human',label:key==='human' ? 'Human' : key.replaceAll('_',' ')};

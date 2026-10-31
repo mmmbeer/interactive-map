@@ -1,9 +1,8 @@
-import { economicDetails, economicHistory } from './economy-prose.js';
-import { budgetRecipes } from './economy-budgets.js';
+import { budgetFor } from './economy-budgets.js';
 import { workflowFor, workRecipes, workRumors } from './economy-workflows.js';
-import { industryRecipes, tradeStockRecipes, industries } from './economy-catalog.js';
+import { tradeStockRecipes, industries } from './economy-catalog.js';
 import { economicContext, chooseTrade, hasAuthoredTrade, materialIsLocal } from './economy-context.js';
-import { demandRecipes, supplyRecipes, guestRecipes } from './economy-recipes.js';
+import { supplyRecipes, guestRecipes } from './economy-recipes.js';
 import { traditionFor, traditionRecipes } from './economy-traditions.js';
 import { choose, streams, title, article } from './helpers-v2.js';
 import { render } from './random.js';
@@ -58,27 +57,27 @@ export function prepareEconomy(map,place,{tokens,config,catalog,type}) {
   if(!overriddenBank('task'))tokens.task=render(draw('rumor',workRumors[workflow]),tokens);
   if(!overriddenBank('complication'))tokens.complication='';
   return {trade,context,ready() {
-    if(!overriddenBank('detail'))tokens.detail=render(draw('detail',economicDetails),tokens);
-    if(!overriddenBank('history'))tokens.history=render(draw('history',economicHistory),tokens);
+    // Keep the base engine's building details and history. Economic sections
+    // describe the business without turning every paragraph into an order ledger.
     tokens.workTask=render(draw('task',workRecipes[workflow]),tokens);
-    if(trade && economySections.livelihood.categories.includes(place.category) && config.demographics.population!==0)tokens.livelihoodNote=`Recorded trade: ${trade.role}. Current work concerns ${product} for ${tokens.customer} in ${tokens.district}. ${tokens.workTask}`;
-    tokens.budgetNote=render(draw('budget',budgetRecipes[context.wealth] || budgetRecipes.modest),tokens);
+    if(trade && economySections.livelihood.categories.includes(place.category) && config.demographics.population!==0)tokens.livelihoodNote=`The ${trade.role} serves ${tokens.customer} in ${tokens.district}.`;
+    tokens.budgetNote=render(draw('budget',budgetFor(context.wealth,workflow)),tokens);
     const supply=render(draw('supply',supplyRecipes),tokens);
-    if(economySections.tradeLinks.categories.includes(place.category))tokens.tradeLinksNote=`${supply} ${materialIsLocal(material,context) ? 'A local source is recorded' : 'An outside supplier is needed'}. Collection is arranged through ${route}. ${render(draw('demand',demandRecipes[context.settlementType]),tokens)}`;
-    if(economySections.craftTradition.categories.includes(place.category))tokens.craftTraditionNote=render(draw('tradition',traditionRecipes[tradition.key]),tokens)+`. Orders concern ${product} for ${tokens.customer}.`;
+    if(economySections.tradeLinks.categories.includes(place.category))tokens.tradeLinksNote=`${supply} ${materialIsLocal(material,context) ? 'Supplies are sourced locally' : 'Supplies come from outside the settlement'}, via ${route}.`;
+    if(economySections.craftTradition.categories.includes(place.category))tokens.craftTraditionNote=render(draw('tradition',traditionRecipes[tradition.key]),tokens)+'.';
   },finish() {
     const sources=map.generator.catalog?.detailSources || {};
     if(config.fields.includes('stock') && trade && ['shop','workshop'].includes(place.category) && !Object.hasOwn(sources,`stock_${trade.id}`) && !Object.hasOwn(sources,`stock_${place.type || place.category}`)) {
       const entries=tradeStockRecipes[`stock_${trade.id}`],head=product[0].toUpperCase()+product.slice(1)+'.';
       const focal=draw('focal-stock',entries.filter(v=>v.startsWith(head)));
       const others=uniqueChoices(entries.filter(v=>!v.startsWith(head)),2,stream('stock',input),v=>v.split('.')[0]);
-      tokens.stock=[focal,...others].map(v=>render(v,tokens)).join(' ');
+      tokens.stock=`Available: ${[focal,...others].map(v=>render(v.split('.')[0],tokens)).join('; ')}.`;
     }
     if(config.fields.includes('commissions') && trade && ['shop','workshop'].includes(place.category) && !Object.hasOwn(sources,'commissions')) {
       const contact=Object.hasOwn(place.overrides || {},'person') ? 'the keeper' : tokens.fullName;
-      tokens.commission=`Orders go through ${contact}. ${render(draw('commission',industryRecipes[industry].demand),tokens)} ${tokens.workTask} ${tokens.budgetNote}`;
+      tokens.commission=`Orders go through ${contact}. ${tokens.workTask} ${tokens.budgetNote}`;
     }
-    if(config.fields.includes('contracts') && place.category==='guild' && trade && !Object.hasOwn(sources,'contracts'))tokens.contract=`${tokens.trade} work: ${render(draw('contract',industryRecipes[industry].demand),tokens)} ${tokens.workTask}`;
+    if(config.fields.includes('contracts') && place.category==='guild' && trade && !Object.hasOwn(sources,'contracts'))tokens.contract=`${tokens.workTask} ${tokens.budgetNote}`;
     if(config.fields.includes('guests') && place.category==='tavern' && !Object.hasOwn(sources,'guests'))tokens.guest=uniqueChoices(guestRecipes[context.settlementType],2,stream('guests',input),v=>v.split(' asks ')[0].split(' compares ')[0]).map(v=>render(v,tokens)+'.').join(' ');
   }};
 }

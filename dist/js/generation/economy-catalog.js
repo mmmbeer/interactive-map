@@ -42,6 +42,6 @@ export const tradeStockRecipes=Object.fromEntries(Object.entries(tradeCatalog).m
 const obligations='The result goes in the order ledger.|The customer must approve a sample.|The estimate awaits a signature.|The work is due on the next market day.|The dimensions must match the earlier record.|A second copy is needed for the buyer.|The delivery needs a witnessed tally.|The keeper retains the reference notes.|The quantity is confirmed before work starts.|The customer will check the finished work.';
 export const industryRecipes=Object.fromEntries(Object.entries(industries).map(([id,p])=>[id,{
   tasks:recipe(p.tasks.map(v=>`The current task is to ${v}.`),obligations),
-  demand:recipe(p.customers.map(v=>`An enquiry from ${v} concerns {product}.`),obligations)
+  demand:recipe('An enquiry from {customer} concerns {product}.|An order from {customer} calls for {product}.|The request from {customer} is for {product}.|An estimate for {customer} covers {product}.|The current commission for {customer} concerns {product}.|A request for {product} has come from {customer}.|The order for {customer} includes {product}.|There is an enquiry about {product} from {customer}.|Work for {customer} concerns {product}.|The latest request from {customer} specifies {product}.',obligations)
 }]));
 export const economyTokens='industry trade tradeRole product material customer workTask supplyRoute settlementType tradition budgetNote livelihoodNote tradeLinksNote craftTraditionNote'.split(' ');

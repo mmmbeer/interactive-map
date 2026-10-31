@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { newTrades } from '../public/js/generation/economy-trades.js';
 import { tradeCatalog, tradeStockRecipes, industryRecipes, industries } from '../public/js/generation/economy-catalog.js';
 import { workRecipes, workRumors } from '../public/js/generation/economy-workflows.js';
-import { budgetRecipes } from '../public/js/generation/economy-budgets.js';
+import { budgetRecipes, workflowBudgets } from '../public/js/generation/economy-budgets.js';
 import { traditionRecipes } from '../public/js/generation/economy-traditions.js';
 import { demandRecipes, guestRecipes, supplyRecipes } from '../public/js/generation/economy-recipes.js';
 import { economicContext, tradeChoices, scoreTrade } from '../public/js/generation/economy-context.js';
@@ -34,6 +34,7 @@ const snapshot=p=>{const {siteNumber,...content}=JSON.parse(JSON.stringify(p));r
 test('catalog adds substantive trades and every compiled recipe has 100 attainable variations',()=>{
   assert.ok(Object.keys(newTrades).length>=80);assert.equal(Object.keys(industries).length,18);
   const banks={...tradeStockRecipes,...traditionRecipes,...demandRecipes,...guestRecipes,...workRecipes,...workRumors,...budgetRecipes,supply:supplyRecipes,economicDetails,economicHistory};
+  for(const [workflow,tiers] of Object.entries(workflowBudgets))for(const [tier,values] of Object.entries(tiers))banks[`${workflow}.${tier}`]=values;
   for(const [id,p] of Object.entries(industryRecipes))for(const [k,v] of Object.entries(p))banks[`${id}.${k}`]=v;
   const tokens={displayName:'Sample',product:'linen cloth',customer:'local households',trade:'weaver',material:'flax',supplyRoute:'River Road',district:'Ward',industry:'textiles',settlementType:'town'};
   for(const [key,values] of Object.entries(banks)) {
@@ -89,7 +90,7 @@ test('geographic links, local supplies, budget and custom cultures remain cohere
   const r=resolveLocation(m,m.locations[0]),facts=r.extra.facts.text.split('|');
   assert.ok(['Written Road','Written River'].includes(facts[7]));assert.ok(r.address.includes('Written Road'));
   assert.equal(facts[8],'elf');assert.ok(r.extra.tradeLinks.text.includes(facts[7]));
-  const local=['paper'].includes(facts[3]);assert.equal(r.extra.tradeLinks.text.includes('A local source is recorded'),local);
+  const local=['paper'].includes(facts[3]);assert.equal(r.extra.tradeLinks.text.includes('Supplies are sourced locally'),local);
   assert.ok(r.extra.commissions.text.includes(facts[2]));assert.doesNotMatch(r.extra.commissions.text,/weigh|moor|hull|forge/i);
   m.generator.defaults.demographics.wealth='wealthy';
   assert.match(resolveLocation({...m},m.locations[0]).extra.commissions.text,/custom specification|presentation copy|dedicated collection|decorative finish|separately packed|provenance record|signed sample|commissioned design|production slot|personalized presentation/);
