@@ -14,7 +14,7 @@ export { migrateMap, serializeMap, newLocation, saveLocation } from './authoring
 export { MapStage } from './map-stage.js';
 export { MapLabels } from './map-labels.js';
 
-export { siteNumbers, entrySections, isGeography } from './site-index.js';
+export { numberSites, siteNumbers, entrySections, isGeography } from './site-index.js';
 export { StreetLayer, NumberLayer } from './map-overlays.js';
 export { mapSheets } from './guide-maps.js';
 export { createGuidePdf, mapImage } from './guide-pdf.js';
@@ -22,3 +22,7 @@ export { PdfDocument, loadPdfFonts } from './pdf-writer.js';
 export { PdfFont } from './pdf-font.js';
 export { guideCrop, guideEntryHTML } from './guide-entry.js';
 export { districtColors, districtAdjacency, districtsAdjacent } from './district-colors.js';
+
+export { buildRoadGraph } from './travel/graph.js';
+export { roadRoute } from './travel/routing.js';
+export { pathLength, calibration, formatDistance, travelTime } from './travel/geometry.js';

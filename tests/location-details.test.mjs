@@ -18,7 +18,7 @@ const place=(id,type,category=types[type]?.category || type)=>({id,type,category
 const makeMap=()=>({schemaVersion:2,id:'details-test',name:'Details',subtitle:'Test town',description:'A test town',region:'Test coast',theme:'City',image:'map.webp',thumbnail:'thumb.webp',width:100,height:100,
   generator:{version:2,seed:'detail-world',defaults:{demographics:{race:'elf',gender:'nonbinary',wealth:'comfortable'}}},
   districts:[{id:'quays',name:'The Quays'}],locations:[place('inn','tavern'),place('smith','blacksmith'),place('river','river')]});
-const snapshot=p=>JSON.parse(JSON.stringify(p));
+const snapshot=p=>{const {siteNumber,...content}=JSON.parse(JSON.stringify(p));return content;};
 test('every compiled content recipe has 100 distinct rendered variations within a fixed context',()=>{
   const context={displayName:'The Rook',address:'4 Quay Road',district:'Quays',region:'Coast',label:'river',service:'ironwork'};
   for (const [name,values] of Object.entries(detailSources)) {
@@ -117,7 +117,7 @@ test('detail fields support overrides, custom templates, search, callouts, guide
   const inn=resolveLocation(m,p);
   assert.equal(inn.extra.lodgings.text,'');
   assert.match(inn.extra.guests.text,/At /);
-  assert.ok(matches(inn,'unique-test-menu'));
+  assert.ok(matches(inn,{query:'unique-test-menu'}));
   for (const html of [detailHTML(inn),guideEntryHTML(inn,1,m)]) {
     assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img src=x/);
   }

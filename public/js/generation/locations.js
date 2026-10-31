@@ -7,7 +7,7 @@ import { catalogFor, configFor, dimensions, districtList, availableFields } from
 const label = text => text.replaceAll('_',' ');
 function contextFor(map, location, catalog) {
   const {config,district,region} = configFor(map,location);
-  const base = [1,map.id,map.generator.seed,location.id,config.seed ?? '',config.revision ?? 0];
+  const base = [1,map.generationId ?? map.id,map.generator.seed,location.id,config.seed ?? '',config.revision ?? 0];
   const stream = (field,input = '') => random([base,field,input]);
   const demographics = {};
   for (const [single,plural] of Object.entries(dimensions)) {

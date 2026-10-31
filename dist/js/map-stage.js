@@ -46,7 +46,10 @@ export class MapStage {
     element.addEventListener('pointerleave', () => {this.callbacks.hover(null);this.highlight(null);this.highlightDistrict(null);}, {signal});
     element.addEventListener('click', e => {
       const pin = e.target.closest('.map-pin,.site-number');
-      if (pin && e.detail === 0) callbacks.select(this.placeIndex.get(pin.dataset.id));
+      if (pin && e.detail === 0) {
+        const place=this.placeIndex.get(pin.dataset.id);
+        if(!this.callbacks.point?.({x:place.x,y:place.y}))callbacks.select(place);
+      }
     }, {signal});
     element.addEventListener('focusin', e => {
       const pin = e.target.closest('.map-pin,.site-number');
@@ -222,6 +225,7 @@ export class MapStage {
   }
   key(event) {
     if (event.target.closest('.map-pin,.site-number')) return;
+    if(event.key==='Enter' && this.callbacks.point) {event.preventDefault();this.callbacks.point({x:(this.w/2-this.tx)/this.scale,y:(this.h/2-this.ty)/this.scale});return;}
     const actions = {
       '+':()=>this.zoom(1.4,undefined,true),'=':()=>this.zoom(1.4,undefined,true),'-':()=>this.zoom(1/1.4,undefined,true),'0':()=>this.fit(),
       ArrowLeft:()=>{this.tx+=70;this.render();},ArrowRight:()=>{this.tx-=70;this.render();},

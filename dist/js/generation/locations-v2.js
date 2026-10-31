@@ -31,7 +31,7 @@ export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), 
   const kind = place.type || place.category, type = catalog.types[kind];
   if (!type) throw new Error(`Unknown location type: ${kind}`);
   const feature = ['street','water','terrain'].includes(place.category);
-  const stream = streams([map.id,map.generator.seed,place.id,config.seed ?? '',config.revision ?? 0]);
+  const stream = streams([map.generationId ?? map.id,map.generator.seed,place.id,config.seed ?? '',config.revision ?? 0]);
   const roll = (field,input='') => stream(field,input);
   const demographics = {};
   for (const [single,plural] of Object.entries(dimensions)) demographics[single] = config.demographics[single] ?? distribution(config.demographics[plural],roll(single,config.demographics[plural]));
@@ -75,7 +75,7 @@ export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), 
   for (const [key,id] of Object.entries(place.context || {})) context[key]=lookup(id);
   // A district's fallback street is shared by every unlinked building, rather than rolled per door.
   if (context.street) tokens.street=context.street;
-  else if (!feature) tokens.street=choose(tables.street,streams([map.id,map.generator.seed,district?.id || place.district])('district-street'));
+  else if (!feature) tokens.street=choose(tables.street,streams([map.generationId ?? map.id,map.generator.seed,district?.id || place.district])('district-street'));
   tokens.water = context.water || '';
   tokens.terrain = context.terrain || '';
   tokens.landmark = context.landmark || '';

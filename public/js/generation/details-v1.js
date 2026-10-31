@@ -1,4 +1,5 @@
 import { detailSources } from './detail-sources-v1.js';
+import { detailSourcesFor } from './detail-catalog.js';
 import { streams } from './helpers-v2.js';
 import { matchingSources, uniqueChoices, priceFor, detailTokens } from './detail-helpers-v1.js';
 import { render } from './random.js';
@@ -42,10 +43,10 @@ export function prepareDetails(map,place,{tokens,config}) {
   tokens={...tokens,address:place.overrides?.address ?? tokens.address};
   const kind = place.type || place.category;
   const context = detailContext(place,config,tokens.wealth);
-  const stream = streams(['details-v1',map.id,map.generator.seed,place.id,config.seed ?? '',config.revision ?? 0]);
+  const stream = streams(['details-v1',map.generationId ?? map.id,map.generator.seed,place.id,config.seed ?? '',config.revision ?? 0]);
   const input = [kind,place.category,context.wealth,config.traits,tokens.race,tokens.culture];
   const draw = (source,count=1) => {
-    const values = map.generator.catalog?.detailSources?.[source] || detailSources[source];
+    const values = map.generator.catalog?.detailSources?.[source] || detailSourcesFor(map)[source];
     if (!values) throw new Error(`Unknown detail source: ${source}`);
     const distinctBy = Object.hasOwn(map.generator.catalog?.detailSources || {},source) ? value=>value : source.endsWith('Meals') || source==='meals' ? value=>value.split(' with ')[0] :
       source.startsWith('stock_') ? value=>value.split('.')[0] : source==='guests' ? value=>value.split(/ (?:is|has) /)[0] : value=>value;

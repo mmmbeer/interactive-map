@@ -1,3 +1,4 @@
+import { numberSites } from '../site-index.js';
 import { escape, toast } from '../ui.js';
 import { validateMap } from '../map-contract.js';
 import { resolveLocation } from '../generation/locations.js';
@@ -5,7 +6,7 @@ import { configFor, availableFields } from '../generation/config.js';
 import { detailHTML } from '../places.js';
 import { placeForm, readPlace, typeOptions } from './forms.js';
 import { migrateMap, newLocation, saveLocation } from './model.js';
-import { writeDraft, clearDraft, downloadMap } from './drafts.js';
+import { clearDraft, downloadMap } from './drafts.js';
 
 export function openEditor(viewer,selected=null) {
   const source=migrateMap(viewer.source),published=viewer.published;
@@ -13,11 +14,11 @@ export function openEditor(viewer,selected=null) {
   const originalId=selected?.id ?? null;
   const dialog=document.createElement('dialog');dialog.className='location-editor';
   dialog.innerHTML=`<header><div><span class="eyebrow">MAP AUTHORING</span><h2>${selected?'Edit location':'Add location'}</h2></div><button type="button" class="icon-button editor-close" aria-label="Close editor">×</button></header>
-    <p class="editor-notice">${viewer.localMap ? 'Changes save to your local map. Export an atlas backup to include its image and geometry.' : 'Save a draft on this device. Export the map JSON and commit it to publish changes.'}</p>
+    <p class="editor-notice">${viewer.localMap ? 'Changes save only to this local variation. Export an atlas backup to include its image and geometry.' : 'Saving creates a separate local variation in your collection. The original map stays unchanged.'}</p>
     <nav class="editor-tabs" aria-label="Editor section"><button type="button" data-tab="place" aria-pressed="true">Location</button><button type="button" data-tab="settings" aria-pressed="false">Map & district defaults</button></nav>
     <div class="editor-body"><section class="editor-form-pane"><form id="location-form"></form><section id="generator-settings" hidden></section></section><aside class="editor-preview"><div class="eyebrow">LIVE PREVIEW</div><div id="generated-preview"></div></aside></div>
     <p class="editor-error" role="status" aria-live="polite"></p><footer><button class="button" type="button" id="editor-pick">Place on map</button>${selected&&viewer.localMap?'<button class="button" type="button" id="editor-delete-place">Delete location</button>':''}<button class="button" type="button" id="editor-vary">New variation</button><button class="button primary" type="button" id="editor-save">Save location</button></footer>
-    <details class="editor-files"><summary>Map files & drafts</summary><p>Imports replace this map’s local draft after validation. Export current edits to include unsaved form changes. Export before restoring to keep your work.</p><div><button class="button" id="editor-export">Export saved map JSON</button><button class="button" id="export-current">Export current edits</button>${viewer.staleDraft?'<button class="button" id="export-older-draft">Export older draft</button>':''}<label class="button">Import map JSON<input type="file" accept=".json,application/json" id="editor-import" hidden></label><button class="button" id="editor-restore">${viewer.localMap?'Restore imported geometry':'Restore published map'}</button>${viewer.localMap?'<button class="button" id="local-backup">Export atlas backup</button><button class="button" id="local-delete">Delete local map</button>':''}</div><label><input type="checkbox" id="confirm-restore">Discard saved edits when restoring or deleting</label></details>`;
+    <details class="editor-files"><summary>Map files & drafts</summary><p>Imports save only to a local variation after validation. Export current edits to include unsaved form changes. Export before restoring to keep your work.</p><div><button class="button" id="editor-export">Export saved map JSON</button><button class="button" id="export-current">Export current edits</button>${viewer.staleDraft?'<button class="button" id="export-older-draft">Export older draft</button>':''}<label class="button">Import map JSON<input type="file" accept=".json,application/json" id="editor-import" hidden></label><button class="button" id="editor-restore">${viewer.localMap?'Reset local variation':'Restore published map'}</button>${viewer.localMap?'<button class="button" id="local-backup">Export atlas backup</button><button class="button" id="local-delete">Delete local map</button>':''}</div><label><input type="checkbox" id="confirm-restore">Discard saved edits when restoring or deleting</label></details>`;
   document.body.append(dialog);
   const controller=new AbortController();
   const on=(target,event,callback)=>target.addEventListener(event,callback,{signal:controller.signal});
@@ -43,7 +44,7 @@ export function openEditor(viewer,selected=null) {
     } catch(e) { fail(e); }
   };
   const finish=async(map,message,placeId)=>{
-    if(viewer.onSave)await viewer.onSave(map);else writeDraft(map,published);
+    map=await viewer.onSave(map);
     if(viewer.signal.aborted)return;
     dialog.close();viewer.onChange(map,placeId);toast(message);
   };
@@ -143,7 +144,7 @@ export function openEditor(viewer,selected=null) {
       if(viewer.signal.aborted)return;
       validateMap(map);
       if(map.id!==source.id) throw new Error('Import a file with this map’s id. Use Upload map in the collection to add another map.');
-      await finish(map,'Imported map saved as a local draft.');
+      await finish(numberSites(map,source),'Imported map saved as a local variation.');
     } catch(e) {fail(e);}
   });
   on(dialog,'close',()=>{

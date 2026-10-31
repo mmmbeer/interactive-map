@@ -35,7 +35,7 @@ export function hitTest(index,locations,x,y,scale=1,predicate=()=>true,markers=t
 }
 const searchCache = new WeakMap();
 function searchText(place) {
-  if (!searchCache.has(place)) searchCache.set(place,[place.id,place.name,place.district,place.description,place.person,place.address,place.services,...Object.values(place.extra||{}).map(s=>s.text),...Object.values(place.demographics||{})].join(' ').toLowerCase());
+  if (!searchCache.has(place)) searchCache.set(place,[place.id,place.name,place.district,place.description,place.rumor,place.person,place.address,place.services,...Object.values(place.extra||{}).map(s=>s.text),...Object.values(place.demographics||{})].join(' ').toLowerCase());
   return searchCache.get(place);
 }
 export function matches(place,{query='',category='',district=''}={}) {
