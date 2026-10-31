@@ -378,4 +378,12 @@ Use ordinary section tables and overrides to change presentation. `{residentNote
 
 `mapping-tools.js` exports `socialGraph()`, `residentAt()`, `householdAt()` and `storiesAt()`, plus `socialSources`, `scenarios`, `householdTypes` and `compatibleProducts()` for product-level matching. Resolved locations expose `community` with resident records, household metadata, shared situations and related-location references. Treat returned data and source snapshots as immutable.
 
+### Prose composition
+
+Social stories use scenario-specific event sentences and state sentences. Each family has at least 100 complete presentations. Do not wrap a complete account in another account introduction or add generic statements about mapped locations, unresolved status or preserving the original account. Goals pair a concrete action with a follow-up relevant to that situation. Rumors state the facts and name a contact. Requests give the task directly.
+
+Social templates can use `{item}` for a complete noun phrase such as “the granite lintels” or “a family recipe book”. Use `{productName}` for a noun modifier such as “drain cover order”. `{product}` retains the original product value for custom templates. Keep these forms separate rather than inferring a verb’s number from an item name. Event sentences describe an order or loan when singular agreement is needed.
+
+Commercial sections have separate purposes. Livelihood names the trade and its customers. Supplies identifies materials, sourcing and the route. Workshop tradition describes labels and practices. Stock lists the available items. Commissions combines the current job, its selected customer and a workflow-appropriate preference. Do not draw a second customer for the same commission or repeat the work task in livelihood. Building descriptions retain the base engine’s physical details and history. Authored overrides and custom templates still take precedence.
+
 Numeric coordinates, array order, enabled prose fields and unrelated geographic additions do not affect matching. Changes to the map seed, relevant household inputs, demographic constraints, available residents or working locations can change assignments. Pins preserve deliberate relationships. A resident's identity is anchored to its household slot, so rerolling a workplace does not rename that resident. Local variations preserve the original generation identity. Generated community records are never written to compact map source.

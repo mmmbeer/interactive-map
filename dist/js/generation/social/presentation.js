@@ -60,7 +60,8 @@ export function renderStory(map,graph,link,label) {
   const animalType=choose(context.environment.includes('underground') || context.settlementType==='undercity' ? ['gecko','ferret','raven','beetle','cave lizard','white mouse','moth','cricket','toad','tortoise'] : ['cat','dog','songbird','rabbit','ferret','raven','dove','tortoise','goat','white mouse'],roll('animal'));
   const namePool=a.catalog().people[a.catalog().cultures[supplier.culture]?.namePool || supplier.race];
   const tokens={supplier:supplier.name,buyer:buyer.name,fromPlace:from.name,toPlace:to.name,fromAddress:from.address,toAddress:to.address,fromDistrict:from.district,toDistrict:to.district,
-    requester:supplier.name,product:link.product,amount:String(integer(4,a.identity().demographics.wealth==='wealthy'?80:30,roll('amount'))),settlementType:context.profile.label,
+    requester:supplier.name,product:link.product,productName:link.product.replace(/^(?:a|an|the) /i,''),item:/^(?:a|an|the) /i.test(link.product)?link.product:`the ${link.product}`,
+    amount:String(integer(4,a.identity().demographics.wealth==='wealthy'?80:30,roll('amount'))),settlementType:context.profile.label,
     animalType,animalName:choose(namePool?.nonbinary || roots,roll('animal-name')),route:a.place.context?.street ? label(a.place.context.street).name : from.address};
   const fact=sourceDraw(map,`story_${link.scenario}`,context,tokens,roll('fact'));
   const goal=sourceDraw(map,`goal_${link.scenario}`,context,tokens,roll('goal'));
