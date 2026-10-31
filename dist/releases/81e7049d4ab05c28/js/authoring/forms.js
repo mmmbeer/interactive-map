@@ -1,3 +1,4 @@
+import { integrationForm, readIntegrations } from './integration-form.js';
 import { socialForm, readSocial } from './social-form.js';
 import { tradeCatalog } from '../generation/economy-catalog.js';
 import { settlementTypes } from '../generation/economy-settlements.js';
@@ -44,6 +45,7 @@ export function placeForm(map,place,isNew) {
     ${input('localEnvironment','Environment tags (comma separated)',g.settlement?.environment?.join(', ') || '')}
     </div><small>Blank entries inherit. Examples: resources: timber, herbs; focus: wood, medicine; environment: woodland. Link mapped geography above for named streets, water and terrain.</small></fieldset>
     ${socialForm(map,place)}
+    ${integrationForm(place)}
     ${input('seed','Location seed (optional)',g.seed ?? '')}${input('revision','Variation',g.revision || 0,'number','min="0" step="1" required')}
     <fieldset class="editor-wide"><legend>Generated content</legend><div class="editor-checks">${fields.map(f=>`<label><input type="checkbox" name="field-${f}" ${(g.fields || setting.fields).includes(f)?'checked':''}>${f}</label>`).join('')}</div><small>A text override takes priority. A blank override deliberately hides that field.</small></fieldset>
     <details class="editor-wide"><summary>Text overrides</summary><div class="override-fields">${fields.map(f=>`<label><span><input type="checkbox" name="override-${f}" ${Object.hasOwn(place.overrides || {},f)?'checked':''}>Override ${f}</span><textarea name="text-${f}" rows="2">${escape(place.overrides?.[f] ?? '')}</textarea></label>`).join('')}</div></details>
@@ -54,6 +56,7 @@ export function readPlace(form,original) {
   const fields=JSON.parse(form.dataset.availableFields);
   const data=new FormData(form),value=k=>String(data.get(k) ?? '');
   const place=structuredClone(original);
+  readIntegrations(data,place);
   Object.assign(place,{id:value('id').trim(),district:value('district'),category:value('category'),type:value('type'),x:Number(value('x')),y:Number(value('y')),featured:data.has('featured')});
   delete place.bounds;delete place.shape;
   const kind=value('shape');
