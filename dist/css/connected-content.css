@@ -1,0 +1,15 @@
+.external-content{overflow-wrap:anywhere}
+.external-content .external-source{font-size:11px;color:var(--muted);line-height:1.5}
+.external-controls,.content-links{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.external-controls .button,.external-content>.button{min-height:40px;font-size:11px;padding:8px 10px}
+.external-controls [aria-pressed=true]{border-color:var(--tea-green);color:var(--tea-green);background:#d6ffb710}
+.external-status{font-size:12px;line-height:1.6;margin:8px 0}
+.external-entry{border-top:1px solid var(--line);padding:8px 0}
+.external-entry summary{cursor:pointer;font-size:12px;font-weight:600;line-height:1.6;padding:5px 0;color:var(--tea-green)}
+.external-entry summary:focus-visible,.content-links a:focus-visible{outline:2px solid var(--amber-glow);outline-offset:3px}
+.external-entry p{font-size:12px;line-height:1.65}
+.external-prose{white-space:pre-line}
+.external-content .content-links a{display:inline-flex;align-items:center;min-height:40px;font-size:11px;color:var(--sunflower-gold);text-decoration:underline;text-underline-offset:3px}
+.external-entry .dm-reference{border-left:2px solid var(--amber-glow);padding-left:10px}
+.dm-reference h4{font-size:11px;color:var(--sunflower-gold);margin:10px 0}
+@media(max-width:760px){.external-controls .button,.external-entry summary,.external-content .content-links a{min-height:44px}}

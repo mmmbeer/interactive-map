@@ -1,3 +1,4 @@
+import { validateIntegrations } from './integrations/config.js';
 import { validateSocialMap } from './generation/social/validation.js';
 import { normalizeSettings } from './generation/settlement-settings.js';
 import { validateDistrictGeometry } from './districts.js';
@@ -57,6 +58,7 @@ export function validateMap(map) {
       siteNumbers.add(p.siteNumber);
     }
     const prefix = `${map.id}: ${p?.id || 'unnamed place'}`;
+    validateIntegrations(p?.integrations);
     check(p && slug(p.id),`${prefix}: invalid id.`);
     check(!ids.has(p.id),`${prefix}: duplicate id.`); ids.add(p.id);
     check(text(p.district),`${prefix}: missing district.`);

@@ -4,6 +4,8 @@ A static interactive map collection for Cloudflare Pages. Dragonsgate uses the s
 
 See [the Dragonsgate survey](docs/dragonsgate-survey.md) for coverage, assumptions and the repeatable authoring pipeline.
 
+Grave sites can load NPC Sorrow stories. Guilds, merchants and other posting locations can load D&D Help Board quests. Both integrations use location seeds and context with player and DM links. See [connected content](docs/connected-content.md) for eligibility, local settings and API behavior.
+
 ## Run and build
 
 Requires Node.js 22 or newer. There are no third-party runtime or build dependencies.

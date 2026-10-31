@@ -1,3 +1,4 @@
+import { ConnectedContent } from './integrations/panel.js';
 import { TravelTools } from './travel/tools.js';
 import { siteNumbers } from './site-index.js';
 import { openGuide } from './guide.js';
@@ -15,6 +16,7 @@ export class AtlasViewer {
     this.staleDraft=options.stale;this.source=options.source || data;this.published=options.published || this.source;this.onChange=options.onChange;
     this.generationSettings=options.generationSettings;this.onGenerationChange=options.onGenerationChange;
     this.root=root;this.data=data;this.numbers=siteNumbers(data.locations);this.controller=new AbortController();this.signal=this.controller.signal;
+    this.generationSource=options.generationSource || this.source;
     this.filters={query:'',category:'',district:''};this.scope=data.directoryScope || 'highlights';this.limit=45;
     root.innerHTML=viewerHTML(data);
     if (this.source.generator && this.onGenerationChange) {
@@ -36,6 +38,7 @@ export class AtlasViewer {
       select:p=>this.select(p,false),selectDistrict:d=>this.selectDistrict(d),hoverDistrict:(d,e)=>this.hoverDistrict(d,e),hover:(p,e)=>this.hover(p,e),view:v=>this.updateOverview(v)
     },this.signal);
     this.callout=new MapCallout(this.detail,this.stage,this.signal);
+    this.connectedContent=new ConnectedContent(this);
     this.travel=new TravelTools(this);
     this.listen(root.querySelector('#place-search'),'input',e=>{
       this.filters.query=e.target.value.trim();
@@ -146,6 +149,7 @@ export class AtlasViewer {
       this.stage.focus(place,innerWidth>760?this.detail.offsetWidth/2:0);
     }
     this.callout.show(place);
+    this.connectedContent.select(place);
     this.closeDirectory();
     history.replaceState(null,'',`#map/${this.data.id}/${place.id}`);
     this.root.querySelectorAll('[data-place]').forEach(el=>el.classList.toggle('selected',el.dataset.place===place.id));
@@ -153,6 +157,7 @@ export class AtlasViewer {
   }
   closeDetail(focus=false) {
     if(this.detail.hidden)return;
+    this.connectedContent.close();
     this.detail.hidden=true;this.callout.hide();this.selected=null;this.stage.select(null);
     history.replaceState(null,'',`#map/${this.data.id}`);
     this.root.querySelectorAll('[data-place]').forEach(el=>el.classList.remove('selected'));

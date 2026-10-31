@@ -85,7 +85,7 @@ async function route() {
         return true;
       };
       viewer?.destroy();previousURLs.forEach(url=>URL.revokeObjectURL(url));
-      viewer = new AtlasViewer(root, data, {source:next,published:source,onChange:mount,local:next!==source,stale:draft.stale,generationSettings:settings,onGenerationChange,
+      viewer = new AtlasViewer(root, data, {source:next,generationSource:snapshot,published:source,onChange:mount,local:next!==source,stale:draft.stale,generationSettings:settings,onGenerationChange,
         localMap:Boolean(record),
         onSave:saveEdit,
         onRestore:record ? async()=>{const map=numberSites(record.initialMap,record.map);record=await saveLocalMap(map,record.image,record.thumbnail,record.initialMap);return record.map;} : null,

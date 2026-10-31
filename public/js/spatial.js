@@ -1,3 +1,4 @@
+import { integrationSearchTerms } from './integrations/config.js';
 import { boundsFor, contains } from './geometry.js';
 // Image-space indexing keeps thousands of building hit areas inexpensive to query.
 export function buildSpatialIndex(locations, cellSize = 32) {
@@ -34,13 +35,14 @@ export function hitTest(index,locations,x,y,scale=1,predicate=()=>true,markers=t
   })[0]||null;
 }
 const searchCache = new WeakMap();
+const normalizeSearch=value=>String(value).toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
 function searchText(place) {
-  if (!searchCache.has(place)) searchCache.set(place,[place.id,place.name,place.district,place.description,place.rumor,place.person,place.address,place.services,...Object.values(place.extra||{}).map(s=>s.text),...Object.values(place.demographics||{})].join(' ').toLowerCase());
+  if (!searchCache.has(place)) searchCache.set(place,normalizeSearch([place.id,place.name,place.category,place.type,integrationSearchTerms(place),place.district,place.description,place.rumor,place.person,place.address,place.services,...Object.values(place.extra||{}).map(s=>s.text),...Object.values(place.demographics||{})].join(' ')));
   return searchCache.get(place);
 }
 export function matches(place,{query='',category='',district=''}={}) {
   return (!category||place.category===category)&&(!district||place.district===district)&&
-    (!query||searchText(place).includes(query.toLowerCase()));
+    (!query||searchText(place).includes(normalizeSearch(query)));
 }
 export async function searchPlaces(places,filters,{signal,current=()=>true,batchSize=80}={}) {
   const result=[];
