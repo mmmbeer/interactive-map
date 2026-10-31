@@ -5,6 +5,8 @@ import { sourceDraw, scenarios } from './sources.js';
 import { householdTypes } from './household-types.js';
 import { roots } from '../wordbanks-v2.js';
 import { adult } from './helpers.js';
+import { proseEnabled } from '../prose/settings.js';
+import { productWorkflow } from '../prose/workflows.js';
 const mapForGraph=new WeakMap();
 export function labelsFor(map,graph,resolve) {
   mapForGraph.set(graph,map);
@@ -57,6 +59,7 @@ export function renderStory(map,graph,link,label) {
   const a=graph.facts.get(link.from),b=graph.facts.get(link.to),supplier=personView(graph,graph.people.get(link.supplierId),label),buyer=personView(graph,graph.people.get(link.buyerId),label);
   const roll=streams(['shared-story-v1',map.generationId ?? map.id,map.generator.seed,link.id,a.config.seed ?? '',a.config.revision ?? 0,b.config.seed ?? '',b.config.revision ?? 0]);
   const from=label(a.id),to=label(b.id),context=contextForFact(map,a,{scenario:link.scenario},graph.people.get(link.supplierId).identity.demographics);
+  if(proseEnabled(map))context.workflow=productWorkflow(a.economy().trade,link.product,a.place.category);
   const animalType=choose(context.environment.includes('underground') || context.settlementType==='undercity' ? ['gecko','ferret','raven','beetle','cave lizard','white mouse','moth','cricket','toad','tortoise'] : ['cat','dog','songbird','rabbit','ferret','raven','dove','tortoise','goat','white mouse'],roll('animal'));
   const namePool=a.catalog().people[a.catalog().cultures[supplier.culture]?.namePool || supplier.race];
   const tokens={supplier:supplier.name,buyer:buyer.name,fromPlace:from.name,toPlace:to.name,fromAddress:from.address,toAddress:to.address,fromDistrict:from.district,toDistrict:to.district,
@@ -78,12 +81,13 @@ export function storyView(map,event,place,label) {
     rumor:sourceDraw(map,'rumor',event.context,tokens,roll('voice'))};
 }
 export function householdText(map,graph,home,views,label) {
-  if(home.count===0)return 'No permanent residents are recorded at this address.';
+  if(home.count===0)return proseEnabled(map)?'This home has no permanent residents.':'No permanent residents are recorded at this address.';
   const roll=streams(['household-prose-v1',map.generationId ?? map.id,map.generator.seed,home.homeId,home.fact.config.seed ?? '',home.fact.config.revision ?? 0]);
   const context=contextForPerson(map,graph,graph.primaryFor(home.homeId),{householdStyle:home.style});
   const names=views.map(p=>p.name).join(', '),tokens={headName:views[0].name,memberNames:names,householdCount:String(home.count),homePlace:label(home.homeId).name,homeDistrict:label(home.homeId).district,settlementType:context.profile.label};
   tokens.domesticTask=sourceDraw(map,'domesticTasks',context,tokens,roll('task'));
   const prose=sourceDraw(map,`household_${home.style}`,context,tokens,roll('structure'));
   const roster=views.map(p=>`${p.name} (${p.role}, ${p.age.replaceAll('_',' ')} ${p.race.replaceAll('_',' ')}${p.workplace?`; ${p.occupation} at ${p.workplace}`:''})`).join('; ');
+  if(proseEnabled(map))return `${prose} Residents (${home.count}): ${roster}.${home.count>views.length?` ${home.count-views.length} additional residents are counted but not individually listed.`:''}`;
   return `${home.count===1?'One resident':`${home.count} residents`} at ${label(home.homeId).name}. ${prose} Residents: ${roster}.${home.count>views.length?` ${home.count-views.length} additional residents are counted but not individually listed.`:''}`;
 }

@@ -1,5 +1,5 @@
 import { recipe } from './detail-helpers-v1.js';
-const motifs = {
+export const motifs = {
   human:'interlaced bands|rosette stamps|chevron borders|compass roses|market seals|woven-knot marks|sunburst medallions|checker borders|heraldic shields|vine scrolls',
   elf:'willow tracery|leaf spirals|crescent borders|branching lines|reed patterns|star clusters|petal chains|fern curls|flowing wave lines|interwoven stems',
   dwarf:'stepped borders|chisel-cut angles|braided geometry|faceted rosettes|square spirals|masonry grids|mountain profiles|hammered dots|interlocking rings|incised runes',

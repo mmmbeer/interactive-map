@@ -79,6 +79,7 @@ export function validateGenerator(map,categories) {
   check(text(g.seed) || Number.isFinite(g.seed),'A generator needs a map seed.');
   check(g.detailsVersion===undefined || [1,2].includes(g.detailsVersion),'Unsupported detail catalog version.');
   check(g.socialVersion===undefined || g.socialVersion===1,'Unsupported social generator version.');
+  check(g.proseVersion===undefined || g.proseVersion===1,'Unsupported prose profile version.');
   const custom = g.catalog || {};
   check(object(custom) && Object.keys(custom).every(k => ['people','types','tables','cultures','sections','detailSources','socialRecipes'].includes(k)),'Invalid generation catalog.');
   validateSocialRecipes(map,check);

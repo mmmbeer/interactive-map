@@ -1,4 +1,5 @@
 import { withBurialTypes } from './burial-types.js';
+import { proseTypes } from './prose/settings.js';
 import { socialSections, socialEnabled } from './social/sections.js';
 import { economyTypes } from './economy-catalog.js';
 import { defaults, people, tables, types } from './catalog-v1.js';
@@ -14,7 +15,7 @@ export function regionList(map) { return map.regions || []; }
 export function catalogFor(map, location) {
   const base = versionFor(map,location) === 2 ? v2 : {people,types:{...types,...economyTypes},tables};
   const custom = map.generator?.catalog || {};
-  return {version:versionFor(map,location),people:{...base.people,...custom.people}, types:{...withBurialTypes(base.types),...custom.types}, tables:{...base.tables,...custom.tables}, cultures:custom.cultures || {},sections:{...detailSections,...(socialEnabled(map)?socialSections:{}),...custom.sections}};
+  return {version:versionFor(map,location),people:{...base.people,...custom.people}, types:{...proseTypes(map,withBurialTypes(base.types)),...custom.types}, tables:{...base.tables,...custom.tables}, cultures:custom.cultures || {},sections:{...detailSections,...(socialEnabled(map)?socialSections:{}),...custom.sections}};
 }
 export function availableFields(map) { return [...fields,...new Set([...detailFields,...(socialEnabled(map)?Object.keys(socialSections):[]),...Object.keys(map.generator?.catalog?.sections || {})])]; }
 export function configFor(map, location) {

@@ -6,6 +6,8 @@ import { choose, distribution, streams, integer, title, possessive, article } fr
 import { featureText } from './geography-v2.js';
 import { featureHeads } from './catalog-v2.js';
 import { prepareDetails } from './details-v1.js';
+import { proseDefaults, proseSectionLabel } from './prose/index.js';
+import { defaultProse } from './prose/settings.js';
 const labels = text => text.replaceAll('_',' ');
 const styles = {
   descriptive:'{adjective} {root} {head}',simple:'{root} {head}',
@@ -96,6 +98,7 @@ export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), 
   prepareDetails(map,place,{tokens,config,context:economy?.context});
   economy?.finish();
   const social=mode==='full' ? applySocialContent(map,place,{tokens,config,shared,resolve:(m,p)=>resolve(m,p,undefined,new Set(),'identity')}) : null;
+  const prose=proseDefaults(map,place,{tokens,config,type,economy,social});
   const result = {...place,districtId:place.district,district:tokens.district,extra:{}};
   if (!feature) result.demographics=demographics;
   if(social)result.community=social.community;
@@ -107,9 +110,10 @@ export function resolveV2(map, place, resolve, catalog = catalogFor(map,place), 
     else if (field==='person' && social?.profile) value=social.profile;
     else if (field==='person' && place.category==='home' && demographics.population===0) value='';
     else if (field==='name') value=generatedName;
+    else if (Object.hasOwn(prose,field) && defaultProse(map,place,config,field)) value=prose[field];
     else if (feature && Object.hasOwn(featureDefaults,field) && !config.tables[field] && !map.generator.catalog?.tables?.[field]) value=featureDefaults[field];
     else value=render(choose(tables[field],roll(`field:${field}`,kind)),tokens);
-    if (Object.hasOwn(catalog.sections,field)) result.extra[field]={label:catalog.sections[field].label,text:value};
+    if (Object.hasOwn(catalog.sections,field)) result.extra[field]={label:proseSectionLabel(map,place,field,catalog.sections[field].label,economy),text:value};
     else result[field]=value;
   }
   return result;
