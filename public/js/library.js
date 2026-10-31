@@ -4,14 +4,17 @@ import { validateMap } from './map-contract.js';
 import { MapStage } from './map-stage.js';
 import { tooltipHTML } from './places.js';
 
+import { openMapUpload } from './local-maps/upload.js';
+import { readLocalMap, hydrateLocalMap } from './local-maps/store.js';
+
 export function renderLibrary(root, maps, signal) {
   let stage, selected = maps[0], previewVersion = 0;
-  let previewController;
+  let previewController,previewURLs=[];
   root.innerHTML = `<div class="library-shell">
     <header class="site-header">${brand()}<nav aria-label="Main navigation"><a class="current" href="#collection"><span class="nav-dot"></span>Maps <span class="nav-count">${String(maps.length).padStart(2,'0')}</span></a><button class="button quiet" id="guide-toggle" aria-label="Quick guide" aria-expanded="false" aria-controls="field-guide">${icon('info')}<span>Quick guide</span></button></nav></header>
     <main class="library-workspace" id="main-content">
       <section class="library-panel" id="collection" aria-labelledby="collection-title">
-        <div class="library-heading"><span class="eyebrow">THE COLLECTION</span><h1 id="collection-title">Find your<br> next <span>somewhere.</span></h1><p>Choose a map. Get to know every corner.</p></div>
+        <button class="button primary upload-map-button" id="upload-map">${icon('plus')} Upload map</button><div class="library-heading"><span class="eyebrow">THE COLLECTION</span><h1 id="collection-title">Find your<br> next <span>somewhere.</span></h1><p>Choose a map. Get to know every corner.</p></div>
         <label class="search-field">${icon('search')}<input type="search" id="map-search" placeholder="Find a world…" aria-label="Search maps"></label>
         <div class="library-list" role="group" aria-label="Choose a map">${maps.map((m,i)=>`<button class="library-map ${i===0?'active':''}" data-map="${escape(m.id)}" aria-pressed="${i===0}"><span class="map-index">${String(i+1).padStart(2,'0')}</span><img src="${escape(m.thumbnail)}" alt=""><span class="library-map-copy"><strong>${escape(m.name)}</strong><span>${escape(m.theme)} · ${number(m.locationCount)} places</span></span>${icon('arrow')}</button>`).join('')}</div>
         <p class="no-maps" role="status" hidden>No maps match your search.</p>
@@ -35,6 +38,7 @@ export function renderLibrary(root, maps, signal) {
     selected = map;
     const version = ++previewVersion;
     previewController?.abort();
+    previewURLs.forEach(url=>URL.revokeObjectURL(url));previewURLs=[];
     stage?.destroy(); stage = null;
     previewController = new AbortController();
     tooltip.hidden = true;
@@ -47,9 +51,11 @@ export function renderLibrary(root, maps, signal) {
     const el = root.querySelector('#preview-stage');
     el.innerHTML = `<div class="loading-screen">${icon('compass')}<p>Opening map…</p></div>`;
     try {
-      const source = await loadJSON(map.data,previewController.signal);
+      const record=map.local ? await readLocalMap(map.id) : null;
+      if(signal.aborted || version!==previewVersion)return;
+      const source = map.local ? record?.map : await loadJSON(map.data,previewController.signal);
       validateMap(source);
-      const data = materializeMap(source);
+      const data = materializeMap(record ? hydrateLocalMap(source,record,previewURLs) : source);
       if(signal.aborted || version!==previewVersion)return;
       stage = new MapStage(el,data,{
         select:p=>{ location.hash=`map/${data.id}/${p.id}`; },
@@ -62,13 +68,14 @@ export function renderLibrary(root, maps, signal) {
         }
       },previewController.signal);
     } catch(error) {
-      if(error.name==='AbortError')return;
+      if(error.name==='AbortError' || signal.aborted || version!==previewVersion)return;
       el.innerHTML='<div class="loading-screen"><p>Preview unavailable. Open the map to try again.</p></div>';
       toast('The map preview could not load.');
     }
   }
   on(root,'click',e=>{
     const button=e.target.closest('button');if(!button)return;
+    if(button.id==='upload-map')openMapUpload(id=>{location.hash=`map/${id}`;},signal);
     if(button.dataset.map)choose(maps.find(m=>m.id===button.dataset.map));
     if(button.id==='guide-toggle'){
       const guide=root.querySelector('#field-guide');guide.hidden=!guide.hidden;
@@ -88,7 +95,7 @@ export function renderLibrary(root, maps, signal) {
     });
     root.querySelector('.no-maps').hidden=Boolean(count);
   });
-  signal.addEventListener('abort',()=>{previewController?.abort();stage?.destroy();},{once:true});
+  signal.addEventListener('abort',()=>{previewController?.abort();stage?.destroy();previewURLs.forEach(url=>URL.revokeObjectURL(url));},{once:true});
   choose(selected);
   window.scrollTo(0,0);
 }

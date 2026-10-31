@@ -1,6 +1,6 @@
 # Reusable mapping tools
 
-The repository includes the source for the recognition and authoring tools used to rebuild Dragonsgate. The JavaScript tools are dependency-free ES modules. Raster recognition currently runs in Python during authoring.
+The repository includes the source for the recognition and authoring tools used to rebuild Dragonsgate. The JavaScript tools are dependency-free ES modules. The authored-map recognition pipeline runs in Python. Visitor uploads also have a bounded browser-worker recognition pipeline.
 
 ## JavaScript entry point
 
@@ -93,7 +93,7 @@ paths = lane_paths(paving)
 
 The `rebuild.py` entry script includes Dragonsgate's specific masks, thresholds, district assignment, street linking and fictional building-function choices. Use it as a reference when assembling another map. Import `raster.py` and `routes.py` for the reusable numerical functions. Recognition returns candidates and approximations that need visual review. Raster colors cannot establish a building's trade, district jurisdiction or lore.
 
-A future JavaScript mapper can reuse the existing JS geometry and editor model directly. The recognition algorithms would need a JavaScript or WASM port for browser execution, or a separately implemented Python service. The current static Cloudflare Pages build loads authored JSON and generates text locally.
+The visitor upload workflow uses `public/js/local-maps/recognize.js` and `raster.js` for browser recognition. These export connected-component labeling, contour tracing, simplification, Zhang-Suen thinning and branch/loop route tracing. `worker.js` runs the pipeline away from the UI. These color-based candidates need review and do not match the map-specific authored Python surveys. `store.js` persists image Blobs, compact geometry and selection indexes in IndexedDB. The static Cloudflare Pages build continues to load authored JSON and generates text locally.
 
 For the data contract and complete survey workflow, see [adding-maps.md](adding-maps.md), [generation.md](generation.md) and [dragonsgate-survey.md](dragonsgate-survey.md).
 
