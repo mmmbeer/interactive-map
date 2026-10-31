@@ -5,13 +5,24 @@ import { categories, escape, icon, number, toast } from './ui.js';
 import { viewerHTML, listItem, detailHTML, tooltipHTML } from './places.js';
 import { MapCallout } from './map-callout.js';
 import { MapStage } from './map-stage.js';
+import { openSettlementSettings } from './settlement-dialog.js';
+import { ancestries } from './generation/settlement-pools-v1.js';
 import { matches, searchPlaces } from './spatial.js';
 export class AtlasViewer {
   constructor(root,data,options={}) {
     this.staleDraft=options.stale;this.source=options.source || data;this.published=options.published || this.source;this.onChange=options.onChange;
+    this.generationSettings=options.generationSettings;this.onGenerationChange=options.onGenerationChange;
     this.root=root;this.data=data;this.numbers=siteNumbers(data.locations);this.controller=new AbortController();this.signal=this.controller.signal;
     this.filters={query:'',category:'',district:''};this.scope=data.directoryScope || 'highlights';this.limit=45;
     root.innerHTML=viewerHTML(data);
+    if (this.source.generator && this.onGenerationChange) {
+      const button=document.createElement('button');button.id='settlement-settings';button.className='button quiet';
+      button.setAttribute('aria-label','Settlement ancestry and generation seed');
+      const label=ancestries[this.generationSettings.ancestry] || 'As authored';
+      button.title=`${label} settlement. Seed: ${this.generationSettings.seed}`;
+      button.innerHTML=`${icon('dice')}<span>Settlement: ${escape(label)}</span>`;
+      root.querySelector('.header-actions').prepend(button);
+    }
     if(options.local || options.stale) {
       const note=document.createElement('div');note.className='local-draft-note';
       note.innerHTML=options.local ? 'Local draft · Changes are saved on this device.<button id="draft-tools">Export or restore</button>' : 'A draft from an older published map is stored on this device. Export it before restoring.<button id="draft-tools">Open draft tools</button>';
@@ -33,7 +44,7 @@ export class AtlasViewer {
     this.listen(root.querySelector('#place-list'),'pointerover',e=>{const id=e.target.closest('[data-place]')?.dataset.place;if(id)this.stage.highlight(this.stage.placeIndex.get(id));});
     this.listen(root.querySelector('#place-list'),'pointerleave',()=>this.stage.highlight(null));
     this.listen(document,'keydown',e=>{
-      if(e.key==='Escape'&&!this.root.querySelector('dialog[open]')) {this.closeDetail(true);this.closeDirectory(true);this.hover(null);}
+      if(e.key==='Escape'&&!document.querySelector('dialog[open]')) {this.closeDetail(true);this.closeDirectory(true);this.hover(null);}
       if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)&&!e.target.isContentEditable) {
         e.preventDefault();this.openDirectory();root.querySelector('#place-search').focus();
       }
@@ -71,6 +82,7 @@ export class AtlasViewer {
       'toggle-streets':()=>target.setAttribute('aria-pressed',this.stage.toggleStreets()),
       'toggle-numbers':()=>target.setAttribute('aria-pressed',this.stage.toggleNumbers()),
       'open-guide':()=>openGuide(this),
+      'settlement-settings':()=>openSettlementSettings(this),
       'toggle-districts':()=>target.setAttribute('aria-pressed',this.stage.toggleDistricts()),
       'open-directory':()=>this.openDirectory(),'show-more':()=>{this.limit+=45;this.renderList();},
       'random-place':()=>{if(this.results.length)this.select(this.results[Math.floor(Math.random()*this.results.length)],true);},
