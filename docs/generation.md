@@ -349,6 +349,10 @@ An explicit `demographics.population` is authoritative, including zero and one. 
 
 Family members may share a surname when they use the same naming tradition. Housemates use independent names. Member names use the inherited ancestry distribution and naming culture, including custom pools. Age stages describe roles without imposing human lifespans on elves, dwarves or other ancestries. Race does not assign household morality or determine occupations. All eleven built-in traditions support every compatible structure.
 
+With `proseVersion: 1`, extra household members receive a deterministic composition plan instead of repeating the last template slot. Required partners, guardians, apprentices, older relatives and dependents keep their roles. Additional adult housemates draw from mixed, working-age or older cohorts, weighted by the primary resident’s life stage and settlement type. Additional dependents use child and adolescent stages. Care households add adult caregivers after the relative receiving support. A dependent primary resident retains an adult guardian.
+
+The primary resident’s configured demographics, resident ids and name streams remain stable. Explicit workplace age constraints retain a previously compatible adult slot. Planning never ages a dependent to fill a workplace. The compact household roster includes each adult’s resolved occupation even when no separate workplace is mapped. People receiving care are described as receiving support rather than assigned a generated current trade.
+
 ### Pinning shared identities
 
 The location editor has a **Shared residents and households** section. Choose a nearby residence for a workplace, a workplace for a home's primary resident, a household structure or a full name for an authored profile. Nearby choices show up to 120 same-district locations. The advanced JSON supports any valid mapped id.
