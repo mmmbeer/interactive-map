@@ -46,6 +46,7 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
     generator:{version:2,detailsVersion:2,socialVersion:1,proseVersion:1,seed,defaults:{demographics:{race:'human'}}},
     measurement:{metersPerPixel:mpp,unit:'m'},districts:[{id:'imported-area',name:'Imported area'}],locations,
     worldImport:{version:1,bounds,projection:'web-mercator',dataTimestamp:data.osm3s?.timestamp_osm_base||null,attribution:'© OpenStreetMap contributors',license:'https://opendatacommons.org/licenses/odbl/1-0/',source:'https://www.openstreetmap.org/copyright',settings}};
+  if(data.preparedSource){map.worldImport.preparedSource=structuredClone(data.preparedSource);map.worldImport.dataTimestamp=data.preparedSource.snapshot;map.worldImport.attribution='© OpenStreetMap contributors · Natural Earth · Protomaps';map.description+=' Prepared geometry: Protomaps/OpenStreetMap and Natural Earth, March 2026 snapshot.';}
   const represented=new Set();
   for(const e of data.elements||[])if(e.type==='relation'&&polygons(e).length&&featureKind(e.tags))for(const member of e.members||[])if(member.type==='way'&&(member.role==='outer'||member.role==='inner'||!member.role))represented.add(member.ref);
   const add=(key,category,type,shape,visual)=>{
@@ -69,7 +70,7 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
       const points=clipRing(polygon.points.map(p=>project(...p)),width,height);if(points.length<3)continue;
       const holes=polygon.holes.map(r=>clipRing(r.map(p=>project(...p)),width,height)).filter(r=>r.length&&r.every(([x,y])=>ringContains(points,x,y)));
       const category=kind==='building'?'home':kind==='water'?'water':'terrain';
-      const type=kind==='building'?'home':kind==='water'?(t.water==='pond'?'pond':t.water==='river'?'river':'lake'):terrainType(t);
+      const type=kind==='building'?'home':kind==='water'?(t.water==='sea'?'sea':t.water==='pond'?'pond':t.water==='river'?'river':'lake'):terrainType(t);
       add(`${key}-${i}`,category,type,{kind:'polygon',points,...(holes.length?{holes}:{})},{kind,landuse:t.landuse||t.leisure||t.natural||'',area:Math.abs(ringArea(points))});
     }
   }

@@ -61,7 +61,7 @@ export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{
       ctx.globalAlpha=1;
     }
     const font=Math.max(12*unit,12/scale);ctx.font=`${font}px sans-serif`;
-    const credit='© OpenStreetMap contributors · ODbL',textWidth=ctx.measureText(credit).width,pad=font*.6;
+    const credit=map.worldImport?.preparedSource?'© OpenStreetMap contributors · Natural Earth · Protomaps':'© OpenStreetMap contributors · ODbL',textWidth=ctx.measureText(credit).width,pad=font*.6;
     ctx.fillStyle='rgba(255,255,250,.94)';ctx.fillRect(map.width-textWidth-pad*2,map.height-font-pad*1.5,textWidth+pad*2,font+pad*1.5);
     ctx.fillStyle='#273531';ctx.fillText(credit,map.width-textWidth-pad,map.height-pad*.6);
   } finally {ctx.restore();}

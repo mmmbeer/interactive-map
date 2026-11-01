@@ -1,6 +1,7 @@
 import { WorldView } from './world-view.js';
 import { dimensions, areaInfo, checkArea } from './geo.js';
 import { fetchArea } from './source.js';
+import { fetchPreparedArea } from './prepared.js';
 import { convertArea } from './model.js';
 import { DRAGONSGATE, renderFantasy, imageFiles, downloadBlob } from './render.js';
 import { localMapId } from '../local-maps/identity.js';
@@ -15,6 +16,8 @@ export function openWorldImport(onSaved,signal) {
       <fieldset><legend>Image shape</legend><div class="world-shapes"><label><input type="radio" name="format" value="square" checked><span>□ Square</span></label><label><input type="radio" name="format" value="landscape"><span>▭ Landscape</span></label><label><input type="radio" name="format" value="portrait"><span>▯ Portrait</span></label></div></fieldset>
       <label>Image resolution<select name="edge"><option value="2048">2048 px · smaller file</option><option value="4096" selected>4096 px · high resolution</option><option value="4800">4800 px · maximum detail</option></select></label>
       <p class="world-dimensions"></p>
+      <label>Map data<select name="dataSource"><option value="prepared">Prepared map data (recommended)</option><option value="live">Live OpenStreetMap data</option></select></label>
+      <p class="world-source-note">Prepared map data downloads directly without a query queue. This dataset is a March 2026 snapshot.</p>
       <fieldset><legend>Find your area</legend><label>Navigation map<select name="basemap"><option value="terrain">OpenTopoMap terrain</option><option value="street">OpenStreetMap streets</option></select></label><label>Jump to an example<select name="example"><option value="">Choose a place…</option><option value="-3.191,55.950">Edinburgh · Old Town</option><option value="12.335,45.435">Venice · canals</option><option value="-89.384,43.074">Madison · Capitol</option><option value="0,20">World view</option></select></label>
       <div class="world-coordinates"><label>Latitude<input name="latitude" type="number" min="-85" max="85" step="any" value="20"></label><label>Longitude<input name="longitude" type="number" min="-180" max="180" step="any" value="0"></label></div><button type="button" class="button" id="world-go">Go to coordinates</button></fieldset>
       <details open><summary>Dragonsgate style</summary><p>Black ink buildings, pale land, muted water and fine tree outlines. Source labels are omitted.</p>
@@ -23,7 +26,7 @@ export function openWorldImport(onSaved,signal) {
       <label>Woodland tree density<input type="range" name="treeDensity" min="0" max="2" step="0.25" value="1"></label>
       <label>Paper texture<input type="range" name="texture" min="0" max="1" step="0.05" value="0.35"></label>
       <label class="world-checkbox"><input type="checkbox" name="roofDetail"> Add roof detail</label><button class="button quiet" type="button" id="world-reset">Reset style</button></details>
-      <details><summary>Generation and source</summary><label>Generation seed<input name="seed" value="world-map-v1" maxlength="128" required></label><p>Building uses and stories are fictional. Roads and footprints follow available map data. Vegetation coverage varies. Districts can be traced after import.</p><p>Geometry comes from <a href="https://overpass.private.coffee/" target="_blank" rel="noopener">Private.coffee</a> or the <a href="https://overpass-api.de/" target="_blank" rel="noopener">Overpass API</a>. Your selection bounds are sent when you create a preview.</p><p>Maps save on this device. Download an atlas backup to keep artwork and geometry together.</p><p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, ODbL. Public map services may be busy. Select an area under 36 km².</p></details>
+      <details><summary>Generation and source</summary><label>Generation seed<input name="seed" value="world-map-v1" maxlength="128" required></label><p>Building uses and stories are fictional. Roads and footprints follow available map data. Vegetation coverage varies. Districts can be traced after import.</p><p>Prepared geometry comes from <a href="https://source.coop/protomaps/openstreetmap" target="_blank" rel="noopener">Protomaps on Source Cooperative</a>. Live geometry uses <a href="https://overpass.private.coffee/" target="_blank" rel="noopener">Private.coffee</a> or the <a href="https://overpass-api.de/" target="_blank" rel="noopener">Overpass API</a>. Data is requested only when you create a preview.</p><p>Maps save on this device. Download an atlas backup to keep artwork and geometry together.</p><p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, ODbL. Public map services may be busy. Select an area under 36 km².</p></details>
     </form><section class="world-workspace" aria-label="Map selection and preview">
       <div class="world-view-tabs"><button class="button quiet" id="world-show-map" aria-pressed="true">World map</button><button class="button quiet" id="world-show-art" aria-pressed="false" disabled>Fantasy preview</button><span class="world-area"></span></div>
       <div class="world-map-panel"><div class="world-map" tabindex="0" role="region" aria-label="World map. Drag to pan, scroll or pinch to zoom. Arrow keys pan. Plus and minus zoom."></div><div class="world-navigation"><button class="map-control" id="world-plus" aria-label="Zoom world map in">+</button><button class="map-control" id="world-minus" aria-label="Zoom world map out">−</button></div><div class="world-attribution">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM · © <a href="https://opentopomap.org/about" target="_blank" rel="noopener">OpenTopoMap (CC-BY-SA)</a></div><p class="world-pan-help">Drag the world beneath the frame. Scroll or pinch to zoom.</p></div>
@@ -47,7 +50,8 @@ export function openWorldImport(onSaved,signal) {
   }
   function endJob() {clearInterval(ticker);elapsed.hidden=true;busy=false;if(!life.signal.aborted)buttons();}
   function downloadProgress(p) {
-    if(p.stage==='fallback')setStatus('The first map service is slow. Trying another service…');
+    if(p.stage==='prepared')setStatus(`Loading prepared map data… ${p.completed} of ${p.total} parts · ${Math.ceil(p.bytes/1024).toLocaleString()} KB received.`);
+    else if(p.stage==='fallback')setStatus('The first map service is slow. Trying another service…');
     else if(p.stage==='receiving')setStatus(`Downloading map data… ${Math.ceil(p.bytes/1024).toLocaleString()} KB received.`);
     else setStatus(p.attempt>1?'Requesting map data from another service…':'Requesting roads, buildings, water and land…');
   }
@@ -79,6 +83,7 @@ export function openWorldImport(onSaved,signal) {
   on(form,'input',e=>{
     if(['latitude','longitude','example','basemap'].includes(e.target.name))return;
     invalidate();updateDimensions();if(e.target.name==='format')world.setFormat(format());
+    if(e.target.name==='dataSource')dialog.querySelector('.world-source-note').textContent=form.elements.dataSource.value==='prepared'?'Prepared map data downloads directly without a query queue. This dataset is a March 2026 snapshot.':'Live data can be newer, but public query services may be busy. Prepared map data avoids that queue.';
     setStatus('Settings changed. Create a new preview.');
   });
   on(el('reset'),'click',()=>{
@@ -93,7 +98,8 @@ export function openWorldImport(onSaved,signal) {
     try {
       if(!form.reportValidity())return;checkArea(bounds);
       const selection=structuredClone(bounds);result=null;files=null;beginJob('Requesting roads, buildings, water and land…');
-      const data=await fetchArea(selection,job.signal,{onProgress:downloadProgress});job.signal.throwIfAborted();life.signal.throwIfAborted();
+      const load=form.elements.dataSource.value==='live'?fetchArea:fetchPreparedArea;
+      const data=await load(selection,job.signal,{onProgress:downloadProgress});job.signal.throwIfAborted();life.signal.throwIfAborted();
       setStatus('Drawing the fantasy map…');await new Promise(r=>setTimeout(r,0));
       const [width,height]=outputSize(),next=convertArea(data,{bounds:selection,width,height,id:localMapId(),name:form.elements.mapName.value.trim(),seed:form.elements.seed.value.trim(),settings:settings()});
       await renderFantasy(canvas,next,settings(),{edge:1400,signal:job.signal});job.signal.throwIfAborted();life.signal.throwIfAborted();result=next;showArt(true);
