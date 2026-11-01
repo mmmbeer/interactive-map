@@ -21,6 +21,7 @@ export function labelsFor(map,graph,resolve) {
 }
 function professionFor(map,graph,p) {
   if(p.workplaceId)return graph.facts.get(p.workplaceId).economy().trade;
+  if(map && proseEnabled(map) && p.role==='relative receiving support')return null;
   const home=graph.facts.get(p.homeId);if(!home || !adult(p.demographics.age))return null;
   if(p.slot===0)return home.economy().trade;
   const virtual={...home.place,id:p.id},context=economicContext(map,virtual,home.config,p.demographics);
@@ -41,7 +42,8 @@ export function sharedHabit(map,graph,p) {
 }
 export function personView(graph,p,label) {
   const origin=graph.facts.get(p.workplaceId || p.homeId),d=p.identity.demographics;
-  const occupation=p.workplaceId ? graph.facts.get(p.workplaceId).economy().trade?.role || graph.facts.get(p.workplaceId).catalog().types[graph.facts.get(p.workplaceId).place.type || graph.facts.get(p.workplaceId).place.category].roles[0] : adult(d.age) ? professionFor(mapForGraph.get(graph),graph,p)?.role || 'householder' : 'dependent';
+  const polished=mapForGraph.has(graph) && proseEnabled(mapForGraph.get(graph));
+  const occupation=polished && p.role==='relative receiving support'?'resident receiving support':p.workplaceId ? graph.facts.get(p.workplaceId).economy().trade?.role || graph.facts.get(p.workplaceId).catalog().types[graph.facts.get(p.workplaceId).place.type || graph.facts.get(p.workplaceId).place.category].roles[0] : adult(d.age) ? professionFor(mapForGraph.get(graph),graph,p)?.role || 'householder' : 'dependent';
   return {id:p.id,name:p.identity.opaque ? `the ${p.workplaceId?'keeper':'resident'} of ${label(origin.id).name}` : p.identity.fullName,
     race:d.race,culture:d.culture,gender:d.gender,age:d.age,role:p.role,occupation,
     homeId:p.homeId,workplaceId:p.workplaceId,home:p.homeId?label(p.homeId).name:null,workplace:p.workplaceId?label(p.workplaceId).name:null,
@@ -87,7 +89,10 @@ export function householdText(map,graph,home,views,label) {
   const names=views.map(p=>p.name).join(', '),tokens={headName:views[0].name,memberNames:names,householdCount:String(home.count),homePlace:label(home.homeId).name,homeDistrict:label(home.homeId).district,settlementType:context.profile.label};
   tokens.domesticTask=sourceDraw(map,'domesticTasks',context,tokens,roll('task'));
   const prose=sourceDraw(map,`household_${home.style}`,context,tokens,roll('structure'));
-  const roster=views.map(p=>`${p.name} (${p.role}, ${p.age.replaceAll('_',' ')} ${p.race.replaceAll('_',' ')}${p.workplace?`; ${p.occupation} at ${p.workplace}`:''})`).join('; ');
+  const roster=views.map(p=>{
+    const work=p.workplace?`${p.occupation} at ${p.workplace}`:proseEnabled(map) && adult(p.age) && p.role!=='relative receiving support'?p.occupation:'';
+    return `${p.name} (${p.role}, ${p.age.replaceAll('_',' ')} ${p.race.replaceAll('_',' ')}${work?`; ${work}`:''})`;
+  }).join('; ');
   if(proseEnabled(map))return `${prose} Residents (${home.count}): ${roster}.${home.count>views.length?` ${home.count-views.length} additional residents are counted but not individually listed.`:''}`;
   return `${home.count===1?'One resident':`${home.count} residents`} at ${label(home.homeId).name}. ${prose} Residents: ${roster}.${home.count>views.length?` ${home.count-views.length} additional residents are counted but not individually listed.`:''}`;
 }

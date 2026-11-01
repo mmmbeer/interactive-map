@@ -2,9 +2,11 @@ import { choose, integer, streams } from '../helpers-v2.js';
 import { householdTypes } from './household-types.js';
 import { memberIdentity, memberDemographics } from './identity.js';
 import { hash, pairRank, compare, adult, permits, addTo } from './helpers.js';
+import { proseEnabled } from '../prose/settings.js';
+import { householdMemberPlan } from './member-plan.js';
 const workerCategories=new Set(['shop','workshop','tavern','guild','temple','harbor']);
 export function buildHouseholds(map,facts) {
-  const homes=new Map(),people=new Map(),keepers=new Map(),byDistrict=new Map(),byRegion=new Map(),warnings=[];
+  const homes=new Map(),people=new Map(),keepers=new Map(),byDistrict=new Map(),byRegion=new Map(),warnings=[],restoreStages=new WeakMap();
   const seed=hash(JSON.stringify([map.generationId ?? map.id,map.generator.seed,'households-v1']));
   for(const f of facts.values())if(f.place.category==='home') {
     const roll=streams(['household-v1',map.generationId ?? map.id,map.generator.seed,f.id,f.config.seed ?? '',f.config.revision ?? 0]);
@@ -24,9 +26,24 @@ export function buildHouseholds(map,facts) {
     let role=t.roles[Math.min(slot,t.roles.length-1)],stage=t.stages[Math.min(slot,t.stages.length-1)];
     if(slot===0)stage=primaryDemographics.age;
     if(childPrimary){role=slot===0?'dependent':slot===1?'guardian':'relative';if(slot>0)stage='adult';}
+    const legacyStage=stage;
+    if(proseEnabled(map)) {
+      h.memberPlan ||= householdMemberPlan(map,h,primaryDemographics);
+      ({role,stage}=h.memberPlan[slot]);
+    }
     let identity;
     const demographics=memberDemographics(map,h.fact.place,h.fact.config,slot,stage,primaryDemographics);
     const p={get identity(){return identity ||= memberIdentity(map,h.fact.place,h.fact.config,h.fact.catalog(),slot,{stage,kin:t.kin},h.fact.identity(),Array.from({length:slot},(_,i)=>resident(h,i).identity));},demographics,opaque:slot===0 && Object.hasOwn(h.fact.place.overrides || {},'person') && !h.fact.config.social?.personName,id:`resident:${h.homeId}:${slot}`,homeId:h.homeId,householdId:h.id,slot,role,workplaceId:null};
+    restoreStages.set(p,workConfig=>{
+        // Explicit residence bindings may constrain a secondary adult's age.
+        // Preserve an existing compatible adult slot without aging a dependent.
+        if(!proseEnabled(map) || slot===0 || !adult(stage) || !adult(legacyStage) || !permits(workConfig,{...p.demographics,age:legacyStage}))return false;
+        stage=legacyStage;p.demographics.age=stage;
+        if(h.style==='extended_family' && slot>=t.stages.length)p.role=stage==='young_adult'?'younger relative':stage==='elder'?'older relative':'adult relative';
+        if(identity)identity.demographics.age=stage;
+        Object.assign(h.memberPlan[slot],{stage,role:p.role});
+        return true;
+      });
     h.members[slot]=p;people.set(p.id,p);return p;
   };
   const install=(work,h,primaryOnly=false,explicit=false)=>{
@@ -36,7 +53,8 @@ export function buildHouseholds(map,facts) {
     for(let slot=0;slot<Math.min(h.count,12);slot++) {
       if(primaryOnly && slot!==0)break;
       const p=resident(h,slot);
-      if(p.workplaceId || p.role==='relative receiving support' || p.opaque || !adult(p.demographics.age) || !permits(work.config,p.demographics))continue;
+      if(p.workplaceId || p.role==='relative receiving support' || p.opaque || !adult(p.demographics.age))continue;
+      if(!permits(work.config,p.demographics) && !(explicit && restoreStages.get(p)(work.config)))continue;
       if(work.config.social?.personName) {
         const identity=work.identity();
         if(!permits(h.fact.config,identity.demographics) || slot>0 && p.demographics.age!==identity.demographics.age || slot===0 && h.fact.config.social?.personName && h.fact.config.social.personName!==identity.fullName)continue;
