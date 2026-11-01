@@ -36,3 +36,7 @@ export { convertArea as convertWorldArea } from './world-maps/model.js';
 export { queryFor as worldAreaQuery, fetchArea as fetchWorldArea } from './world-maps/source.js';
 export { imageProjection, clipRing, clipLines } from './world-maps/geo.js';
 export { renderFantasy, imageFiles, DRAGONSGATE } from './world-maps/render.js';
+
+export { reconcileWater, upgradeWorldWater, resolveLocationId } from './world-maps/water.js';
+export { enrichSettlement } from './world-maps/settlement-enrichment.js';
+export { normalizeProfile as normalizeImportSettlement } from './world-maps/settlement-profile.js';

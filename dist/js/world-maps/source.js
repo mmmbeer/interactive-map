@@ -6,7 +6,7 @@ export const OVERPASS='https://overpass.private.coffee/api/interpreter';
 export const MAP_SERVICES=[OVERPASS,'https://overpass-api.de/api/interpreter'];
 export function queryFor(b) {
   checkArea(b);const box=[b.south,b.west,b.north,b.east].map(n=>n.toFixed(7)).join(',');
-  return `[out:json][timeout:12][maxsize:33554432];(way[building](${box});way[highway][highway!~"^(proposed|construction)$"](${box});nwr[natural~"^(water|wood|scrub|wetland|tree|coastline)$"](${box});nwr[waterway](${box});nwr[landuse~"^(forest|grass|meadow|farmland|farmyard|orchard|vineyard|cemetery|recreation_ground)$"](${box});nwr[leisure~"^(park|garden)$"](${box});relation[type=multipolygon][building](${box}););out geom;`;
+  return `[out:json][timeout:12][maxsize:33554432];(way[building](${box});way[highway][highway!~"^(proposed|construction)$"](${box});nwr[natural~"^(water|wood|scrub|wetland|tree|coastline)$"](${box});nwr[waterway](${box});nwr[landuse~"^(forest|grass|meadow|farmland|farmyard|orchard|vineyard|cemetery|recreation_ground)$"](${box});nwr[leisure~"^(park|garden)$"](${box});relation[type=multipolygon][building](${box});nwr[place~"^(neighbourhood|quarter|suburb)$"](${box});relation[boundary=administrative][admin_level~"^(9|10)$"](${box}););out geom;`;
 }
 export async function fetchArea(bounds,signal,{onProgress=()=>{},services=MAP_SERVICES,timeoutMs=15000,fetcher=globalThis.fetch}={}) {
   signal?.throwIfAborted();

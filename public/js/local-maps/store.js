@@ -1,3 +1,4 @@
+import { upgradeWorldWater } from '../world-maps/water.js';
 import { numberSites } from '../site-index.js';
 import { validateMap } from '../map-contract.js';
 import { buildSpatialIndex } from '../spatial.js';
@@ -37,7 +38,19 @@ export async function saveLocalMap(map,image,thumbnail,initialMap=map,{create=fa
   const record={id:map.id,map:structuredClone(map),image,thumbnail,initialMap:structuredClone(initialMap),indexes:localIndexes(map),updatedAt:Date.now()};
   await transaction('readwrite',store=>create ? store.add(record) : store.put(record));return record;
 }
-export const readLocalMap=id=>transaction('readonly',store=>store.get(id));
+export async function readLocalMap(id) {
+  const record=await transaction('readonly',store=>store.get(id));
+  return upgradeLocalWater(record);
+}
+export function upgradeLocalWater(record) {
+  if(!record?.map.worldImport || record.map.worldImport.waterVersion!==undefined)return record;
+  // Leave edited water intact. Reconcile untouched imports in memory, then persist
+  // through the normal save flow. The image and original import remain recoverable.
+  const water=map=>map.locations.filter(p=>p.category==='water');
+  if(record.initialMap&&JSON.stringify(water(record.map))!==JSON.stringify(water(record.initialMap)))return record;
+  const map=upgradeWorldWater(record.map);validateMap(map);
+  return {...record,map,indexes:localIndexes(map)};
+}
 export const deleteLocalMap=id=>transaction('readwrite',store=>store.delete(id));
 export async function listLocalMaps() {
   // Cursor through metadata to avoid retaining all full-resolution map Blobs in the collection.

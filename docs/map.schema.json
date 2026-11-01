@@ -197,6 +197,14 @@
         "seed"
       ],
       "additionalProperties": false
+    },
+    "locationAliases": {
+      "type": "object",
+      "description": "Former fragment IDs mapped directly to an existing canonical location ID. Alias keys cannot also be current location IDs.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
     }
   },
   "required": [

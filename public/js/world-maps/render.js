@@ -1,3 +1,4 @@
+import { landColor, drawLandPattern, drawDistrictPreview } from './planning-render.js';
 import { traceShape, ringContains } from '../geometry.js';
 import { hash } from './model.js';
 export const DRAGONSGATE={paper:'#eeeae1',water:'#91a6ad',ink:'#202421',terrain:'#d8dccb',roadWidth:1,treeDensity:1,texture:.35,roofDetail:false};
@@ -8,7 +9,7 @@ function tree(ctx,x,y,r,ink) {
   ctx.closePath();ctx.fillStyle='#e6e8db';ctx.fill();ctx.strokeStyle=ink;ctx.stroke();
   ctx.beginPath();ctx.moveTo(x-r*.25,y+r*.15);ctx.lineTo(x+r*.25,y-r*.2);ctx.stroke();
 }
-export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{edge=1200,signal}={}) {
+export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{edge=1200,signal,districts=false}={}) {
   const scale=Math.min(1,edge/Math.max(map.width,map.height));
   canvas.width=Math.round(map.width*scale);canvas.height=Math.round(map.height*scale);
   const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Your browser could not create the map image. Try a lower resolution.');
@@ -26,8 +27,8 @@ export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{
         ctx.fillStyle=s.water;ctx.strokeStyle='#596b6e';ctx.lineWidth=unit*.8;
         if(shape.kind==='polyline'){ctx.lineWidth=shape.width;ctx.strokeStyle=s.water;ctx.stroke();}
         else {ctx.fill('evenodd');ctx.stroke();}
-      } else if(p.category==='terrain') {
-        const forest=p.type==='forest';ctx.fillStyle=forest?s.terrain:s.paper;ctx.fill('evenodd');
+      } else if(p.category==='terrain'||p.worldStyle?.landuse==='cemetery') {
+        const forest=p.type==='forest';ctx.fillStyle=landColor(p,s);ctx.fill('evenodd');
         ctx.strokeStyle='#9c9c89';ctx.lineWidth=unit*.5;ctx.stroke();ctx.clip('evenodd');
         const xs=shape.points.map(p=>p[0]),ys=shape.points.map(p=>p[1]),x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;
         if(forest&&s.treeDensity>0) {
@@ -37,10 +38,7 @@ export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{
             if(!ringContains(shape.points,tx,ty)||(shape.holes||[]).some(r=>ringContains(r,tx,ty)))continue;
             tree(ctx,tx,ty,(3+rand()*2)*unit,s.ink);treeBudget--;
           }
-        } else if(['farmland','orchard','vineyard'].includes(p.worldStyle?.landuse)) {
-          ctx.strokeStyle='#a5a78c';ctx.lineWidth=unit*.6;
-          for(let j=-h;j<w;j+=14*unit){ctx.beginPath();ctx.moveTo(x+j,y);ctx.lineTo(x+j+h,y+h);ctx.stroke();}
-        }
+        } else drawLandPattern(ctx,p,unit);
       } else if(p.category==='street') {
         if(p.worldStyle?.bridge){ctx.strokeStyle=s.ink;ctx.lineWidth=shape.width+unit*2;ctx.stroke();}
         else {ctx.strokeStyle='#a4a18e';ctx.lineWidth=shape.width+unit;ctx.stroke();}
@@ -55,6 +53,7 @@ export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{
       }ctx.restore();
     }
     if(s.treeDensity>0)for(const [x,y] of trees){ctx.lineWidth=unit*.65;tree(ctx,x,y,4*unit,s.ink);}
+    if(districts)drawDistrictPreview(ctx,map,scale);
     if(s.texture>0) {
       const rand=random(map.generationId);ctx.fillStyle='#252e27';ctx.globalAlpha=s.texture*.12;
       for(let i=0;i<14000;i++){const r=(.25+rand())*unit;ctx.fillRect(rand()*map.width,rand()*map.height,r,r);}

@@ -1,3 +1,4 @@
+import { settlementSetupHTML, readSettlementSetup, suggestSettlementFeatures } from './settlement-setup.js';
 import { WorldView } from './world-view.js';
 import { dimensions, areaInfo, checkArea } from './geo.js';
 import { fetchArea } from './source.js';
@@ -11,7 +12,7 @@ import { toast } from '../ui.js';
 export function openWorldImport(onSaved,signal) {
   const dialog=document.createElement('dialog');dialog.className='world-import';dialog.setAttribute('aria-labelledby','world-title');
   dialog.innerHTML=`<header class="world-header"><div><span class="eyebrow">FROM THE WORLD TO YOUR ATLAS</span><h2 id="world-title">Create from a real place</h2></div><button class="icon-button" type="button" id="world-close" aria-label="Close world map">×</button></header>
-    <div class="world-body"><form class="world-settings">
+    <div class="world-body"><form class="world-settings"><nav class="world-setup-tabs" aria-label="Import setup"><button type="button" class="button quiet" data-world-tab="area" aria-pressed="true">1. Select area</button><button type="button" class="button quiet" data-world-tab="settlement" aria-pressed="false">2. Settlement</button></nav><section data-world-step="area">
       <label>Map name<input name="mapName" value="My new settlement" maxlength="100" required></label>
       <fieldset><legend>Image shape</legend><div class="world-shapes"><label><input type="radio" name="format" value="square" checked><span>□ Square</span></label><label><input type="radio" name="format" value="landscape"><span>▭ Landscape</span></label><label><input type="radio" name="format" value="portrait"><span>▯ Portrait</span></label></div></fieldset>
       <label>Image resolution<select name="edge"><option value="2048">2048 px · smaller file</option><option value="4096" selected>4096 px · high resolution</option><option value="4800">4800 px · maximum detail</option></select></label>
@@ -26,18 +27,28 @@ export function openWorldImport(onSaved,signal) {
       <label>Woodland tree density<input type="range" name="treeDensity" min="0" max="2" step="0.25" value="1"></label>
       <label>Paper texture<input type="range" name="texture" min="0" max="1" step="0.05" value="0.35"></label>
       <label class="world-checkbox"><input type="checkbox" name="roofDetail"> Add roof detail</label><button class="button quiet" type="button" id="world-reset">Reset style</button></details>
-      <details><summary>Generation and source</summary><label>Generation seed<input name="seed" value="world-map-v1" maxlength="128" required></label><p>Building uses and stories are fictional. Roads and footprints follow available map data. Vegetation coverage varies. Districts can be traced after import.</p><p>Prepared geometry comes from <a href="https://source.coop/protomaps/openstreetmap" target="_blank" rel="noopener">Protomaps on Source Cooperative</a>. Live geometry uses <a href="https://overpass.private.coffee/" target="_blank" rel="noopener">Private.coffee</a> or the <a href="https://overpass-api.de/" target="_blank" rel="noopener">Overpass API</a>. Data is requested only when you create a preview.</p><p>Maps save on this device. Download an atlas backup to keep artwork and geometry together.</p><p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, ODbL. Public map services may be busy. Select an area under 36 km².</p></details>
-    </form><section class="world-workspace" aria-label="Map selection and preview">
+      <details><summary>Generation and source</summary><label>Generation seed<input name="seed" value="world-map-v1" maxlength="128" required></label><p>Building uses and stories are fictional. Roads and footprints follow available map data. Mapped land uses are retained. Settlement setup adds suggested districts and requested fantasy features.</p><p>Prepared geometry comes from <a href="https://source.coop/protomaps/openstreetmap" target="_blank" rel="noopener">Protomaps on Source Cooperative</a>. Live geometry uses <a href="https://overpass.private.coffee/" target="_blank" rel="noopener">Private.coffee</a> or the <a href="https://overpass-api.de/" target="_blank" rel="noopener">Overpass API</a>. Data is requested only when you create a preview.</p><p>Maps save on this device. Download an atlas backup to keep artwork and geometry together.</p><p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, ODbL. Public map services may be busy. Select an area under 36 km².</p></details>
+    </section><section data-world-step="settlement" hidden>${settlementSetupHTML()}</section></form><section class="world-workspace" aria-label="Map selection and preview">
       <div class="world-view-tabs"><button class="button quiet" id="world-show-map" aria-pressed="true">World map</button><button class="button quiet" id="world-show-art" aria-pressed="false" disabled>Fantasy preview</button><span class="world-area"></span></div>
       <div class="world-map-panel"><div class="world-map" tabindex="0" role="region" aria-label="World map. Drag to pan, scroll or pinch to zoom. Arrow keys pan. Plus and minus zoom."></div><div class="world-navigation"><button class="map-control" id="world-plus" aria-label="Zoom world map in">+</button><button class="map-control" id="world-minus" aria-label="Zoom world map out">−</button></div><div class="world-attribution">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, SRTM · © <a href="https://opentopomap.org/about" target="_blank" rel="noopener">OpenTopoMap (CC-BY-SA)</a></div><p class="world-pan-help">Drag the world beneath the frame. Scroll or pinch to zoom.</p></div>
-      <div class="world-art" hidden><canvas aria-label="Fantasy map preview"></canvas><p>Image and selectable features share the same geometry. Review missing features after import.</p></div>
+      <div class="world-art" hidden><canvas aria-label="Fantasy map preview"></canvas><p>Image and selectable features share the same geometry. Review the districts and requested features before saving.</p><label class="world-preview-toggle"><input type="checkbox" id="world-preview-districts" checked> Show suggested districts in preview</label></div>
       <p class="world-status" role="status" aria-live="polite"><span class="world-message">Zoom in or jump to an example to select a settlement.</span><span class="world-elapsed" aria-hidden="true" hidden></span></p>
     </section></div>
     <footer class="world-footer"><button type="button" class="button" id="world-generate">Create preview</button><button type="button" class="button" id="world-cancel" hidden>Cancel</button><button type="button" class="button" id="world-download" disabled>Download PNG</button><button type="button" class="button" id="world-backup" disabled>Download atlas backup</button><button type="button" class="button primary" id="world-save" disabled>Save and open map</button></footer>`;
   document.body.append(dialog);
   const life=new AbortController(),form=dialog.querySelector('form'),status=dialog.querySelector('.world-status'),canvas=dialog.querySelector('canvas'),mapPanel=dialog.querySelector('.world-map-panel'),art=dialog.querySelector('.world-art');
   const el=id=>dialog.querySelector('#world-'+id),on=(target,event,fn)=>target.addEventListener(event,fn,{signal:life.signal});
-  let bounds,result,files,busy=false,job,ticker,cancellable=true;
+  let bounds,result,files,busy=false,job,ticker,cancellable=true,featuresEdited=false;
+  function showStep(step) {
+    form.querySelectorAll('[data-world-step]').forEach(e=>e.hidden=e.dataset.worldStep!==step);
+    form.querySelectorAll('[data-world-tab]').forEach(e=>e.setAttribute('aria-pressed',String(e.dataset.worldTab===step)));
+    form.scrollTop=0;
+  }
+  on(form,'click',e=>{const tab=e.target.closest('[data-world-tab]');if(tab)showStep(tab.dataset.worldTab);});
+  form.addEventListener('invalid',e=>{const step=e.target.closest('[data-world-step]');if(step)showStep(step.dataset.worldStep);},{capture:true,signal:life.signal});
+  on(form.elements.settlementType,'change',()=>{if(!featuresEdited)suggestSettlementFeatures(form);});
+  on(form,'change',e=>{if(['settlementFeature','settlementLand'].includes(e.target.name))featuresEdited=true;});
+  on(el('suggest-features'),'click',()=>{suggestSettlementFeatures(form);featuresEdited=false;invalidate();setStatus('Suggested features selected. Create a new preview.');});
   const settings=()=>({...DRAGONSGATE,...Object.fromEntries(['paper','water','ink'].map(k=>[k,form.elements[k].value])),...Object.fromEntries(['roadWidth','treeDensity','texture'].map(k=>[k,Number(form.elements[k].value)])),roofDetail:form.elements.roofDetail.checked});
   const format=()=>form.elements.format.value;
   const outputSize=()=>dimensions(format(),Number(form.elements.edge.value));
@@ -96,15 +107,16 @@ export function openWorldImport(onSaved,signal) {
     if(busy)return;
     job=null;
     try {
-      if(!form.reportValidity())return;checkArea(bounds);
+      if(!form.reportValidity())return;const settlement=readSettlementSetup(form);checkArea(bounds);
       const selection=structuredClone(bounds);result=null;files=null;beginJob('Requesting roads, buildings, water and land…');
       const load=form.elements.dataSource.value==='live'?fetchArea:fetchPreparedArea;
       const data=await load(selection,job.signal,{onProgress:downloadProgress});job.signal.throwIfAborted();life.signal.throwIfAborted();
       setStatus('Drawing the fantasy map…');await new Promise(r=>setTimeout(r,0));
-      const [width,height]=outputSize(),next=convertArea(data,{bounds:selection,width,height,id:localMapId(),name:form.elements.mapName.value.trim(),seed:form.elements.seed.value.trim(),settings:settings()});
-      await renderFantasy(canvas,next,settings(),{edge:1400,signal:job.signal});job.signal.throwIfAborted();life.signal.throwIfAborted();result=next;showArt(true);
+      const [width,height]=outputSize(),next=convertArea(data,{bounds:selection,width,height,id:localMapId(),name:form.elements.mapName.value.trim(),seed:form.elements.seed.value.trim(),settings:settings(),settlement});
+      await renderFantasy(canvas,next,settings(),{edge:Math.max(450,Math.min(1000,dialog.querySelector('.world-workspace').clientWidth)),signal:job.signal,districts:el('preview-districts').checked});job.signal.throwIfAborted();life.signal.throwIfAborted();result=next;showArt(true);
       const count=category=>result.map.locations.filter(p=>p.category===category).length;
-      setStatus(`${count('home').toLocaleString()} buildings · ${count('street').toLocaleString()} road sections · ${count('water')} water feature${count('water')===1?'':'s'} · ${count('terrain')} land area${count('terrain')===1?'':'s'}. Ready to download or save.`);
+      const total=result.map.locations.filter(p=>p.worldStyle?.kind==='building').length,fields=result.map.locations.filter(p=>['farmland','pasture','orchard','vineyard'].includes(p.type)).length;
+      setStatus(`${total.toLocaleString()} buildings · ${result.map.districts.length} districts · ${count('street').toLocaleString()} road sections · ${count('water')} water features · ${fields} farm and pasture areas. ${result.map.worldImport.planning.warnings.join(' ')||'Ready to download or save.'}`);
     } catch(e){if(!life.signal.aborted){result=null;setStatus(job?.signal.aborted?'Cancelled. Your selection and settings have been kept.':e.message);}}
     finally {endJob();}
   });
@@ -122,6 +134,12 @@ export function openWorldImport(onSaved,signal) {
       }
     }catch(e){if(!life.signal.aborted)setStatus(job.signal.aborted?'Cancelled. Your preview and settings have been kept.':e.message);}finally{endJob();}
   }
+  on(el('preview-districts'),'change',async()=>{
+    if(!result||busy)return;
+    beginJob('Updating district preview…');
+    try {await renderFantasy(canvas,result,settings(),{edge:Math.max(450,Math.min(1000,dialog.querySelector('.world-workspace').clientWidth)),signal:job.signal,districts:el('preview-districts').checked});setStatus('Preview updated. Districts remain a toggleable layer in the saved map.');}
+    catch(e){if(!life.signal.aborted)setStatus(e.message);}finally{endJob();}
+  });
   on(el('download'),'click',()=>finish('download'));on(el('backup'),'click',()=>finish('backup'));on(el('save'),'click',()=>finish('save'));
   const close=()=>dialog.close();on(el('close'),'click',close);
   on(dialog,'click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close();}});

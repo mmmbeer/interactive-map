@@ -3,6 +3,8 @@ import { coordinates, polygons, featureKind } from './osm.js';
 import { coastalWater } from './coast.js';
 import { ringContains, distanceToPath } from '../geometry.js';
 import { validateMap } from '../map-contract.js';
+import { enrichSettlement } from './settlement-enrichment.js';
+import { reconcileWater } from './water.js';
 import { numberSites } from '../site-index.js';
 export function hash(value) {let n=2166136261;for(const c of String(value)){n^=c.charCodeAt(0);n=Math.imul(n,16777619);}return n>>>0;}
 function anchor(points,holes=[]) {
@@ -11,6 +13,12 @@ function anchor(points,holes=[]) {
   if(inside(center))return center;
   for(let y=1;y<10;y++)for(let x=1;x<10;x++){const p=[left+w*x/10,top+h*y/10];if(inside(p))return p;}
   return points[0];
+}
+function buildingUse(t) {
+  if(['pub','bar','restaurant','cafe'].includes(t.amenity)||['hotel','guest_house','hostel'].includes(t.tourism))return ['tavern','tavern'];
+  if(t.amenity==='place_of_worship')return ['temple','temple'];
+  if(t.shop)return ['shop','shop'];if(t.craft)return ['workshop','workshop'];
+  return ['home','home'];
 }
 function terrainType(t) {
   if(t.natural==='wetland')return 'marsh';
@@ -30,7 +38,7 @@ function linkStreets(map) {
       if(!bins.has(key))bins.set(key,new Set());bins.get(key).add(r);
     }
   }
-  for(const p of map.locations.filter(p=>p.category==='home')) {
+  for(const p of map.locations.filter(p=>p.worldStyle?.kind==='building')) {
     const x=Math.floor(p.x/size),y=Math.floor(p.y/size),candidates=new Set();
     for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const r of bins.get(`${x+dx},${y+dy}`)||[])candidates.add(r);
     let best,distance=size*2;
@@ -38,8 +46,8 @@ function linkStreets(map) {
     if(best)p.context={street:best.id};
   }
 }
-export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={}}) {
-  const area=checkArea(bounds),project=imageProjection(bounds,width,height),locations=[],coasts=[],trees=[];
+export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={}}) {
+  const area=checkArea(bounds),project=imageProjection(bounds,width,height),locations=[],coasts=[],trees=[],mappedDistricts=[];
   const mpp=area.width/width,visualScale=width/4096;
   const map={schemaVersion:2,id,generationId:`world-${hash(JSON.stringify(bounds)).toString(16)}`,name,subtitle:'A real place, reimagined',description:'Fantasy artwork derived from OpenStreetMap geometry. Building uses and stories are fictional. © OpenStreetMap contributors, ODbL 1.0.',
     image:`local/${id}/map`,thumbnail:`local/${id}/thumbnail`,width,height,theme:'Dragonsgate ink',region:'Your atlas',directoryScope:'all',tags:['world import','fantasy'],
@@ -49,13 +57,20 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
   if(data.preparedSource){map.worldImport.preparedSource=structuredClone(data.preparedSource);map.worldImport.dataTimestamp=data.preparedSource.snapshot;map.worldImport.attribution='© OpenStreetMap contributors · Natural Earth · Protomaps';map.description+=' Prepared geometry: Protomaps/OpenStreetMap and Natural Earth, March 2026 snapshot.';}
   const represented=new Set();
   for(const e of data.elements||[])if(e.type==='relation'&&polygons(e).length&&featureKind(e.tags))for(const member of e.members||[])if(member.type==='way'&&(member.role==='outer'||member.role==='inner'||!member.role))represented.add(member.ref);
+  let currentName;
   const add=(key,category,type,shape,visual)=>{
     const points=shape.points;if(!points?.length)return;
     const [x,y]=shape.kind==='polygon'?anchor(points,shape.holes):points[Math.floor(points.length/2)];
-    locations.push({id:key,category,type,district:'imported-area',x,y,shape,worldStyle:visual});
+    locations.push({id:key,category,type,district:'imported-area',x,y,shape,worldStyle:{...visual,...(currentName?{sourceName:currentName}:{})}});
   };
   for(const e of [...(data.elements||[])].sort((a,b)=>a.type.localeCompare(b.type)||a.id-b.id)) {
+    currentName=e.tags?.name;
     const t=e.tags||{},kind=featureKind(t),key=`osm-${e.type}-${e.id}`;
+    if(e.tags?.place&&['neighbourhood','quarter','suburb'].includes(e.tags.place)||e.tags?.boundary==='administrative') {
+      const boundaries=polygons(e).map(p=>({kind:'polygon',points:clipRing(p.points.map(p=>project(...p)),width,height)})).filter(p=>p.points.length>=3);
+      if(boundaries.length)mappedDistricts.push({name:e.tags.name||`Neighborhood ${mappedDistricts.length+1}`,boundaries});
+      continue;
+    }
     if(!kind||(e.type==='way'&&represented.has(e.id)))continue;
     if(kind==='tree'){if(Number.isFinite(e.lon)&&Number.isFinite(e.lat))trees.push(project(e.lon,e.lat));continue;}
     if(kind==='coast'){coasts.push(coordinates(e.geometry).map(p=>project(...p)));continue;}
@@ -69,13 +84,14 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
     for(const [i,polygon] of polygons(e).entries()) {
       const points=clipRing(polygon.points.map(p=>project(...p)),width,height);if(points.length<3)continue;
       const holes=polygon.holes.map(r=>clipRing(r.map(p=>project(...p)),width,height)).filter(r=>r.length&&r.every(([x,y])=>ringContains(points,x,y)));
-      const category=kind==='building'?'home':kind==='water'?'water':'terrain';
-      const type=kind==='building'?'home':kind==='water'?(t.water==='sea'?'sea':t.water==='pond'?'pond':t.water==='river'?'river':'lake'):terrainType(t);
+      const category=kind==='building'?buildingUse(t)[0]:kind==='water'?'water':'terrain';
+      const type=kind==='building'?buildingUse(t)[1]:kind==='water'?(['sea','pond','river','canal','stream'].includes(t.water)?t.water:t.waterway==='riverbank'?'river':'lake'):terrainType(t);
       add(`${key}-${i}`,category,type,{kind:'polygon',points,...(holes.length?{holes}:{})},{kind,landuse:t.landuse||t.leisure||t.natural||'',area:Math.abs(ringArea(points))});
     }
   }
+  currentName=undefined;
   coastalWater(coasts,width,height).forEach((shape,i)=>add(`coastal-water-${i}`,'water','sea',{kind:'polygon',...shape},{kind:'water'}));
   if(!locations.length)throw new Error('No mapped features found in this selection. Choose a built-up area or a larger selection.');
   if(locations.length>12000)throw new Error('More than 12,000 features found. Select a smaller area.');
-  linkStreets(map);validateMap(map);return {map:numberSites(map),trees:trees.filter(([x,y])=>x>=0&&y>=0&&x<=width&&y<=height)};
+  const stitched=reconcileWater(map);linkStreets(stitched);enrichSettlement(stitched,settlement,mappedDistricts);validateMap(stitched);return {map:numberSites(stitched),trees:trees.filter(([x,y])=>x>=0&&y>=0&&x<=width&&y<=height)};
 }
