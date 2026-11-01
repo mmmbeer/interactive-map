@@ -70,7 +70,7 @@ test('area guards reject world-sized queries and incomplete service responses',a
   const original=globalThis.fetch;
   try {
     globalThis.fetch=async()=>({ok:true,headers:new Headers(),json:async()=>({remark:'runtime error',elements:fixture.elements})});
-    await assert.rejects(()=>fetchArea(bounds),/complete area/);
+    await assert.rejects(()=>fetchArea(bounds),/not responding/);
     globalThis.fetch=async()=>({ok:false,status:429});await assert.rejects(()=>fetchArea(bounds),/busy/);
   }finally{globalThis.fetch=original;}
 });

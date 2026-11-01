@@ -66,17 +66,31 @@ export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{
     ctx.fillStyle='#273531';ctx.fillText(credit,map.width-textWidth-pad,map.height-pad*.6);
   } finally {ctx.restore();}
 }
-export function canvasBlob(canvas,type='image/png') {
-  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Could not encode the image. Try a lower resolution.')),type,.9));
+export function canvasBlob(canvas,type='image/png',signal) {
+  return new Promise((resolve,reject)=>{
+    const abort=()=>reject(signal.reason);
+    if(signal?.aborted){abort();return;}
+    signal?.addEventListener('abort',abort,{once:true});
+    try {
+      canvas.toBlob(blob=>{
+        signal?.removeEventListener('abort',abort);
+        if(signal?.aborted){abort();return;}
+        blob?resolve(blob):reject(new Error('Could not encode the image. Try a lower resolution.'));
+      },type,.9);
+    }catch(e){signal?.removeEventListener('abort',abort);reject(e);}
+  });
 }
 export function downloadBlob(blob,filename) {
   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
 export async function imageFiles(result,settings,signal) {
-  const canvas=document.createElement('canvas');await renderFantasy(canvas,result,settings,{edge:Math.max(result.map.width,result.map.height),signal});
-  signal?.throwIfAborted();const image=await canvasBlob(canvas),thumbnailCanvas=document.createElement('canvas');
-  thumbnailCanvas.width=360;thumbnailCanvas.height=Math.round(360*canvas.height/canvas.width);
-  thumbnailCanvas.getContext('2d').drawImage(canvas,0,0,thumbnailCanvas.width,thumbnailCanvas.height);
-  const thumbnail=await canvasBlob(thumbnailCanvas,'image/webp');canvas.width=canvas.height=1;
-  return {image,thumbnail};
+  const canvas=document.createElement('canvas'),thumbnailCanvas=document.createElement('canvas');
+  try {
+    await renderFantasy(canvas,result,settings,{edge:Math.max(result.map.width,result.map.height),signal});
+    signal?.throwIfAborted();const image=await canvasBlob(canvas,'image/png',signal);
+    thumbnailCanvas.width=360;thumbnailCanvas.height=Math.round(360*canvas.height/canvas.width);
+    thumbnailCanvas.getContext('2d').drawImage(canvas,0,0,thumbnailCanvas.width,thumbnailCanvas.height);
+    const thumbnail=await canvasBlob(thumbnailCanvas,'image/webp',signal);signal?.throwIfAborted();
+    return {image,thumbnail};
+  }finally{canvas.width=canvas.height=1;thumbnailCanvas.width=thumbnailCanvas.height=1;}
 }

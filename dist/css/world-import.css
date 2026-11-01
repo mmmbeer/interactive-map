@@ -50,7 +50,8 @@
 .world-status{font-size:12px;line-height:1.5;margin:0;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:6px;min-height:42px}
 .world-footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
 .world-footer .button{font-size:12px;min-height:42px}
-.world-footer #world-generate{margin-right:auto}
+.world-footer #world-generate,.world-footer #world-cancel{margin-right:auto}
+.world-elapsed{white-space:nowrap;font-variant-numeric:tabular-nums}
 .world-import button:disabled{opacity:.45;cursor:default}
 .library-create-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .library-create-actions .upload-map-button{margin:0;font-size:12px;padding:10px 12px;flex:1;white-space:nowrap}
