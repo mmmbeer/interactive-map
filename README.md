@@ -6,6 +6,8 @@ See [the Dragonsgate survey](docs/dragonsgate-survey.md) for coverage, assumptio
 
 Grave sites can load NPC Sorrow stories. Guilds, merchants and other posting locations can load D&D Help Board quests. Both integrations use location seeds and context with player and DM links. See [connected content](docs/connected-content.md) for eligibility, local settings and API behavior.
 
+Use **Real-world map** to open a world-map modal, select a square, landscape or portrait area, and create a label-free Dragonsgate-style map. Download a high-resolution PNG or save the image and exact selectable geometry locally. See [world-map import](docs/world-map-import.md).
+
 ## Run and build
 
 Requires Node.js 22 or newer. There are no third-party runtime or build dependencies.
@@ -67,7 +69,7 @@ See [docs/adding-maps.md](docs/adding-maps.md) for the format and complete workf
 - Sea polygons with island exclusions and matching hit testing.
 - Individual map/place links, clipboard sharing and a copyable-link fallback.
 - Keyboard controls: `/` search, arrows pan, `+`/`-` zoom, `0` fit, Escape close.
-- Local assets only. No analytics, remote fonts or external map service.
+- Bundled maps use local assets. No analytics or remote fonts. Optional real-world imports use external navigation tiles and an Overpass data service.
 
 The source map is an unlabeled raster. Roof footprints and small lanes are approximate at its 948 × 1,659 resolution. Building functions, district names, residents and stories are fictional additions. Some joined structures share a footprint. Building addresses reference saved mapped roads. The original 54 landmark links remain available; ordinary building ids were rebuilt from roof coordinates for the explicitly requested fresh survey.
 

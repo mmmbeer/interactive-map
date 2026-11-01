@@ -4,6 +4,7 @@ import { validateMap } from './map-contract.js';
 import { MapStage } from './map-stage.js';
 import { tooltipHTML } from './places.js';
 
+import { openWorldImport } from './world-maps/dialog.js';
 import { openMapUpload } from './local-maps/upload.js';
 import { readLocalMap, hydrateLocalMap } from './local-maps/store.js';
 
@@ -14,7 +15,7 @@ export function renderLibrary(root, maps, signal) {
     <header class="site-header">${brand()}<nav aria-label="Main navigation"><a class="current" href="#collection"><span class="nav-dot"></span>Maps <span class="nav-count">${String(maps.length).padStart(2,'0')}</span></a><button class="button quiet" id="guide-toggle" aria-label="Quick guide" aria-expanded="false" aria-controls="field-guide">${icon('info')}<span>Quick guide</span></button></nav></header>
     <main class="library-workspace" id="main-content">
       <section class="library-panel" id="collection" aria-labelledby="collection-title">
-        <button class="button primary upload-map-button" id="upload-map">${icon('plus')} Upload map</button><div class="library-heading"><span class="eyebrow">THE COLLECTION</span><h1 id="collection-title">Find your<br> next <span>somewhere.</span></h1><p>Choose a map. Get to know every corner.</p></div>
+        <div class="library-create-actions"><button class="button primary upload-map-button" id="world-import">${icon('compass')} Real-world map</button><button class="button upload-map-button" id="upload-map">${icon('plus')} Upload map</button></div><div class="library-heading"><span class="eyebrow">THE COLLECTION</span><h1 id="collection-title">Find your<br> next <span>somewhere.</span></h1><p>Choose a map. Get to know every corner.</p></div>
         <label class="search-field">${icon('search')}<input type="search" id="map-search" placeholder="Find a world…" aria-label="Search maps"></label>
         <div class="library-list" role="group" aria-label="Choose a map">${maps.map((m,i)=>`<button class="library-map ${i===0?'active':''}" data-map="${escape(m.id)}" aria-pressed="${i===0}"><span class="map-index">${String(i+1).padStart(2,'0')}</span><img src="${escape(m.thumbnail)}" alt=""><span class="library-map-copy"><strong>${escape(m.name)}</strong><span>${escape(m.theme)} · ${number(m.locationCount)} places</span></span>${icon('arrow')}</button>`).join('')}</div>
         <p class="no-maps" role="status" hidden>No maps match your search.</p>
@@ -75,6 +76,7 @@ export function renderLibrary(root, maps, signal) {
   }
   on(root,'click',e=>{
     const button=e.target.closest('button');if(!button)return;
+    if(button.id==='world-import')openWorldImport(id=>{location.hash=`map/${id}`;},signal);
     if(button.id==='upload-map')openMapUpload(id=>{location.hash=`map/${id}`;},signal);
     if(button.dataset.map)choose(maps.find(m=>m.id===button.dataset.map));
     if(button.id==='guide-toggle'){

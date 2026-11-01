@@ -31,3 +31,8 @@ export { socialGraph, residentAt, householdAt, storiesAt } from './generation/so
 export { socialSources, scenarios } from './generation/social/sources.js';
 export { householdTypes } from './generation/social/household-types.js';
 export { compatibleProducts } from './generation/social/goods.js';
+
+export { convertArea as convertWorldArea } from './world-maps/model.js';
+export { queryFor as worldAreaQuery, fetchArea as fetchWorldArea } from './world-maps/source.js';
+export { imageProjection, clipRing, clipLines } from './world-maps/geo.js';
+export { renderFantasy, imageFiles, DRAGONSGATE } from './world-maps/render.js';
