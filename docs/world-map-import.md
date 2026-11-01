@@ -14,7 +14,9 @@ The navigation map offers OpenStreetMap streets and OpenTopoMap terrain. If one 
 
 Runtime uses browser APIs and ES modules with no framework, map-library dependency, key or backend. `world-view.js` implements a slippy tile viewport with pointer dragging, pinch zoom, wheel zoom, double click and keyboard controls. `geo.js` defines the crop, Web Mercator projection and image clipping.
 
-`source.js` makes a bounded Overpass POST to `https://overpass.private.coffee/api/interpreter`. The provider permits application use without registration. The most recent successful response is cached in memory for style changes. Requests time out and are cancelled when the modal closes. Incomplete results are rejected instead of silently saving partial maps.
+`source.js` makes bounded Overpass POSTs to Private.coffee with the main Overpass API as a fallback. Each attempt has a 15-second deadline covering connection, headers, body download and decoding. A stalled first service automatically switches to the second. Network and server errors can fail over; rate limits and oversized responses cannot. The most recently successful service is tried first for subsequent selections. The latest complete result is cached for style changes.
+
+The modal shows elapsed time and received kilobytes. **Cancel** stops a download or render without discarding the selection and settings. Both a caller abort and the deadline explicitly settle the request, even if a browser does not settle its underlying fetch or body reader. Deadlines are checked again when a suspended page resumes. Streamed responses are capped at 12 MiB even without a Content-Length header. Incomplete responses and late replies are never cached. A small area can still be delayed by a public service queue; a smaller crop is not always the remedy.
 
 `osm.js` stitches multipolygon members and preserves holes. `model.js` converts source geometry directly into the compact atlas schema. Building polygons, clipped road centerlines, water and land all use the same projection as the renderer. Roads have inferred physical widths when source widths are missing. Nearby buildings reference imported roads. Original source names and addresses are not copied into generated text. OSM identifiers remain part of location IDs. The selected bounds and seed determine the generation identity, independently of the new local storage ID.
 
@@ -33,6 +35,7 @@ Navigation requests use the browser's normal cache and Referer and request only 
 - [OSM tile policy](https://operations.osmfoundation.org/policies/tiles/)
 - [OpenTopoMap usage and attribution](https://opentopomap.org/about)
 - [Overpass by Private.coffee terms and privacy](https://overpass.private.coffee/)
+- [Main Overpass API usage guidance](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html)
 - [OSM copyright and ODbL](https://www.openstreetmap.org/copyright)
 
 Attribution remains visible in navigation and exported artwork. Backups include ODbL and source links. Distributed derived geometry remains subject to ODbL. Keep source-geometry licensing separate from generated story text. For larger traffic, configure an appropriate hosted or self-hosted data service and update the explicit origins in `public/_headers` alongside the service URLs. No API secrets belong in browser code.
