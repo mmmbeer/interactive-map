@@ -4,7 +4,7 @@
 .world-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--line)}
 .world-header h2{font:500 26px var(--serif);margin:6px 0 0}
 .world-header .icon-button{flex-shrink:0}
-.world-body{display:grid;grid-template-columns:290px minmax(0,1fr);flex:1;min-height:0}
+.world-body{display:grid;grid-template-columns:340px minmax(0,1fr);flex:1;min-height:0}
 .world-settings{overflow:auto;padding:16px 20px;border-right:1px solid var(--line);font-size:12px}
 .world-settings label{display:block;margin:0 0 14px}
 .world-settings input:not([type=radio]):not([type=checkbox]),.world-settings select{display:block;width:100%;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:6px;padding:7px;margin-top:6px;background:var(--paper);color:var(--ink);font:inherit}
@@ -66,3 +66,12 @@
   .world-footer{padding:10px;gap:6px}.world-footer .button{flex:1;font-size:10px;padding:8px;min-width:120px}
   .world-pan-help{max-width:65%;line-height:1.4}.world-area{font-size:10px}
 }
+.world-setup-tabs{display:flex;gap:6px;position:sticky;top:-16px;z-index:3;background:var(--paper);padding:4px 0 12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.world-setup-tabs .button{flex:1;padding:8px 6px;font-size:11px;min-height:40px}
+.world-setup-tabs [aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.world-feature-checks{display:grid;grid-template-columns:1fr;gap:2px}
+.world-feature-checks .world-checkbox{margin:0;align-items:center;min-height:36px;font-size:12px}
+.world-feature-checks input{flex-shrink:0;accent-color:var(--amber-glow)}
+.world-step-intro{margin-top:0!important}
+.world-preview-toggle{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;color:#283d31;margin:8px 0}
+@media(max-width:760px){.world-feature-checks{grid-template-columns:1fr 1fr}.world-setup-tabs{top:-14px}.world-art canvas{max-height:235px}.world-body:has([data-world-step=settlement]:not([hidden])) .world-settings{order:0}.world-body:has([data-world-step=settlement]:not([hidden])) .world-workspace{min-height:320px}}

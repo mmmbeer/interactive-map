@@ -14,7 +14,8 @@ export function preparedTags(f) {
   if(['landuse','natural','landcover'].includes(f.layer)&&f.type===3) {
     if(['forest','wood','scrub'].includes(k))return {natural:k==='forest'?'wood':k};
     if(k==='wetland')return {natural:'wetland'};
-    if(['farmland','farmyard','orchard','vineyard','cemetery','meadow','grass','grassland','recreation_ground'].includes(k))return {landuse:k==='grassland'?'grass':k};
+    if(k==='farmland'&&['orchard','vineyard','pasture','meadow','farmyard'].includes(p.kind_detail))return {landuse:p.kind_detail};
+    if(['farmland','farmyard','pasture','orchard','vineyard','cemetery','meadow','grass','grassland','recreation_ground'].includes(k))return {landuse:k==='grassland'?'grass':k};
     if(['park','garden','nature_reserve','national_park','golf_course','playground'].includes(k))return {leisure:k};
   }
   if(f.layer==='pois'&&f.type===1&&k==='tree')return {natural:'tree'};
@@ -25,6 +26,7 @@ export class PreparedGeometry {
   add(features,x,y) {
     for(const f of features) {
       const tags=preparedTags(f);if(!tags)continue;
+      if(f.layer==='water'&&f.properties.name)tags.name=f.properties.name;
       const local=f.paths.map(path=>path.map(([a,b])=>[a*SIZE/f.extent,b*SIZE/f.extent]));
       const signature=JSON.stringify(tags),identity=f.id&&f.id!=='0'?f.id:fingerprint(signature);
       const id=`prepared-${f.layer}-${identity}-${fingerprint(signature)}`,groupKey=id;

@@ -1,3 +1,4 @@
+import { resolveLocationId } from './world-maps/water.js';
 import { ConnectedContent } from './integrations/panel.js';
 import { TravelTools } from './travel/tools.js';
 import { siteNumbers } from './site-index.js';
@@ -137,7 +138,7 @@ export class AtlasViewer {
     if(innerWidth<=760)this.openDirectory(false);
   }
   selectById(id,focus=false) {
-    const place=this.data.locations.find(p=>p.id===id);
+    const place=this.data.locations.find(p=>p.id===resolveLocationId(this.data,id));
     if(place)this.select(place,true,focus);
     else toast('This place is not in the atlas. Choose a place from the directory.');
   }

@@ -1,3 +1,4 @@
+import { resolveLocationId, upgradeWorldWater } from './world-maps/water.js';
 import { escape, icon, loadJSON } from './ui.js';
 import { renderLibrary } from './library.js';
 import { readDraft } from './authoring/drafts.js';
@@ -88,7 +89,7 @@ async function route() {
       viewer = new AtlasViewer(root, data, {source:next,generationSource:snapshot,published:source,onChange:mount,local:next!==source,stale:draft.stale,generationSettings:settings,onGenerationChange,
         localMap:Boolean(record),
         onSave:saveEdit,
-        onRestore:record ? async()=>{const map=numberSites(record.initialMap,record.map);record=await saveLocalMap(map,record.image,record.thumbnail,record.initialMap);return record.map;} : null,
+        onRestore:record ? async()=>{const map=numberSites(upgradeWorldWater(record.initialMap),record.map);record=await saveLocalMap(map,record.image,record.thumbnail,record.initialMap);return record.map;} : null,
         onBackup:record ? ()=>exportBackup(record,generationSettings) : null,
         onDelete:record ? async()=>{await deleteLocalMap(record.id);location.hash='';} : null});
       if(filters) {
@@ -105,7 +106,7 @@ async function route() {
         for(const [key,value] of Object.entries(layers)) viewer.root.querySelector(`#toggle-${key}`).setAttribute('aria-pressed',value);
         viewer.stage.render();
       }
-      if(selectedId) viewer.select(viewer.data.locations.find(p=>p.id===selectedId),!view);
+      if(selectedId) viewer.select(viewer.data.locations.find(p=>p.id===resolveLocationId(viewer.data,selectedId)),!view);
     };
     mount(draft.map,placeId);
   } catch (error) {

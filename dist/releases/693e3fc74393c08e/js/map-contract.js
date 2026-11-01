@@ -119,6 +119,10 @@ export function validateMap(map) {
       for (const key of ['address','person','rumor']) check(p[key]===undefined || typeof p[key]==='string',`${prefix}: ${key} must be text.`);
     }
   }
+  if(map.locationAliases!==undefined) {
+    check(map.locationAliases&&typeof map.locationAliases==='object'&&!Array.isArray(map.locationAliases),'Location aliases must be an object.');
+    for(const [from,to] of Object.entries(map.locationAliases))check(slug(from)&&!ids.has(from)&&ids.has(to),'Invalid location alias.');
+  }
   validateGeography(map);
   validateSocialMap(map,check);
   if (map.initialView) {
