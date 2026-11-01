@@ -69,7 +69,7 @@ See [docs/adding-maps.md](docs/adding-maps.md) for the format and complete workf
 - Sea polygons with island exclusions and matching hit testing.
 - Individual map/place links, clipboard sharing and a copyable-link fallback.
 - Keyboard controls: `/` search, arrows pan, `+`/`-` zoom, `0` fit, Escape close.
-- Bundled maps use local assets. No analytics or remote fonts. Optional real-world imports use external navigation tiles and an Overpass data service.
+- Bundled maps use local assets. No analytics or remote fonts. Optional real-world imports use external navigation tiles and prepared map-data cutouts. Live Overpass data is also available.
 
 The source map is an unlabeled raster. Roof footprints and small lanes are approximate at its 948 × 1,659 resolution. Building functions, district names, residents and stories are fictional additions. Some joined structures share a footprint. Building addresses reference saved mapped roads. The original 54 landmark links remain available; ordinary building ids were rebuilt from roof coordinates for the explicitly requested fresh survey.
 
