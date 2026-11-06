@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { planDecorations, markBounds, biomeFor } from '../public/js/world-maps/decoration-plan.js';
+import { planDecorations, markBounds, markCollisionBounds, biomeFor } from '../public/js/world-maps/decoration-plan.js';
 import { decorationSpace, fits, crosses, overlaps } from '../public/js/world-maps/decoration-geometry.js';
 import { cartographyMap } from './fixtures/cartography-map.mjs';
 test('hand drawn details follow biomes, remain deterministic and leave source geometry untouched',async()=>{
@@ -18,9 +18,10 @@ test('hand drawn details follow biomes, remain deterministic and leave source ge
   const space=decorationSpace(map,1),byId=new Map(map.locations.map(p=>[p.id,p]));
   for(const mark of marks) {
     const box=markBounds(mark,1);
-    assert.ok(space.free(box,!!(mark.harbor||mark.water)),`Obstructed ${mark.kind} at ${mark.x},${mark.y}`);
+    const collision=markCollisionBounds(mark);
+    assert.ok(space.free(box,!!(mark.harbor||mark.water),collision),`Obstructed ${mark.kind} at ${mark.x},${mark.y}`);
     if(mark.region)assert.ok(fits(byId.get(mark.region),box),'Full symbol must fit the parcel, including its holes.');
-    space.claim(box);
+    space.claim(collision);
   }
 });
 test('thin roads, interior holes and concave parcel edges block an entire symbol footprint',()=>{

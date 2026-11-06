@@ -40,7 +40,13 @@ The synthetic terrain sampler below demonstrates the symbols, parcel holes and o
 
 ![Ink terrain sampler](world-map-ink-preview.jpg)
 
-The plan uses the import seed, feature IDs and image coordinates. Preview and full-resolution exports share the same placements. Local storage IDs, feature array order and preview size do not affect the plan. `decoration-geometry.js` indexes road, water and building geometry and checks each symbol's complete rotated footprint. Parcel holes, narrow roads, concave boundaries, roofs, other symbols and the image edges remain clear. Water is painted over terrain so overlapping source land-cover polygons cannot hide rivers. Density zero removes woodland, orchard, park and mapped tree marks while retaining burial, wetland and harbor detail.
+The plan uses the import seed, feature IDs and image coordinates. Preview and full-resolution exports share the same placements. Local storage IDs, feature array order and preview size do not affect the plan. `decoration-geometry.js` indexes road, water and building geometry and checks each symbol's complete rotated footprint. Parcel holes, narrow roads, concave boundaries, roofs and the image edges remain clear. Vegetation uses a smaller spacing core so neighboring canopies and grass clumps can overlap into thickets; boats, graves and rocks retain their full separation. Water is painted over terrain so overlapping source land-cover polygons cannot hide rivers. Density zero removes woodland, orchard, park and mapped tree marks while retaining burial, wetland and harbor detail.
+
+`decoration-noise.js` supplies a seeded, continuous field shared across the map. Domain warping bends the sampling coordinates, and three noise scales combine broad groves, smaller clusters and local variations. Nonlinear density filtering leaves clearings and concentrates vegetation in richer patches. The field also groups reeds, meadow details and water ripples, and varies symbol sizes locally. Orchards retain planted rows and burial grounds retain recognizable groups with gentler density variation. Mapped individual trees stay at their source coordinates. Raising tree density adds candidates in the same groves and preserves open glades, including on large parcels that previously hit the attempt cap at every slider setting.
+
+The comparison uses the same synthetic woodland parcel and density setting. The left image shows the earlier distribution; the right shows warped noise and looser canopy spacing.
+
+![Woodland distribution before and after noise filtering](world-map-noise-comparison.jpg)
 
 Placement uses bounded attempts, at most 14,000 symbols, spatial bins and periodic cancellation checks. Symbols load from one same-origin spritesheet and remain safe for PNG and thumbnail export. Existing saved map images and authored Dragonsgate/Grayhaven artwork are retained. Reimport a location to create artwork with the new style.
 
