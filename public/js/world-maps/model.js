@@ -53,7 +53,8 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
     image:`local/${id}/map`,thumbnail:`local/${id}/thumbnail`,width,height,theme:'Dragonsgate ink',region:'Your atlas',directoryScope:'all',tags:['world import','fantasy'],
     generator:{version:2,detailsVersion:2,socialVersion:1,proseVersion:1,seed,defaults:{demographics:{race:'human'}}},
     measurement:{metersPerPixel:mpp,unit:'m'},districts:[{id:'imported-area',name:'Imported area'}],locations,
-    worldImport:{version:1,bounds,projection:'web-mercator',dataTimestamp:data.osm3s?.timestamp_osm_base||null,attribution:'© OpenStreetMap contributors',license:'https://opendatacommons.org/licenses/odbl/1-0/',source:'https://www.openstreetmap.org/copyright',settings}};
+    worldImport:{version:1,bounds,projection:'web-mercator',dataTimestamp:data.osm3s?.timestamp_osm_base||null,attribution:'© OpenStreetMap contributors',license:'https://opendatacommons.org/licenses/odbl/1-0/',source:'https://www.openstreetmap.org/copyright',settings,
+      artwork:{version:2,symbols:'Kenney Cartography Pack (2020)',symbolLicense:'CC0-1.0',symbolSource:'https://kenney.nl/assets/cartography-pack'}}};
   if(data.preparedSource){map.worldImport.preparedSource=structuredClone(data.preparedSource);map.worldImport.dataTimestamp=data.preparedSource.snapshot;map.worldImport.attribution='© OpenStreetMap contributors · Natural Earth · Protomaps';map.description+=' Prepared geometry: Protomaps/OpenStreetMap and Natural Earth, March 2026 snapshot.';}
   const represented=new Set();
   for(const e of data.elements||[])if(e.type==='relation'&&polygons(e).length&&featureKind(e.tags))for(const member of e.members||[])if(member.type==='way'&&(member.role==='outer'||member.role==='inner'||!member.role))represented.add(member.ref);
