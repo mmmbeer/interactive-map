@@ -1,5 +1,6 @@
 import { boundsFor, contains } from '../geometry.js';
 import { decorationSpace, fits, spatialIndex } from './decoration-geometry.js';
+import { terrainNoise, scatterProbability } from './decoration-noise.js';
 export function seededRandom(value) {
   let n=2166136261;for(const c of String(value)){n^=c.charCodeAt(0);n=Math.imul(n,16777619);}
   return ()=>{n+=0x6D2B79F5;let t=n;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};
@@ -28,11 +29,16 @@ export function markBounds(mark,padding=0) {
   const r=mark.size*(Math.abs(Math.cos(mark.angle))+Math.abs(Math.sin(mark.angle)))/2+padding;
   return [mark.x-r,mark.y-r,r*2,r*2];
 }
+export function markCollisionBounds(mark) {
+  const box=markBounds(mark),factor=treeKinds.includes(mark.kind)?.64:['grass','reeds'].includes(mark.kind)?.75:1;
+  const w=box[2]*factor,h=box[3]*factor;
+  return [mark.x-w/2,mark.y-h/2,w,h];
+}
 // Geometry only. Resolution-independent plans are shared by preview and export.
 // Decorative marks never become locations or change surveyed geometry or IDs.
 export async function planDecorations(map,{trees=[],treeDensity=1,signal}={}) {
   const unit=map.width/4096,space=decorationSpace(map,unit),marks=[],land=spatialIndex(128*unit);
-  const seed=`${map.generationId}:${map.generator?.seed||''}:ink-v1`;
+  const seed=`${map.generationId}:${map.generator?.seed||''}:ink-v2`,field=terrainNoise(seed,unit);
   const places=[...map.locations].sort((a,b)=>a.id.localeCompare(b.id));
   let attempts=0;
   const density=Math.max(0,Math.min(2,Number(treeDensity)||0));
@@ -41,9 +47,9 @@ export async function planDecorations(map,{trees=[],treeDensity=1,signal}={}) {
   }
   const place=(mark,region,onWater=false)=>{
     if(marks.length>=14000)return false;
-    const box=markBounds(mark,unit);
-    if(region&&!fits(region,box)||!space.free(box,onWater))return false;
-    marks.push(mark);space.claim(box);return true;
+    const box=markBounds(mark,unit),collision=markCollisionBounds(mark);
+    if(region&&!fits(region,box)||!space.free(box,onWater,collision))return false;
+    marks.push(mark);space.claim(collision);return true;
   };
   // Preserve individual mapped trees, but leave roads, roofs and water clear.
   if(density)for(const [x,y] of [...trees].sort((a,b)=>a[1]-b[1]||a[0]-b[0]).slice(0,14000)) {
@@ -67,7 +73,9 @@ export async function planDecorations(map,{trees=[],treeDensity=1,signal}={}) {
     const count=Math.min(250,Math.ceil(w*h/(30000*unit*unit)));
     for(let i=0;i<count&&attempts<65000&&marks.length<14000;i++) {
       await checkpoint();
-      place({x:x+rand()*w,y:y+rand()*h,kind:'ripples',size:(18+rand()*14)*unit,angle:0,water:p.id},p,true);
+      const px=x+rand()*w,py=y+rand()*h,patch=field(px,py);
+      if(rand()>scatterProbability('water',patch.coverage))continue;
+      place({x:px,y:py,kind:'ripples',size:(18+rand()*14)*unit*patch.scale,angle:0,water:p.id},p,true);
     }
   }
   for(const p of places) {
@@ -75,16 +83,15 @@ export async function planDecorations(map,{trees=[],treeDensity=1,signal}={}) {
     const bounds=boundsFor(p);land.add(p,bounds);
     if(biome==='crops')continue;
     if(['forest','orchard','park','scrub'].includes(biome)&&!density)continue;
-    const [x,y,w,h]=bounds,rand=seededRandom(`${seed}:${p.id}`),phase=rand()*Math.PI*2;
-    const frequency=['forest','scrub'].includes(biome)?density:1;
-    const count=Math.min(6000,Math.ceil(w*h/(220*unit*unit)*frequency));
+    const [x,y,w,h]=bounds,rand=seededRandom(`${seed}:${p.id}`);
+    const frequency=['forest','scrub','park','orchard'].includes(biome)?density:1;
+    const count=Math.ceil(Math.min(6000,w*h/(220*unit*unit))*frequency);
     for(let i=0;i<count&&attempts<65000&&marks.length<14000;i++) {
       await checkpoint();const px=x+rand()*w,py=y+rand()*h;
-      // Smooth patches of density leave glades and uneven woodland edges.
-      const patch=(Math.sin(px/(110*unit)+phase)+Math.cos(py/(85*unit)-phase)+2)/4;
-      if(['forest','scrub'].includes(biome)&&patch<.3)continue;
-      if(rand()>(biome==='burial'?.8:.16+patch*.78))continue;
+      const patch=field(px,py);
+      if(rand()>scatterProbability(biome,patch.coverage))continue;
       const mark={x:px,y:py,...appearance(biome,rand,unit),region:p.id};
+      mark.size*=patch.scale;
       if(!density&&mark.kind==='bush')mark.kind='reeds';
       if(biome==='orchard') {
         // Orchard rows retain human order, with small spacing and size variations.
@@ -99,12 +106,15 @@ export async function planDecorations(map,{trees=[],treeDensity=1,signal}={}) {
   const rand=seededRandom(`${seed}:open-land`);
   for(let i=0;i<2800&&attempts<65000&&marks.length<14000;i++) {
     await checkpoint();const x=rand()*map.width,y=rand()*map.height;
-    if(rand()>.2||[...land.query([x,y,0,0])].some(p=>contains(p,x,y)))continue;
+    if([...land.query([x,y,0,0])].some(p=>contains(p,x,y)))continue;
     const environment=map.generator?.defaults?.settlement?.environment||[];
     const biome=environment.includes('wetland')?'wetland':environment.includes('woodland')?'scrub':'meadow';
+    const patch=field(x,y);
+    if(rand()>scatterProbability(biome,patch.coverage)*.65)continue;
     const mark={x,y,...appearance(biome,rand,unit),ambient:true};
     if(biome==='meadow'&&density&&rand()<.18)Object.assign(mark,{kind:'bush',size:(16+rand()*8)*unit});
     if(!density&&mark.kind==='bush')mark.kind='grass';
+    mark.size*=patch.scale;
     place(mark);
   }
   signal?.throwIfAborted();return marks.sort((a,b)=>a.y-b.y||a.x-b.x);

@@ -51,11 +51,11 @@ export function decorationSpace(map,unit) {
     if(p.category==='water')waters.push(p);
     if(p.category==='water'||p.category==='street'||p.worldStyle?.kind==='building')blockers.add(p,boundsFor(p));
   }
-  const free=(box,onWater=false)=>{
+  const free=(box,onWater=false,collisionBox=box)=>{
     if(box[0]<0||box[1]<0||box[0]+box[2]>map.width||box[1]+box[3]>map.height)return false;
     const nearby=blockers.query(box);
     for(const p of nearby)if(!(onWater&&p.category==='water')&&intersects(p,box))return false;
-    for(const b of marks.query(box))if(overlaps(b,box))return false;
+    for(const b of marks.query(collisionBox))if(overlaps(b,collisionBox))return false;
     return !onWater||[...nearby].some(p=>p.category==='water'&&fits(p,box));
   };
   waters.sort((a,b)=>a.id.localeCompare(b.id));
