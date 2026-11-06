@@ -4,7 +4,7 @@ Open **Real-world map** in the collection. Pan the world map, scroll or pinch to
 
 1. Choose square, landscape (3:2) or portrait (2:3). The fixed frame marks the exported area.
 2. Choose a 2048, 4096 or 4800 pixel long edge. The default is 4096. All formats stay below the existing 24-million-pixel image limit.
-3. Adjust the Dragonsgate preset: pale land, black building footprints, blue-gray water and fine woodland symbols. Change land/water/ink colors, road width, tree density, texture or roof details. Original map labels are omitted from the artwork.
+3. Adjust the Dragonsgate preset: pale land, black building footprints, blue-gray water and hand drawn cartography symbols. Change land/water/ink colors, road width, tree density, texture or roof details. Original map labels are omitted from the artwork.
 4. Leave **Map data** on **Prepared map data (recommended)** to avoid public query queues. This source is the March 2026 Protomaps snapshot. Choose **Live OpenStreetMap data** when you need a newer source and the Overpass services are available. Open **2. Settlement** before creating the preview. Only this action downloads feature data. Panning never runs feature queries. Selections must be below 36 km² and contain at least one mapped feature.
 5. Select the settlement type. Configure primary and optional secondary ancestry with a percentage, living standards, life-stage mix and optional residents per home. Household size applies to residences, not the whole population. Choose district planning and optional district count. Select requested sites and rural land uses. **Economy and surroundings** can supply an economic focus, resource and environment. Settlement-specific suggestions populate the feature checkboxes. Manual feature choices remain intact until you request suggestions again.
 6. Select **Create preview**. Review counts and placement warnings. **Show suggested districts in preview** toggles the planning overlay. Original mapped land uses remain present even if their checkbox is off. Requested inns, markets, guilds, temples and smithies reuse mapped footprints. Harbors need a nearby navigable water feature. Settlement type also weights the remaining mix of homes, shops and workshops. Extra fields, pasture, orchards and burial grounds use clear parcels away from source water, roads, buildings and mapped land uses. Missing space produces a warning instead of an invented building position.
@@ -28,7 +28,21 @@ The modal shows elapsed time and received kilobytes. **Cancel** stops a download
 
 `coast.js` handles connected coastline segments and islands. Coastlines must form closed rings or connect across the export frame. Incomplete coast chains cannot reliably define a sea area and are skipped. Entirely unmapped offshore selections cannot be imported.
 
-`render.js` draws vectors into a label-free image, with seeded textures and woodland symbols. Full-size exports are rendered at their requested pixel dimensions rather than enlarged from the preview. The atlas model is saved directly, without raster recognition. Distance calibration is approximate ground scale at the selection's central latitude.
+`render.js` draws vectors into a label-free image, with seeded textures and ink symbols. Full-size exports are rendered at their requested pixel dimensions rather than enlarged from the preview. The atlas model is saved directly, without raster recognition. Distance calibration is approximate ground scale at the selection's central latitude.
+
+### Hand drawn terrain
+
+New imports use locally bundled symbols from [Kenney's Cartography Pack](https://kenney.nl/assets/cartography-pack), released under CC0. The original license and asset provenance are in `public/assets/cartography/`. The export metadata records the symbol source and license separately from OSM geometry. The renderer tints the strokes to the selected ink color. Grass, reeds, subtle land washes and gently uneven crop furrows supplement the pack.
+
+`decoration-plan.js` selects tree variants and places irregular woodland clusters with open glades. Marshes receive reeds, small shrubs and water marks. Cemeteries receive varied burial groups, orchards retain loose rows and pasture receives grass and occasional stones. Sparse grass, shrubs and stones break up unclassified open ground, using the settlement's woodland or wetland environment when supplied. Boats appear only on navigable water near an imported or established harbor. Small ripple groups also decorate open water. These marks are decoration, not surveyed objects or additional searchable locations.
+
+The synthetic terrain sampler below demonstrates the symbols, parcel holes and obstruction handling. It is a renderer review fixture, not a surveyed settlement.
+
+![Ink terrain sampler](world-map-ink-preview.jpg)
+
+The plan uses the import seed, feature IDs and image coordinates. Preview and full-resolution exports share the same placements. Local storage IDs, feature array order and preview size do not affect the plan. `decoration-geometry.js` indexes road, water and building geometry and checks each symbol's complete rotated footprint. Parcel holes, narrow roads, concave boundaries, roofs, other symbols and the image edges remain clear. Water is painted over terrain so overlapping source land-cover polygons cannot hide rivers. Density zero removes woodland, orchard, park and mapped tree marks while retaining burial, wetland and harbor detail.
+
+Placement uses bounded attempts, at most 14,000 symbols, spatial bins and periodic cancellation checks. Symbols load from one same-origin spritesheet and remain safe for PNG and thumbnail export. Existing saved map images and authored Dragonsgate/Grayhaven artwork are retained. Reimport a location to create artwork with the new style.
 
 ## Coverage and review
 
