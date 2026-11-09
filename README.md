@@ -141,3 +141,11 @@ Choose **Measure & route** to mark a straight distance, a multi-point path, or a
 Use **Set scale** to mark two points and enter a known distance in meters, kilometers, feet or miles. Calibration saves only to a local variation. Uncalibrated artwork shows pixel distances. Calibrated maps also show estimated walking, riding or wagon times with an optional custom speed. Road crossings are assumed to connect. The routes use saved survey geometry and do not include live conditions or elevation.
 
 The expanded stock catalog supplies 100 substantive product variants for each of 31 supported trades. The prior detail catalog remains readable. Current maps and new image uploads select the expanded catalog explicitly.
+
+### Context-sensitive imported terrain
+
+Imported open land keeps its mapped use: parks, gardens, meadows, grassland and scrub do not become cultivated fields. Narrow or elongated grass strips with sustained water frontage receive lakeshore, riverbank or shore types. A nearby corner alone is insufficient. Water proximity does not imply sand, waterlogged soil or elevation. Explicit source farms, woods, wetlands and beaches take precedence.
+
+Proposed rural plots must have usable width and a reasonably compact shape after excluding water, roads, buildings and existing land uses. If no suitable parcel exists, the importer reports the missing feature instead of filling a thin leftover strip.
+
+Saved real-world imports receive the terrain correction when opened. Edited locations, authored overrides and custom name or description templates stay intact. The original import remains recoverable. Geometry, location ids and published map catalogs are unchanged.

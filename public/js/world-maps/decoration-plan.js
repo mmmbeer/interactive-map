@@ -11,9 +11,10 @@ export function biomeFor(p) {
   if(p.type==='marsh'||['wetland','swamp','marsh'].includes(use))return 'wetland';
   if(p.type==='orchard'||use==='orchard')return 'orchard';
   if(['farmland','farmyard','vineyard'].includes(use))return 'crops';
+  if(p.type==='scrubland')return 'scrub';
   if(p.type==='forest')return use==='scrub'?'scrub':'forest';
   if(['park','garden','nature_reserve','national_park'].includes(use))return 'park';
-  if(p.category==='terrain'&&['field','pasture'].includes(p.type))return 'meadow';
+  if(p.category==='terrain'&&['field','pasture','grassland','meadow','common','lakeshore','riverbank','shore'].includes(p.type))return 'meadow';
   return null;
 }
 const treeKinds=['bush','bush','bush','pine','pineLarge','broadleaf'];

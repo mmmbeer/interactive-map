@@ -36,6 +36,6 @@ export function featureKind(tags={}) {
   if(tags.natural==='water'||tags.waterway==='riverbank')return 'water';
   if(tags.waterway&&['river','stream','canal','ditch','drain'].includes(tags.waterway))return 'river';
   if(tags.natural==='tree')return 'tree';
-  if(['wood','scrub','wetland'].includes(tags.natural)||tags.landuse||tags.leisure)return 'terrain';
+  if(['wood','scrub','wetland','beach','grassland'].includes(tags.natural)||tags.landuse||tags.leisure)return 'terrain';
   return null;
 }

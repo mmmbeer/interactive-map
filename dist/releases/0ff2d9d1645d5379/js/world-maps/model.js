@@ -22,7 +22,8 @@ function buildingUse(t) {
 }
 function terrainType(t) {
   if(t.natural==='wetland')return 'marsh';
-  if(['forest','orchard'].includes(t.landuse)||['wood','scrub'].includes(t.natural))return 'forest';
+  if(t.natural==='beach')return 'beach';
+  if(['forest','orchard'].includes(t.landuse)||t.natural==='wood')return 'forest';
   return 'field';
 }
 function roadMeters(t) {

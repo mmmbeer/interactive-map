@@ -13,6 +13,7 @@ export function preparedTags(f) {
   }
   if(['landuse','natural','landcover'].includes(f.layer)&&f.type===3) {
     if(['forest','wood','scrub'].includes(k))return {natural:k==='forest'?'wood':k};
+    if(['beach','grassland'].includes(k))return {natural:k};
     if(k==='wetland')return {natural:'wetland'};
     if(k==='farmland'&&['orchard','vineyard','pasture','meadow','farmyard'].includes(p.kind_detail))return {landuse:p.kind_detail};
     if(['farmland','farmyard','pasture','orchard','vineyard','cemetery','meadow','grass','grassland','recreation_ground'].includes(k))return {landuse:k==='grassland'?'grass':k};
