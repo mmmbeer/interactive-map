@@ -1,7 +1,18 @@
 import { escape } from '../ui.js';
+import { layoutDecisions } from './procedural-layout.js';
+import { settlementWidths } from './region-scale.js';
 import { keepSource } from './source-selection.js';
 import { buildingFeatures, landFeatures } from './settlement-profile.js';
-export function planSummary(survey,selection,profile) {
+const reasons={mapped:'Keep mapped layer',scale:'Generate · source detail unavailable at this size',missing:'Generate · no mapped features retained',deselected:'Generate · mapped layer turned off'};
+function decisionTable(decisions,actual=false) {
+  return `<table class="world-generation-table"><thead><tr><th>Layer</th><th>${actual?'Result':'Plan'}</th></tr></thead><tbody>${Object.entries(decisions).map(([key,d])=>`<tr><td>${escape(d.label||({majorRoads:'Major routes',roads:'Connecting roads',cityStreets:'City streets',paths:'Alleys and footpaths',water:'Rivers and lakes',woodland:'Woodland',openland:'Open ground',buildings:'Buildings'})[key])}</td><td>${escape(actual?(d.mode==='mapped'?`${d.source.toLocaleString()} mapped · no duplicates`:`${d.generated.toLocaleString()} generated`):reasons[d.reason])}</td></tr>`).join('')}</tbody></table>`;
+}
+export function planSummary(survey,selection,profile,{reinterpret=true}={}) {
+  if(survey.worldImport?.regionPlan) {
+    const selected={...survey,locations:survey.locations.filter(p=>keepSource(p,selection))},decisions=layoutDecisions(selected,selection),plan=survey.worldImport.regionPlan;
+    const rescale=plan.reinterpret&&reinterpret?`The geographic shape becomes a settlement about ${(settlementWidths[profile.type]/1000).toLocaleString()} km wide. Original geographic bounds stay in the backup.`:'Distances follow the selected real-world region.';
+    return `<strong>${escape(plan.label)} · mapped layers first, generation where needed</strong><p>${escape(rescale)}</p>${decisionTable(decisions)}<p>Retained layers keep their geometry. Generated rivers follow the terrain; roads avoid water and retained buildings; new buildings face the available roads. Requested rural parcels reserve clear ground.</p>`;
+  }
   const kept=survey.locations.filter(p=>keepSource(p,selection));
   const buildings=kept.filter(p=>p.worldStyle?.kind==='building').length;
   const sites=profile.features.map(k=>buildingFeatures[k][2].toLowerCase());
@@ -23,5 +34,5 @@ export function resultSummary(map) {
     items.push([label,map.locations.some(p=>p.type===type)?'Included':'Could not place']);
   }
   for(const key of actual.landFeatures)items.push([landFeatures[key],map.locations.some(p=>p.type===key||key==='graveyard'&&p.type==='cemetery')?'Included':'Could not place']);
-  return `<h3>Review your fantasy map</h3><p>${buildings.length.toLocaleString()} buildings · ${map.districts.length} districts · ${added.length} fantasy additions. ${map.width.toLocaleString()} × ${map.height.toLocaleString()} px.</p>${items.length?`<dl>${items.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`:''}${map.worldImport.planning.warnings.map(t=>`<p class="world-advice">${escape(t)}</p>`).join('')}<p>Adjust any choice and create another preview. Save on this browser or download an atlas backup to preserve the image, features and settings.</p>`;
+  return `<h3>Review your fantasy map</h3><p>${buildings.length.toLocaleString()} buildings · ${map.districts.length} district${map.districts.length===1?'':'s'} · ${added.length} fantasy additions. ${map.width.toLocaleString()} × ${map.height.toLocaleString()} px.</p>${map.worldImport.procedural?decisionTable(map.worldImport.procedural.decisions,true):''}${items.length?`<dl>${items.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`:''}${map.worldImport.planning.warnings.map(t=>`<p class="world-advice">${escape(t)}</p>`).join('')}<p>Adjust any choice and create another preview. Save on this browser or download an atlas backup to preserve the image, features and settings.</p>`;
 }
