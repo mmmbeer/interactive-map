@@ -7,7 +7,8 @@ import { planDistricts, gridBoundaries } from './settlement-districts.js';
 import { components } from '../local-maps/raster.js';
 import { contains, boundsFor, distanceToPath } from '../geometry.js';
 import { ringArea } from './geo.js';
-const agriculture={farmland:['farmland','grain'],farmyard:['farmland','livestock'],meadow:['pasture','pasture'],pasture:['pasture','pasture'],orchard:['orchard','fruit'],vineyard:['vineyard','fruit']};
+import { classifyTerrain, parcelMetrics } from './terrain-context.js';
+const agriculture={farmland:['farmland','grain'],farmyard:['farmland','livestock'],pasture:['pasture','pasture'],orchard:['orchard','fruit'],vineyard:['vineyard','fruit']};
 const hash=value=>{let n=2166136261;for(const c of value){n^=c.charCodeAt(0);n=Math.imul(n,16777619);}return n>>>0;};
 function semanticLand(map) {
   for(const p of map.locations) {
@@ -31,11 +32,17 @@ function clearPlots(map,grid,profile,warnings) {
   const homes=map.locations.filter(p=>p.category==='home');
   const distance=item=>Math.min(...homes.map(p=>Math.hypot(p.x/grid.sx-item.x,p.y/grid.sy-item.y)),w+h);
   items.sort((a,b)=>(distance(a)-Math.sqrt(a.size)*.1)-(distance(b)-Math.sqrt(b.size)*.1)||a.id-b.id);
+  const suitable=shape=>{
+    const m=parcelMetrics(shape),mpp=map.measurement?.metersPerPixel||1;
+    return m.width>=Math.max(4*Math.min(grid.sx,grid.sy),24/mpp)&&m.compactness>=.22;
+  };
+  const parcels=items.map(item=>({item,shape:gridBoundaries(labels,grid,item.id)
+    .filter(suitable).sort((a,b)=>Math.abs(ringArea(b.points))-Math.abs(ringArea(a.points)))[0]})).filter(p=>p.shape);
   for(const type of profile.landFeatures) {
     if(map.locations.some(p=>p.type===type||type==='graveyard'&&p.type==='cemetery'))continue;
-    const item=items.shift();if(!item){warnings.push(`No clear parcel was available for ${landFeatures[type].toLowerCase()}.`);continue;}
-    const shapes=gridBoundaries(labels,grid,item.id);if(!shapes.length)continue;
-    const shape=shapes.sort((a,b)=>Math.abs(ringArea(b.points))-Math.abs(ringArea(a.points)))[0];
+    const parcel=parcels.shift();
+    if(!parcel){warnings.push(`No suitable parcel was available for ${landFeatures[type].toLowerCase()}.`);continue;}
+    const {item,shape}=parcel;
     let at=labels.indexOf(item.id);const center=grid.cell((item.x+.5)*grid.sx,(item.y+.5)*grid.sy);if(labels[center]===item.id)at=center;
     // Keep an anchor inside the proposed plot after contour simplification.
     while(at<labels.length&&(labels[at]!==item.id||!contains({shape},...grid.point(at))))at++;
@@ -108,7 +115,7 @@ function districtContext(map) {
   }
 }
 export function enrichSettlement(map,input,mappedDistricts=[]) {
-  const profile=applyProfile(map,input),warnings=[];semanticLand(map);
+  const profile=applyProfile(map,input),warnings=[];semanticLand(map);classifyTerrain(map);
   const grid=settlementGrid(map);clearPlots(map,grid,profile,warnings);
   const result=planDistricts(map,grid,profile,mappedDistricts);warnings.push(...result.warnings);
   connectGeography(map);establishBuildings(map,profile,warnings);districtContext(map);

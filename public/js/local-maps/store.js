@@ -1,3 +1,4 @@
+import { upgradeLocalTerrain } from '../world-maps/terrain-context.js';
 import { upgradeWorldWater } from '../world-maps/water.js';
 import { numberSites } from '../site-index.js';
 import { validateMap } from '../map-contract.js';
@@ -40,7 +41,9 @@ export async function saveLocalMap(map,image,thumbnail,initialMap=map,{create=fa
 }
 export async function readLocalMap(id) {
   const record=await transaction('readonly',store=>store.get(id));
-  return upgradeLocalWater(record);
+  const upgraded=upgradeLocalTerrain(upgradeLocalWater(record));
+  if(upgraded!==record){validateMap(upgraded.map);upgraded.indexes=localIndexes(upgraded.map);}
+  return upgraded;
 }
 export function upgradeLocalWater(record) {
   if(!record?.map.worldImport || record.map.worldImport.waterVersion!==undefined)return record;
