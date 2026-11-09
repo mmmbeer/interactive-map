@@ -23,10 +23,10 @@ export function preparedTags(f) {
   return null;
 }
 export class PreparedGeometry {
-  constructor(z=15){this.z=z;this.groups=new Map();this.seen=new Set();this.points=[];this.vertices=0;}
+  constructor(z=15,{allowTags=()=>true}={}){this.allowTags=allowTags;this.z=z;this.groups=new Map();this.seen=new Set();this.points=[];this.vertices=0;}
   add(features,x,y) {
     for(const f of features) {
-      const tags=preparedTags(f);if(!tags)continue;
+      const tags=preparedTags(f);if(!tags||!this.allowTags(tags))continue;
       if(f.layer==='water'&&f.properties.name)tags.name=f.properties.name;
       const local=f.paths.map(path=>path.map(([a,b])=>[a*SIZE/f.extent,b*SIZE/f.extent]));
       const signature=JSON.stringify(tags),identity=f.id&&f.id!=='0'?f.id:fingerprint(signature);

@@ -23,11 +23,15 @@ export function areaInfo(bounds) {
   const width=(east-west)*111195*Math.cos(lat*Math.PI/180),height=(north-south)*111195;
   return {width,height,km2:width*height/1e6};
 }
-export function checkArea(b) {
+export function checkRegion(b) {
   if(!b||!['west','south','east','north'].every(k=>Number.isFinite(b[k]))||b.west< -180||b.east>180||b.west>=b.east||b.south>=b.north||b.south< -LIMIT||b.north>LIMIT)throw new Error('Keep the selection inside the world map. Move away from the date line or poles.');
   const area=areaInfo(b);
-  if(area.km2>36)throw new Error('Zoom in to select an area smaller than 36 km².');
   if(area.width<40||area.height<40)throw new Error('Zoom out slightly to include at least 40 metres on each side.');
+  return area;
+}
+export function checkArea(b) {
+  const area=checkRegion(b);
+  if(area.km2>36)throw new Error('Zoom in to select an area smaller than 36 km².');
   return area;
 }
 export function imageProjection(b,width,height) {

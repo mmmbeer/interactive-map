@@ -21,7 +21,7 @@ function semanticLand(map) {
     }
   }
 }
-function clearPlots(map,grid,profile,warnings) {
+export function clearPlots(map,grid,profile,warnings) {
   if(!profile.landFeatures.length)return;
   const {w,h,water,roads,occupied,terrain}=grid,clear=new Uint8Array(w*h);
   // A one-cell buffer keeps simplified plot edges away from buildings and banks.
@@ -85,7 +85,7 @@ function establishBuildings(map,profile,warnings) {
     }
     let available=candidates;
     if(feature==='harbor')available=available.filter(p=>water.has(p.context?.water)&&['river','canal','lake','sea','bay','channel','strait'].includes(water.get(p.context.water).type)&&proximity(p,water.get(p.context.water))<Math.max(map.width,map.height)*.06);
-    if(!available.length){warnings.push(`No suitable mapped footprint was available for ${label.toLowerCase()}.`);continue;}
+    if(!available.length){warnings.push(`No suitable ${map.worldImport.regionPlan?'building':'mapped'} footprint was available for ${label.toLowerCase()}.`);continue;}
     const score=p=>{
       const [bx,by,w,h]=boundsFor(p),edge=bx<1||by<1||bx+w>map.width-1||by+h>map.height-1,central=Math.hypot(p.x-center[0],p.y-center[1])/Math.max(map.width,map.height);
       return (edge?-4:0)+(p.context?.street?2:0)+Math.min(2,Math.sqrt(w*h)/Math.max(map.width,map.height)*15)-central+(hash(`${map.generator.seed}:${feature}:${p.id}`)%1000)/10000;
@@ -115,10 +115,10 @@ function districtContext(map) {
   }
 }
 export function enrichSettlement(map,input,mappedDistricts=[]) {
-  const profile=applyProfile(map,input),warnings=[];semanticLand(map);classifyTerrain(map);
+  const profile=applyProfile(map,input),warnings=[...(map.worldImport.procedural?.warnings||[])];semanticLand(map);classifyTerrain(map);
   const grid=settlementGrid(map);clearPlots(map,grid,profile,warnings);
   const result=planDistricts(map,grid,profile,mappedDistricts);warnings.push(...result.warnings);
   connectGeography(map);establishBuildings(map,profile,warnings);districtContext(map);
-  map.worldImport.planning={version:1,districts:map.districts.length,established:map.locations.filter(p=>p.worldStyle?.established).map(p=>p.id),warnings};
+  map.worldImport.planning={version:1,districts:map.districts.length,established:map.locations.filter(p=>p.worldStyle?.established).map(p=>p.id),warnings:[...new Set(warnings)]};
   return map;
 }

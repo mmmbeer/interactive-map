@@ -38,6 +38,13 @@ export class WorldView {
     this.center[0]+=dx/before-dx/after;this.center[1]+=dy/before-dy/after;this.draw();
   }
   go(lon,lat,zoom=16) {this.center=project(lon,lat);this.zoom=clamp(zoom,2,20);this.draw();}
+  fitBounds(bounds) {
+    const [left,top]=project(bounds.west,bounds.north),[right,bottom]=project(bounds.east,bounds.south);
+    const frame=frameSize(this.el.clientWidth,this.el.clientHeight,this.format);
+    this.center=[(left+right)/2,(top+bottom)/2];
+    this.zoom=clamp(Math.min(Math.log2(frame.width/(256*(right-left))),Math.log2(frame.height/(256*(bottom-top)))),2,20);
+    this.draw();
+  }
   setFormat(format) {this.format=format;this.draw();}
   setBasemap(value) {this.basemap=value;for(const img of this.tiles.values()){img.onload=img.onerror=null;img.remove();}this.tiles.clear();this.draw();}
   bounds() {return areaBounds(this.center,this.zoom,this.frameRect);}

@@ -19,5 +19,5 @@ export function sourceAt(map,x,y,selection,tolerance=5) {
   const hit=[...map.locations].reverse().filter(p=>selection.groups.includes(sourceGroup(p)))
     .sort((a,b)=>layer(b)-layer(a))
     .find(p=>contains(p,x,y)||p.shape.kind==='polyline'&&distanceToPath(p.shape.points,x,y)<=Math.max(tolerance,p.shape.width/2));
-  return hit&&sourceGroup(hit)!=='water'?hit:null;
+  return hit&&sourceGroup(hit)!==(selection.version===2?'coast':'water')?hit:null;
 }

@@ -6,6 +6,7 @@ import { archiveHeader, readDirectory, directoryEntry, tileId, MapArchive } from
 import { decodeTile, geometryPaths } from '../public/js/world-maps/mvt.js';
 import { unionTileRings } from '../public/js/world-maps/tile-seams.js';
 import { PreparedGeometry } from '../public/js/world-maps/prepared-geometry.js';
+import { regionPlan } from '../public/js/world-maps/region-scale.js';
 import { selectedTiles, fetchPreparedArea } from '../public/js/world-maps/prepared.js';
 import { readRange } from '../public/js/world-maps/range.js';
 import { convertArea } from '../public/js/world-maps/model.js';
@@ -116,4 +117,11 @@ bounded('prepared cutouts cap concurrency at four and never accept a partial set
     if(options.headers.Range!=='bytes=0-16383'&&!failed){failed=true;return new Response('',{status:503});}return fixture.fetcher(url,options);
   }}),/503/);
   const recovered=await fetchPreparedArea(b,undefined,{url:'https://partial-cutout.invalid/world.pmtiles',fetcher:fixture.fetcher});assert.equal(recovered.elements.length,9);
+});
+
+bounded('broad imports request only coarse tiles and filter out incidental building geometry',async()=>{
+  const broad={west:-25,south:62,east:-12,north:67},plan=regionPlan(broad),tiles=selectedTiles(broad,plan.zoom,{regional:true}),fixture=archiveFixture(tiles);
+  const data=await fetchPreparedArea(broad,undefined,{regional:true,url:'https://coarse-region.invalid/world.pmtiles',fetcher:fixture.fetcher});
+  assert.equal(data.preparedSource.zoom,plan.zoom);assert.ok(data.preparedSource.zoom<15);assert.equal(data.preparedSource.tileCount,tiles.length);
+  assert.equal(data.preparedSource.regionLevel,'shape');assert.deepEqual(data.elements,[]);
 });
