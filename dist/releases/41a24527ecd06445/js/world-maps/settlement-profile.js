@@ -10,7 +10,7 @@ export const recommendations=type=>({
   landFeatures:type==='farming_village'?['farmland','pasture','orchard']:['hamlet','village'].includes(type)?['farmland','pasture']:[]
 });
 export function normalizeProfile(input={}) {
-  const p={type:'town',ancestry:'human',secondary:'',secondaryPercent:25,wealth:'mixed',ages:'mixed',householdSize:null,districtMode:'suggested',districtCount:0,features:[],landFeatures:[],environment:[],resources:[],industries:[],...input};
+  const p={type:'town',ancestry:'human',secondary:'',secondaryPercent:25,wealth:'mixed',ages:'mixed',householdSize:null,districtMode:'suggested',districtCount:0,assignBusinesses:true,features:[],landFeatures:[],environment:[],resources:[],industries:[],...input};
   const check=(ok,message)=>{if(!ok)throw new Error(message);};
   check(Object.hasOwn(settlementTypes,p.type),'Choose the settlement type this area should represent.');
   check(Object.hasOwn(ancestries,p.ancestry),'Choose a supported primary ancestry.');
@@ -19,6 +19,7 @@ export function normalizeProfile(input={}) {
   check(['mixed','modest','comfortable','wealthy'].includes(p.wealth),'Choose a living standard.');
   check(Object.hasOwn(ageProfiles,p.ages),'Choose a resident age mix.');
   check(p.householdSize===null||Number.isInteger(p.householdSize)&&p.householdSize>=1&&p.householdSize<=12,'Typical residents per home must be 1 to 12, or blank for varied households.');
+  check(typeof p.assignBusinesses==='boolean','Choose whether to generate shops and workshops.');
   check(['suggested','mapped','single'].includes(p.districtMode),'Choose a district plan.');
   check(Number.isInteger(p.districtCount)&&p.districtCount>=0&&p.districtCount<=12,'Choose up to 12 districts.');
   for(const [key,allowed] of Object.entries({features:Object.keys(buildingFeatures),landFeatures:Object.keys(landFeatures),environment:environmentKeys,resources:resourceKeys,industries:industryKeys})) {
