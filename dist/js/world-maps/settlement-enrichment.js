@@ -97,7 +97,7 @@ function establishBuildings(map,profile,warnings) {
   for(const p of candidates) {
     const nearLand=p.context?.terrain&&map.locations.find(q=>q.id===p.context.terrain),rural=nearLand&&['farmland','pasture','orchard'].includes(nearLand.type);
     const share=shares[profile.type]*(p.context?.street?1:.5)*(rural?.6:1),roll=hash(`${map.generator.seed}:building-use:${p.id}`)/4294967296;
-    if(roll<share) {p.category=hash(`${map.generator.seed}:business:${p.id}`)%2?'shop':'workshop';p.type=p.category;p.worldStyle={...p.worldStyle,useAssigned:true};}
+    if(profile.assignBusinesses&&roll<share) {p.category=hash(`${map.generator.seed}:business:${p.id}`)%2?'shop':'workshop';p.type=p.category;p.worldStyle={...p.worldStyle,useAssigned:true};}
   }
   for(const p of candidates.filter(p=>p.category==='home'))if(profile.householdSize!==null)p.generation={...p.generation,demographics:{...p.generation?.demographics,population:profile.householdSize}};
 }

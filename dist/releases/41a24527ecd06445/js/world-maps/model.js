@@ -5,6 +5,7 @@ import { ringContains, distanceToPath } from '../geometry.js';
 import { validateMap } from '../map-contract.js';
 import { enrichSettlement } from './settlement-enrichment.js';
 import { reconcileWater } from './water.js';
+import { selectSource } from './source-selection.js';
 import { numberSites } from '../site-index.js';
 export function hash(value) {let n=2166136261;for(const c of String(value)){n^=c.charCodeAt(0);n=Math.imul(n,16777619);}return n>>>0;}
 function anchor(points,holes=[]) {
@@ -47,7 +48,7 @@ function linkStreets(map) {
     if(best)p.context={street:best.id};
   }
 }
-export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={}}) {
+export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={},sourceSelection,survey=false}) {
   const area=checkArea(bounds),project=imageProjection(bounds,width,height),locations=[],coasts=[],trees=[],mappedDistricts=[];
   const mpp=area.width/width,visualScale=width/4096;
   const map={schemaVersion:2,id,generationId:`world-${hash(JSON.stringify(bounds)).toString(16)}`,name,subtitle:'A real place, reimagined',description:'Fantasy artwork derived from OpenStreetMap geometry. Building uses and stories are fictional. © OpenStreetMap contributors, ODbL 1.0.',
@@ -95,5 +96,10 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
   coastalWater(coasts,width,height).forEach((shape,i)=>add(`coastal-water-${i}`,'water','sea',{kind:'polygon',...shape},{kind:'water'}));
   if(!locations.length)throw new Error('No mapped features found in this selection. Choose a built-up area or a larger selection.');
   if(locations.length>12000)throw new Error('More than 12,000 features found. Select a smaller area.');
-  const stitched=reconcileWater(map);linkStreets(stitched);enrichSettlement(stitched,settlement,mappedDistricts);validateMap(stitched);return {map:numberSites(stitched),trees:trees.filter(([x,y])=>x>=0&&y>=0&&x<=width&&y<=height)};
+  const stitched=reconcileWater(map);let selection;
+  if(!survey) {
+    if(sourceSelection)selection=selectSource(stitched,sourceSelection);
+    linkStreets(stitched);enrichSettlement(stitched,settlement,mappedDistricts);
+  }
+  validateMap(stitched);return {map:numberSites(stitched),trees:(selection&&!selection.groups.includes('woodland')?[]:trees).filter(([x,y])=>x>=0&&y>=0&&x<=width&&y<=height)};
 }
