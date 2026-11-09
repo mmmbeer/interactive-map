@@ -14,10 +14,15 @@ export function gridBoundaries(labels,grid,id) {
 export function planDistricts(map,grid,profile,mapped=[]) {
   const {w,h,water,roads,cell,point}=grid,land=water.map(v=>v?0:1),regions=components(land,w,h),labels=new Int32Array(w*h);
   const buildings=map.locations.filter(p=>!['water','street','terrain'].includes(p.category)).sort((a,b)=>a.id.localeCompare(b.id));
-  const requested=profile.districtMode==='single'?1:profile.districtCount||Math.min(8,Math.max(1,Math.ceil(buildings.length/65)));
+  const quarters=map.worldImport.procedural?.planner?.quarters||[];
+  const requested=profile.districtMode==='single'?1:profile.districtCount||quarters.length||Math.min(8,Math.max(1,Math.ceil(buildings.length/65)));
   const seeds=[],used=new Set(),districts=[],warnings=[];
   const candidates=buildings.map(p=>cell(p.x,p.y)).filter(i=>!water[i]);
+  if(profile.districtMode==='suggested')for(const q of quarters) {
+    const i=cell(...q.point);if(!water[i]&&!seeds.includes(i))seeds.push(i);
+  }
   // Each inhabited land component needs a seed. Water never becomes a district bridge.
+  for(const i of seeds)used.add(regions.labels[i]);
   for(const i of candidates)if(!used.has(regions.labels[i])){used.add(regions.labels[i]);seeds.push(i);}
   if(!seeds.length&&regions.items.length)seeds.push(regions.labels.indexOf(regions.items.sort((a,b)=>b.size-a.size)[0].id));
   const sourceDistricts=profile.districtMode==='mapped'?mapped:[];

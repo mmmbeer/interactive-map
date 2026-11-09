@@ -88,7 +88,9 @@ function establishBuildings(map,profile,warnings) {
     if(!available.length){warnings.push(`No suitable ${map.worldImport.regionPlan?'building':'mapped'} footprint was available for ${label.toLowerCase()}.`);continue;}
     const score=p=>{
       const [bx,by,w,h]=boundsFor(p),edge=bx<1||by<1||bx+w>map.width-1||by+h>map.height-1,central=Math.hypot(p.x-center[0],p.y-center[1])/Math.max(map.width,map.height);
-      return (edge?-4:0)+(p.context?.street?2:0)+Math.min(2,Math.sqrt(w*h)/Math.max(map.width,map.height)*15)-central+(hash(`${map.generator.seed}:${feature}:${p.id}`)%1000)/10000;
+      const anchor=map.worldImport.procedural?.planner?.anchors.find(a=>a.role===feature);
+      const founding=anchor?Math.max(0,2-Math.hypot(p.x-anchor.point[0],p.y-anchor.point[1])/Math.max(map.width,map.height)*8):0;
+      return founding+(edge?-4:0)+(p.context?.street?2:0)+Math.min(2,Math.sqrt(w*h)/Math.max(map.width,map.height)*15)-central+(hash(`${map.generator.seed}:${feature}:${p.id}`)%1000)/10000;
     };
     const p=[...available].sort((a,b)=>score(b)-score(a)||a.id.localeCompare(b.id))[0];
     p.category=category;p.type=type;p.worldStyle={...p.worldStyle,established:true};candidates=candidates.filter(q=>q!==p);
@@ -116,7 +118,7 @@ function districtContext(map) {
 }
 export function enrichSettlement(map,input,mappedDistricts=[]) {
   const profile=applyProfile(map,input),warnings=[...(map.worldImport.procedural?.warnings||[])];semanticLand(map);classifyTerrain(map);
-  const grid=settlementGrid(map);clearPlots(map,grid,profile,warnings);
+  const grid=settlementGrid(map);if(map.worldImport.procedural?.version!==2)clearPlots(map,grid,profile,warnings);
   const result=planDistricts(map,grid,profile,mappedDistricts);warnings.push(...result.warnings);
   connectGeography(map);establishBuildings(map,profile,warnings);districtContext(map);
   map.worldImport.planning={version:1,districts:map.districts.length,established:map.locations.filter(p=>p.worldStyle?.established).map(p=>p.id),warnings:[...new Set(warnings)]};

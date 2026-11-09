@@ -3,6 +3,7 @@ import { traceShape } from '../geometry.js';
 import { loadSymbols, drawSymbol } from './cartography-symbols.js';
 import { planDecorations, biomeFor } from './decoration-plan.js';
 import { hash } from './model.js';
+import { drawRoads } from './road-render.js';
 export const DRAGONSGATE={paper:'#eeeae1',water:'#91a6ad',ink:'#202421',terrain:'#d8dccb',roadWidth:1,treeDensity:1,texture:.35,roofDetail:false};
 function random(seed) {let n=hash(seed);return ()=>{n+=0x6D2B79F5;let t=n;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
 export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{edge=1200,signal,districts=false}={}) {
@@ -16,9 +17,14 @@ export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{
   ctx.fillStyle=s.paper;ctx.fillRect(0,0,map.width,map.height);
   const layer=p=>biomeFor(p)||p.category==='terrain'?0:p.category==='water'?1:p.category==='street'?2:3;
   const places=[...map.locations].sort((a,b)=>layer(a)-layer(b)||a.id.localeCompare(b.id));
+  let roadsDrawn=false;
   try {
     for(const [index,p] of places.entries()) {
       if(index%200===0){signal?.throwIfAborted();await new Promise(r=>setTimeout(r,0));}
+      if(p.category==='street') {
+        if(!roadsDrawn){drawRoads(ctx,places.filter(p=>p.category==='street'),unit,s.ink);roadsDrawn=true;}
+        continue;
+      }
       const kind=p.worldStyle?.kind,shape=p.shape;
       ctx.save();traceShape(ctx,p);
       if(p.category==='water') {
@@ -29,10 +35,6 @@ export async function renderFantasy(canvas,{map,trees=[]},settings=DRAGONSGATE,{
         ctx.fillStyle=landColor(p,s);ctx.fill('evenodd');
         ctx.strokeStyle='#9c9c89';ctx.lineWidth=unit*.5;ctx.stroke();ctx.clip('evenodd');
         drawLandPattern(ctx,p,unit,s);
-      } else if(p.category==='street') {
-        if(p.worldStyle?.bridge){ctx.strokeStyle=s.ink;ctx.lineWidth=shape.width+unit*2;ctx.stroke();}
-        else {ctx.strokeStyle='#a4a18e';ctx.lineWidth=shape.width+unit;ctx.stroke();}
-        ctx.strokeStyle='#fbfaf4';ctx.lineWidth=shape.width;ctx.stroke();
       } else if(kind==='building') {
         ctx.fillStyle=s.ink;ctx.strokeStyle='#111813';ctx.lineWidth=unit*.65;ctx.fill('evenodd');ctx.stroke();
         if(s.roofDetail) {

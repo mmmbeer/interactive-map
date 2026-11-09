@@ -10,15 +10,18 @@ Use **Real-world map** to open a world-map modal, select a square, landscape or 
 
 ## Run and build
 
-Requires Node.js 22 or newer. There are no third-party runtime or build dependencies.
+Requires Node.js 22 or newer. The UI remains plain ES modules. The layout planner uses pinned geometry and sampling libraries bundled locally, with no CDN requests or generation service.
 
 ```sh
+npm ci         # Install the locked build and planner dependencies
 npm run dev    # Local preview on port 3000
 npm test       # Determinism, inheritance, migration, drafts, shapes, search and escaping
 npm run build # Validate source and copy public/ to dist/
 ```
 
 `dist/` is committed and ready to upload. Rebuild it after changing source. GitHub Actions checks that the committed build matches the source. Every code file must remain at or below 500 lines, enforced during builds.
+
+New real-world imports use [the organic settlement planner](docs/organic-generation.md). It generates drainage, founding centers, connected streets, blocks, frontage plots and building compounds in separate seeded passes. Existing saved maps retain their stored geometry. Run `npm run preview:layout -- my-seed city` to regenerate the documented SVG review fixture.
 
 ## Cloudflare Pages
 
