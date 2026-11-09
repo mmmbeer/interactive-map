@@ -4,8 +4,10 @@ import { convertArea } from '../public/js/world-maps/model.js';
 import { planDecorations } from '../public/js/world-maps/decoration-plan.js';
 import { symbolFrames } from '../public/js/world-maps/cartography-symbols.js';
 import { organicSource, organicOptions } from '../tests/fixtures/organic-coast.mjs';
-const seed=process.argv[2]||organicOptions.seed,type=process.argv[3]||organicOptions.settlement.type;
-const started=performance.now(),{map}=convertArea(organicSource,{...organicOptions,seed,settlement:{...organicOptions.settlement,type}});
+import { peninsulaSource, peninsulaOptions } from '../tests/fixtures/peninsula-village.mjs';
+const peninsula=process.argv[4]==='peninsula',source=peninsula?peninsulaSource:organicSource,options=peninsula?peninsulaOptions:organicOptions;
+const seed=process.argv[2]||options.seed,type=process.argv[3]||options.settlement.type;
+const started=performance.now(),{map}=convertArea(source,{...options,seed,settlement:{...options.settlement,type}});
 const marks=await planDecorations(map),unit=map.width/4096;
 const trace=s=>s.kind==='polyline'?`M${s.points.map(p=>p.join(',')).join('L')}`:[s.points,...(s.holes||[])].map(r=>`M${r.map(p=>p.join(',')).join('L')}Z`).join('');
 const draw=(p,style)=>`<path d="${trace(p.shape)}" ${style}/>`;
@@ -25,6 +27,6 @@ for(const mark of marks) {
   else parts.push(`<path d="M${mark.x-mark.size*.2},${mark.y+mark.size*.2}q0,${-mark.size*.25} ${-mark.size*.12},${-mark.size*.4}M${mark.x},${mark.y+mark.size*.2}q${mark.size*.1},${-mark.size*.3} 0,${-mark.size*.5}" fill="none" stroke="#202421" opacity=".4" stroke-width="${mark.size*.045}"/>`);
 }
 parts.push('</g></svg>');
-await writeFile('docs/organic-planner-preview.svg',parts.join(''));
+await writeFile(peninsula?'docs/peninsula-village-preview.svg':'docs/organic-planner-preview.svg',parts.join(''));
 if(process.env.LAYOUT_MODEL_OUTPUT)await writeFile(process.env.LAYOUT_MODEL_OUTPUT,JSON.stringify(map));
 console.log(JSON.stringify({seed,type,elapsedMs:Math.round(performance.now()-started),...map.worldImport.procedural.planner.metrics,warnings:map.worldImport.planning.warnings},null,2));

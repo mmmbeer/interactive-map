@@ -18,6 +18,6 @@ export function generateLayout(map,selection,profile,onProgress) {
     d.generated=map.locations.filter(p=>p.worldStyle?.origin==='generated'&&sourceGroup(p)===key).length;
     d.label=sourceGroups[key].label;
   }
-  map.worldImport.procedural={version:2,elevation:'warped-simplex-drainage-v2',decisions,warnings,planner};
+  map.worldImport.procedural={version:3,elevation:'warped-simplex-drainage-v2',decisions,warnings,planner};
   return map;
 }

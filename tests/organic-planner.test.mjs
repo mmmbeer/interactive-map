@@ -41,7 +41,7 @@ test('a bridge landfall splits a ground segment and remains pinned during curve 
 });
 test('settlements have connected street circuits, diverse bearings and persisted growth stages',()=>{
   const map=sample(),p=map.worldImport.procedural.planner,g=p.streets;
-  assert.equal(map.worldImport.procedural.version,2);assert.ok(g.edges.length-g.nodes.length+g.components>4);
+  assert.equal(map.worldImport.procedural.version,3);assert.ok(g.edges.length-g.nodes.length+g.components>4);
   assert.ok(p.passes.includes('blocks-and-frontage'));assert.ok(p.anchors.some(a=>a.role==='market'));
   assert.ok(p.quarters.every(q=>Math.hypot(q.point[0]-p.quarters[0].point[0],q.point[1]-p.quarters[0].point[1])<map.width*.4));
   assert.equal(new Set(g.nodes.map(n=>n.id)).size,g.nodes.length);

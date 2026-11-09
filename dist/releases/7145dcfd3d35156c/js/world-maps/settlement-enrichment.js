@@ -118,7 +118,7 @@ function districtContext(map) {
 }
 export function enrichSettlement(map,input,mappedDistricts=[]) {
   const profile=applyProfile(map,input),warnings=[...(map.worldImport.procedural?.warnings||[])];semanticLand(map);classifyTerrain(map);
-  const grid=settlementGrid(map);if(map.worldImport.procedural?.version!==2)clearPlots(map,grid,profile,warnings);
+  const grid=settlementGrid(map);if(!(map.worldImport.procedural?.version>=2))clearPlots(map,grid,profile,warnings);
   const result=planDistricts(map,grid,profile,mappedDistricts);warnings.push(...result.warnings);
   connectGeography(map);establishBuildings(map,profile,warnings);districtContext(map);
   map.worldImport.planning={version:1,districts:map.districts.length,established:map.locations.filter(p=>p.worldStyle?.established).map(p=>p.id),warnings:[...new Set(warnings)]};
