@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { versionAssets } from './release-assets.mjs';
 const root=resolve(import.meta.dirname,'..');
+execFileSync(process.execPath,[resolve(root,'scripts/planner-vendor.mjs')],{stdio:'inherit'});
 execFileSync(process.execPath,[resolve(root,'scripts/validate.mjs')],{stdio:'inherit'});
 await rm(resolve(root,'dist'),{recursive:true,force:true});
 await mkdir(resolve(root,'dist'),{recursive:true});

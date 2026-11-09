@@ -6,7 +6,7 @@ import { validateMap } from '../map-contract.js';
 import { enrichSettlement } from './settlement-enrichment.js';
 import { reconcileWater } from './water.js';
 import { selectSource } from './source-selection.js';
-import { regionPlan, sourceAllowed, sourceClass, applyRegionScale } from './region-scale.js';
+import { regionPlan, sourceAllowed, sourceClass, applyRegionScale, canonicalBounds } from './region-scale.js';
 import { normalizeProfile } from './settlement-profile.js';
 import { generateLayout } from './procedural-layout.js';
 import { numberSites } from '../site-index.js';
@@ -51,10 +51,10 @@ function linkStreets(map) {
     if(best)p.context={street:best.id};
   }
 }
-export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={},sourceSelection,survey=false,regional=false,reinterpret=true}) {
+export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={},sourceSelection,survey=false,regional=false,reinterpret=true,onProgress}) {
   const area=(regional?checkRegion:checkArea)(bounds),plan=regional?regionPlan(bounds):null,project=imageProjection(bounds,width,height),locations=[],coasts=[],trees=[],mappedDistricts=[];
   const mpp=area.width/width,visualScale=width/4096;
-  const map={schemaVersion:2,id,generationId:`world-${hash(JSON.stringify(bounds)).toString(16)}`,name,subtitle:'A real place, reimagined',description:'Fantasy artwork derived from OpenStreetMap geometry. Building uses and stories are fictional. © OpenStreetMap contributors, ODbL 1.0.',
+  const map={schemaVersion:2,id,generationId:`world-${hash(JSON.stringify(canonicalBounds(bounds))).toString(16)}`,name,subtitle:'A real place, reimagined',description:'Fantasy artwork derived from OpenStreetMap geometry. Building uses and stories are fictional. © OpenStreetMap contributors, ODbL 1.0.',
     image:`local/${id}/map`,thumbnail:`local/${id}/thumbnail`,width,height,theme:'Dragonsgate ink',region:'Your atlas',directoryScope:'all',tags:['world import','fantasy'],
     generator:{version:2,detailsVersion:2,socialVersion:1,proseVersion:1,seed,defaults:{demographics:{race:'human'}}},
     measurement:{metersPerPixel:mpp,unit:'m'},districts:[{id:'imported-area',name:'Imported area'}],locations,
@@ -107,7 +107,7 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
     if(sourceSelection||regional)selection=selectSource(stitched,regional?{...sourceSelection,version:2,groups:(sourceSelection?.groups||plan.groups).filter(k=>plan.groups.includes(k))}:sourceSelection);
     if(regional) {
       const profile=normalizeProfile(settlement);applyRegionScale(stitched,profile,reinterpret);
-      generateLayout(stitched,selection,profile);
+      generateLayout(stitched,selection,profile,onProgress);
     }
     linkStreets(stitched);enrichSettlement(stitched,settlement,mappedDistricts);
   }

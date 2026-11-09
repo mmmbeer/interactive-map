@@ -10,6 +10,7 @@ import { dimensions, areaInfo, checkRegion } from './geo.js';
 import { fetchArea } from './source.js';
 import { fetchPreparedArea } from './prepared.js';
 import { convertArea } from './model.js';
+import { generateInWorker } from './worker-client.js';
 import { DRAGONSGATE, renderFantasy, imageFiles, downloadBlob } from './render.js';
 import { localMapId } from '../local-maps/identity.js';
 import { saveLocalMap } from '../local-maps/store.js';
@@ -192,7 +193,7 @@ export function openWorldImport(onSaved,signal) {
     result=null;files=null;beginJob('Planning districts and placing fantasy sites…');
     try {
       await new Promise(r=>setTimeout(r,0));job.signal.throwIfAborted();
-      const next=convertArea(raw,{...conversionOptions(),settlement,sourceSelection:selectedSource()});
+      const next=await generateInWorker(raw,{...conversionOptions(),settlement,sourceSelection:selectedSource()},{signal:job.signal,onProgress:setStatus});
       await renderFantasy(canvas,next,settings(),{edge:1000,signal:job.signal,districts:el('preview-districts').checked});job.signal.throwIfAborted();life.signal.throwIfAborted();
       result=next;review.innerHTML=resultSummary(result.map);showStep(2,false);review.scrollTop=0;
       el('view-title').tabIndex=-1;el('view-title').focus();

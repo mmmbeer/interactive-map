@@ -82,7 +82,12 @@ test('coast outlines remain exact and all generated buildings and routes stay of
   const waters=map.locations.filter(p=>p.category==='water'),space=blockers({...map,locations:waters});
   assert.ok(map.locations.filter(p=>p.worldStyle.kind==='building').length>100);
   for(const p of map.locations.filter(p=>p.worldStyle.kind==='building'))for(const [x,y] of p.shape.points)assert.ok(!waters.some(w=>contains(w,x,y)),p.id);
-  for(const p of map.locations.filter(p=>p.category==='street'&&p.worldStyle.origin==='generated'))assert.ok(routeClear(p.shape.points,p.shape.width,space),p.id);
+  for(const p of map.locations.filter(p=>p.category==='street'&&p.worldStyle.origin==='generated')) {
+    if(p.worldStyle.bridge) {
+      assert.ok(waters.some(w=>w.id===p.worldStyle.crosses));
+      assert.ok(routeClear(p.shape.points,p.shape.width,blockers({...map,locations:waters.filter(w=>w.id!==p.worldStyle.crosses)})),p.id);
+    } else assert.ok(routeClear(p.shape.points,p.shape.width,space),p.id);
+  }
 });
 test('ocean-only selections report no buildable land instead of placing floating buildings',()=>{
   const bounds=boundsForMeters(1600000),data={elements:[rect(1,{natural:'water',water:'sea'},0,0,bounds.east,bounds.north)]};

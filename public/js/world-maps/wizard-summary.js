@@ -11,7 +11,7 @@ export function planSummary(survey,selection,profile,{reinterpret=true}={}) {
   if(survey.worldImport?.regionPlan) {
     const selected={...survey,locations:survey.locations.filter(p=>keepSource(p,selection))},decisions=layoutDecisions(selected,selection),plan=survey.worldImport.regionPlan;
     const rescale=plan.reinterpret&&reinterpret?`The geographic shape becomes a settlement about ${(settlementWidths[profile.type]/1000).toLocaleString()} km wide. Original geographic bounds stay in the backup.`:'Distances follow the selected real-world region.';
-    return `<strong>${escape(plan.label)} · mapped layers first, generation where needed</strong><p>${escape(rescale)}</p>${decisionTable(decisions)}<p>Retained layers keep their geometry. Generated rivers follow the terrain; roads avoid water and retained buildings; new buildings face the available roads. Requested rural parcels reserve clear ground.</p>`;
+    return `<strong>${escape(plan.label)} · mapped layers first, generation where needed</strong><p>${escape(rescale)}</p>${decisionTable(decisions)}<p>Retained layers keep their geometry. The town grows around suitable centers, with connected streets, approved river crossings and building plots. Woodland and rural ground follow the remaining terrain.</p>`;
   }
   const kept=survey.locations.filter(p=>keepSource(p,selection));
   const buildings=kept.filter(p=>p.worldStyle?.kind==='building').length;
