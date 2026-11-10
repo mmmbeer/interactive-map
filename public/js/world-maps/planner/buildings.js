@@ -1,9 +1,9 @@
-import { quarterAt } from './anchors.js';
 import { randomFor } from './random.js';
-import { shapeGeometry, buffer, intersect, subtract, polygons, polygon, union, area, atDistance, interior, rectangle } from './geometry.js';
+import { shapeGeometry, buffer, intersect, subtract, polygons, union, area, interior, rectangle } from './geometry.js';
 import { addFeature } from './features.js';
 import { types } from '../../generation/catalog-v2.js';
 import { roots } from '../../generation/wordbanks-v2.js';
+import { domesticFootprint } from './footprints.js';
 export function buildOnParcels(state) {
   const {unit,map}=state;let built=0;
   for(const keep of state.reservations.filter(r=>r.role==='keep')) {
@@ -18,19 +18,10 @@ export function buildOnParcels(state) {
   }
   for(const plot of state.parcels) {
     if(built>=state.buildingTarget)break;
-    const random=randomFor(map,`building:${plot.id}`),p=atDistance(plot.edgePoints,plot.at),q=atDistance(plot.edgePoints,plot.at+plot.frontage);
-    const depth=Math.min(plot.depth-unit*5,unit*(plot.quarter===0?23+random()*18:20+random()*16));
-    const off=(v,d)=>[v.point[0]-v.tangent[1]*plot.side*d,v.point[1]+v.tangent[0]*plot.side*d];
-    const front=plot.setback+unit*1.5,back=front+depth;
-    let shape=polygon([off(p,front),off(q,front),off(q,back),off(p,back)]);
-    // Courtyard wings occur on suitable larger plots and stay inside the parcel.
-    if(plot.frontage>unit*23&&random()<.28) {
-      const r=atDistance(plot.edgePoints,plot.at+plot.frontage*.36);
-      shape=union([shape,polygon([off(p,front),off(r,front),off(r,plot.setback+plot.depth-unit*3),off(p,plot.setback+plot.depth-unit*3)])]);
-    }
-    const inset=buffer(shapeGeometry(plot.shape),-unit*1.3),geometry=intersect(shape,inset),footprint=polygons(geometry)[0];
+    const random=randomFor(map,`building:${plot.id}`),proposal=domesticFootprint(state,plot,random);
+    const inset=buffer(shapeGeometry(plot.shape),-unit*1.3),geometry=intersect(proposal.geometry,inset),footprint=polygons(geometry)[0];
     if(!footprint||area(shapeGeometry(footprint))<unit*unit*65)continue;
-    const place=addFeature(state,'buildings','home',footprint,{parcel:plot.id,block:plot.block,quarter:plot.quarter,urbanRole:plot.role});
+    const place=addFeature(state,'buildings','home',footprint,{parcel:plot.id,block:plot.block,quarter:plot.quarter,urbanRole:plot.role,buildingForm:proposal.form});
     const anchor=interior(shapeGeometry(place.shape));place.x=anchor[0];place.y=anchor[1];
     place.context={street:plot.street};plot.building=place.id;built++;
   }

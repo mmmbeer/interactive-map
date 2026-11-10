@@ -4,33 +4,43 @@ import { quarterAt } from './anchors.js';
 import { randomFor, stableId, compare } from './random.js';
 import { union, shapeGeometry, buffer, line, subtract, intersect, polygons, polygon, area, atDistance, length, canonicalShape } from './geometry.js';
 const targets={hamlet:28,village:65,farming_village:85,town:200,city:480,metropolis:850,port:380,mining_outpost:45,forest_hold:95,fortress:115,monastery:50,academy:125,caravan_stop:36,undercity:230};
-export function planParcels(state,graph) {
+export const housingTarget=state=>Math.min(targets[state.profile.type]||200,Math.floor(state.map.width*state.map.height*state.map.measurement.metersPerPixel**2/300),Math.max(0,11500-state.map.locations.length));
+export function planBlocks(state,graph) {
   const {map,unit}=state;
   const water=union(map.locations.filter(p=>p.category==='water').map(p=>shapeGeometry(p.shape)));
   state.land=subtract(state.land,water);
   const roads=union(graph.edges.map(e=>buffer(line(e.points),e.width/2+unit*2)));
-  const sourceBuildings=map.locations.filter(p=>p.worldStyle?.kind==='building');
+  const sourceBuildings=map.locations.filter(p=>p.worldStyle?.kind==='building'&&p.worldStyle?.origin!=='generated');
   const obstacles=union([...sourceBuildings.map(p=>buffer(shapeGeometry(p.shape),unit)),...state.reservations.map(r=>r.geometry),...map.locations.filter(p=>p.category==='terrain').map(p=>shapeGeometry(p.shape))]);
   const buildable=subtract(subtract(state.land,roads),obstacles),blocks=polygons(buildable).filter(s=>area(shapeGeometry(s))>unit*unit*40);
   state.blocks=blocks.map(shape=>({id:stableId('block',canonicalShape(shape,state.precision).points.map(p=>p.map(v=>Math.round(v*map.measurement.metersPerPixel*100)))),shape,geometry:shapeGeometry(shape)}));
-  state.corridors=polygons(roads);state.parcels=[];
+  state.corridors=polygons(roads);
+}
+export function planParcels(state,graph) {
+  planBlocks(state,graph);
+  const {map,unit}=state;state.parcels=[];
   const index=spatialIndex(unit*100),blockIndex=spatialIndex(state.extent/16);
   state.blocks.forEach(b=>blockIndex.add(b,boundsFor({shape:b.shape})));
-  const max=Math.min(targets[state.profile.type]||200,Math.floor(map.width*map.height*map.measurement.metersPerPixel**2/300),Math.max(0,11500-map.locations.length));
+  const max=housingTarget(state);
   state.buildingTarget=max;
   const frontages=[];
   for(const e of graph.edges)for(const side of [-1,1]) {
     const random=randomFor(map,`frontage:${e.id}:${side}`),total=length(e.points);let at=unit*(3+random()*5);
     while(at<total-unit*10) {
       const center=atDistance(e.points,at).point,q=quarterAt(state,center),rural=['hamlet','village','farming_village','forest_hold'].includes(state.profile.type);
-      const frontage=unit*(rural?20+random()*22:q.phase===0?13+random()*13:17+random()*21);
+      const frontage=unit*(e.role==='alley'?10+random()*14:rural?14+random()**1.5*33:q.phase===0?11+random()*21:15+random()*27);
       if(at+frontage>total-unit*3)break;
-      frontages.push({edge:e,side,at,frontage,depth:unit*(rural?35+random()*24:q.phase===0?30+random()*22:38+random()*25),q,priority:q.phase+random()*.8});at+=frontage+unit*(rural?3+random()*6:1+random()*2);
+      frontages.push({edge:e,side,at,frontage,depth:unit*(e.role==='alley'?22+random()*18:rural?27+random()*37:q.phase===0?30+random()*22:38+random()*25),q,priority:random(),round:0});at+=frontage+unit*(rural?2+random()*7:1+random()*2);
     }
   }
-  frontages.sort((a,b)=>a.priority-b.priority||compare(a.edge.id,b.edge.id)||a.side-b.side||a.at-b.at);
+  // Deal plots around the whole settlement before giving one street another
+  // frontage. The old phase-first ordering exhausted the quota at the center.
+  const queues=new Map();
+  for(const f of frontages){if(!queues.has(f.edge.id))queues.set(f.edge.id,[]);queues.get(f.edge.id).push(f);}
+  for(const queue of queues.values())queue.sort((a,b)=>a.priority-b.priority).forEach((f,i)=>f.round=i);
+  frontages.sort((a,b)=>a.round-b.round||a.q.phase-b.q.phase||compare(a.edge.id,b.edge.id)||a.priority-b.priority);
   for(const f of frontages) {
-    if(state.parcels.length>=max*1.08)break;
+    if(state.parcels.length>=max*1.65)break;
     const {edge,side,at,frontage,depth}=f;
     const a=atDistance(edge.points,at),b=atDistance(edge.points,at+frontage),setback=edge.width/2+unit*3;
     const offset=(v,d)=>[v.point[0]-v.tangent[1]*side*d,v.point[1]+v.tangent[0]*side*d];

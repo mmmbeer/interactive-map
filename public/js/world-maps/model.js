@@ -36,6 +36,7 @@ function roadMeters(t) {
 }
 function linkStreets(map) {
   const size=map.width/24,bins=new Map(),roads=map.locations.filter(p=>p.category==='street');
+  const roadIds=new Set(roads.map(r=>r.id));
   for(const r of roads)for(let i=1;i<r.shape.points.length;i++) {
     const a=r.shape.points[i-1],b=r.shape.points[i],steps=Math.min(100,Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/size)));
     for(let j=0;j<=steps;j++) {
@@ -44,6 +45,7 @@ function linkStreets(map) {
     }
   }
   for(const p of map.locations.filter(p=>p.worldStyle?.kind==='building')) {
+    if(p.worldStyle.layoutVersion>=3&&roadIds.has(p.context?.street))continue;
     const x=Math.floor(p.x/size),y=Math.floor(p.y/size),candidates=new Set();
     for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const r of bins.get(`${x+dx},${y+dy}`)||[])candidates.add(r);
     let best,distance=size*2;

@@ -1,5 +1,5 @@
 import { union, line, lines, distance, project, midpoint, length } from './geometry.js';
-import { stableId, compare, roundPoint } from './random.js';
+import { stableId, compare, roundPoint, randomFor } from './random.js';
 import { addFeature } from './features.js';
 import { spatialIndex } from '../decoration-geometry.js';
 const ranks={majorRoads:0,roads:1,cityStreets:2,paths:3};
@@ -11,6 +11,17 @@ function nearestRoute(points,index,tolerance) {
   return owners.sort((a,b)=>(a.origin==='mapped'?0:1)-(b.origin==='mapped'?0:1)||(ranks[a.group]??2)-(ranks[b.group]??2)||compare(a.id||'',b.id||''));
 }
 function smooth(points,state,width) {
+  // Bend junction-to-junction segments as well as degree-two chains. Endpoints
+  // remain pinned, and the clearance check can reduce a bend near the shore.
+  if(state.curvedStreets&&points.length===2) {
+    const ordered=[...points].sort((a,b)=>a[0]-b[0]||a[1]-b[1]),[a,b]=ordered,d=distance(a,b);
+    const random=randomFor(state.map,`bend:${ordered.map(p=>p.map(v=>Math.round(v*state.map.measurement.metersPerPixel*100)))}`);
+    const amplitude=d*(.07+random()*.1)*(random()<.5?-1:1);
+    for(const scale of [1,.5,.25]) {
+      const curve=Array.from({length:9},(_,i)=>{const t=i/8,offset=Math.sin(Math.PI*t)*amplitude*scale;return [a[0]+(b[0]-a[0])*t-(b[1]-a[1])/d*offset,a[1]+(b[1]-a[1])*t+(b[0]-a[0])/d*offset];});
+      if(state.clear(curve,width)){points=curve;break;}
+    }
+  }
   if(points.length<3)return points;
   let result=points;
   for(let pass=0;pass<2;pass++) {
@@ -25,10 +36,10 @@ function smooth(points,state,width) {
 }
 export function buildStreetGraph(state,refined=false) {
   const retained=state.map.locations.filter(p=>p.category==='street'&&p.shape.kind==='polyline');
-  const routes=[...retained.map(p=>({id:p.id,points:p.shape.points,width:p.shape.width,origin:p.worldStyle?.origin==='generated'?'generated':'mapped',group:p.worldStyle?.sourceGroup||'cityStreets',bridge:!!p.worldStyle?.bridge})),...state.routes];
+  const routes=[...retained.map(p=>({id:p.id,points:p.shape.points,width:p.shape.width,origin:p.worldStyle?.origin==='generated'?'generated':'mapped',group:p.worldStyle?.sourceGroup||'cityStreets',role:p.worldStyle?.roadClass,bridge:!!p.worldStyle?.bridge})),...state.routes];
   if(!routes.length)return {version:2,nodes:[],edges:[],components:0};
   const ordinary=routes.filter(r=>!r.bridge),noded=ordinary.length?lines(union(ordinary.map(r=>line(r.points)))):[];
-  const pins=new Map(routes.filter(r=>r.bridge).flatMap(r=>[r.points[0],r.points.at(-1)]).map(p=>[pointKey(roundPoint(p,state.precision)),p]));
+  const pins=new Map(routes.filter(r=>r.bridge||r.role==='alley').flatMap(r=>[r.points[0],r.points.at(-1)]).map(p=>[pointKey(roundPoint(p,state.precision)),p]));
   const routeIndex=spatialIndex(state.map.width/32);
   for(const r of ordinary)for(let i=1;i<r.points.length;i++) {
     const a=r.points[i-1],b=r.points[i];
@@ -48,7 +59,7 @@ export function buildStreetGraph(state,refined=false) {
     }
   };
   noded.forEach(add);
-  const signature=edge=>`${edge.owners[0].origin}:${edge.owners[0].group}:${edge.owners[0].width}`;
+  const signature=edge=>`${edge.owners[0].origin}:${edge.owners[0].group}:${edge.owners[0].width}:${edge.owners[0].role||''}`;
   const edges=[];
   const junction=k=>nodes.get(k).edges.length!==2||pins.has(k);
   const ordered=[...atomic.filter(e=>e.keys.some(junction)),...atomic];
@@ -60,22 +71,22 @@ export function buildStreetGraph(state,refined=false) {
       const options=nodes.get(at).edges;edge=!junction(at)?options.find(e=>!e.visited&&signature(e)===signature(first)):null;
     }
     const chosen=first.owners[0],mapped=[...owners].filter(r=>r.origin==='mapped');
-    // Only degree-two chains bend. Junctions and all imported geometry stay fixed.
+    // Synthetic streets can bend while junctions and imported geometry stay fixed.
     if(!mapped.length&&!refined)path=smooth(path,state,chosen.width);
     if(path[0][0]>path.at(-1)[0]||path[0][0]===path.at(-1)[0]&&path[0][1]>path.at(-1)[1])path.reverse();
     const id=stableId('edge',path.map(p=>p.map(v=>Math.round(v*state.map.measurement.metersPerPixel*100))));
     let streetIds=mapped.map(r=>r.id).sort(compare);
     if(!streetIds.length) {
-      const feature=addFeature(state,chosen.group,chosen.group==='paths'?'trail':'street',{kind:'polyline',points:path,width:chosen.width},{graphEdge:id});
+      const feature=addFeature(state,chosen.group,chosen.role==='alley'?'alley':chosen.group==='paths'?'trail':'street',{kind:'polyline',points:path,width:chosen.width},{graphEdge:id,...(chosen.role?{roadClass:chosen.role}:{})});
       streetIds=[feature.id];
     }
-    edges.push({id,from:pointKey(roundPoint(path[0],state.precision)),to:pointKey(roundPoint(path.at(-1),state.precision)),points:path,width:chosen.width,streetIds,source:mapped.length?'mapped':'generated'});
+    edges.push({id,from:pointKey(roundPoint(path[0],state.precision)),to:pointKey(roundPoint(path.at(-1),state.precision)),points:path,width:chosen.width,streetIds,source:mapped.length?'mapped':'generated',...(chosen.role?{role:chosen.role}:{})});
   }
   for(const r of routes.filter(r=>r.bridge))edges.push({id:stableId('bridge',r.id),from:pointKey(roundPoint(r.points[0],state.precision)),to:pointKey(roundPoint(r.points.at(-1),state.precision)),points:r.points,width:r.width,streetIds:[r.id],source:r.origin,bridge:true});
   // Curve relaxation may introduce crossings. Re-node once after relaxation.
   if(!refined&&state.routes.length) {
-    state.routes=edges.filter(e=>e.source==='generated'&&!e.bridge).map(e=>({points:e.points,width:e.width,group:state.map.locations.find(p=>p.id===e.streetIds[0]).worldStyle.sourceGroup,origin:'generated'}));
-    state.map.locations=state.map.locations.filter(p=>!(p.category==='street'&&p.worldStyle?.layoutVersion===2&&!p.worldStyle.bridge));
+    state.routes=edges.filter(e=>e.source==='generated'&&!e.bridge).map(e=>({points:e.points,width:e.width,group:state.map.locations.find(p=>p.id===e.streetIds[0]).worldStyle.sourceGroup,role:e.role,origin:'generated'}));
+    state.map.locations=state.map.locations.filter(p=>!(p.category==='street'&&p.worldStyle?.layoutVersion===(state.layoutVersion||2)&&!p.worldStyle.bridge));
     return buildStreetGraph(state,true);
   }
   edges.sort((a,b)=>compare(a.id,b.id));

@@ -1,6 +1,12 @@
 # Organic settlement generation
 
-New regional conversions use layout version 2. Published maps and existing local saves keep their stored geometry. Opening, panning, zooming, changing story settings or exporting a saved map does not rerun layout generation.
+New regional conversions use layout version 3. Published maps and existing local saves keep their stored geometry. Opening, panning, zooming, changing story settings or exporting a saved map does not rerun layout generation. Recreate an import from its source and seed to apply the new planner.
+
+Version 3 budgets streets around the expected building count, distributes plots across streets before filling more frontage on one street, and removes unoccupied branches and redundant loops after building placement. Streets can bend between junctions. A separate block pass opens narrow alleys with shared street nodes at both entrances. Cottages, longhouses, L-shaped houses, T-shaped houses and open courtyard houses vary in size and setback while retaining exact plot clearance.
+
+![Peninsula village review fixture](peninsula-village-preview.svg)
+
+Run `npm run preview:layout -- peninsula-village village peninsula` to reproduce this 65-building village. It is a synthetic peninsula regression fixture, not a reconstruction of a visitor's saved map.
 
 ![Generated settlement review fixture](organic-planner-preview.svg)
 
@@ -13,23 +19,23 @@ This is a synthetic coastline fixture. `npm run preview:layout -- organic-mediev
 3. Choose a market center, suitable civic sites and approaches. Place later quarters around the historic center. Settlement type controls street budgets, plot spacing and the building budget.
 4. Select bounded river crossings. Never invent a crossing over a lake or ocean. Add approved crossing links to the terrain-routing graph.
 5. Connect primary intentions and grow local lanes. A spanning backbone supplies access; selected additional edges provide street circuits and blocks. Routes use irregular mesh edges and slope costs rather than an eight-direction raster.
-6. Node line intersections, dissolve shared spans, and merge degree-two chains. Relax synthetic chains with fixed junction endpoints and re-node once. Retained source features keep their original geometry and IDs. Bridges keep a separate crossing level.
+6. Node line intersections, dissolve shared spans, and merge degree-two chains. Bend synthetic streets between fixed junction endpoints, relax chains, and re-node once. Retained source features keep their original geometry and IDs. Bridges keep a separate crossing level.
 7. Buffer the street graph into road corridors and extract buildable blocks. Reserve a market square and, for suitable fully generated cities and fortresses, a keep compound.
-8. Divide street frontage into plots. Clip each candidate against its local block and neighboring claims. Require usable area, frontage and access. Plot-specific streams choose dimensions and compound wings.
-9. Fit buildings inside inset plots. A keep has a courtyard rather than an oversized rectangular house. Source buildings remain untouched.
+8. Cut suitable blocks with narrow curved alleys. Pin each entrance to the street centerline and re-node without moving existing streets. Divide street frontage into plots in rounds across the graph. Clip each candidate against its local block and neighboring claims. Require usable area, frontage and access.
+9. Fit varied domestic forms inside inset plots. A keep has a courtyard rather than an oversized rectangular house. Preserve the plot's actual access street when assigning addresses. Source buildings remain untouched. Retain occupied streets and their connecting routes, then remove speculative empty branches and unnecessary loops. Refresh block boundaries and plot references after pruning.
 10. Use irregular terrain cells and available ground for woodland, meadow and requested rural plots. Water, roads, buildings, civic reservations and claimed plots remain exclusions. The existing terrain classifier handles narrow shoreline remnants and the existing ink sampler adds trees and ground detail.
 11. Independently check building footprints against water, streets and other buildings. Allow one inset repair; otherwise leave the plot open and report the capacity shortfall.
 12. Assign districts and requested uses using the planned centers, then paint road casings before road interiors so ordinary junctions have no crossing border seams.
 
 ## Replay and provenance
 
-`worldImport.procedural.version` is 2. Its `planner` contains the physical precision, pinned component versions, source geometry hash, recipe, passes, founding sites, quarters, street graph, blocks, plots, drainage controls and placement counts. Geometry remains in the app's image-space contract with a single saved metres-per-pixel scale.
+`worldImport.procedural.version` is 3. Its `planner` contains the physical precision, pinned component versions, source geometry hash, recipe, passes, founding sites, quarters, street graph, blocks, plots, drainage controls and placement counts. Geometry remains in the app's image-space contract with a single saved metres-per-pixel scale. The coordinate-based identity hash retains its `layout-v2` prefix; the saved procedural and planner versions identify the generation algorithm.
 
 Random streams are independent by pass and by stable plot identity. Geometry and IDs use physical coordinates, so changing export resolution preserves physical placement. The source bounds are canonicalized before deriving generation identity. The source geometry and settings remain in the saved map; a seed without the source inputs is insufficient to replay a changing real-world dataset.
 
 Source-detail eligibility still follows region size. Each retained mapped layer suppresses its generated counterpart. Missing, deselected and unavailable layers use generation within the retained constraints. Continental silhouettes use the selected fantasy settlement scale, while backups preserve the original geographic bounds.
 
-Version 1 helper modules remain for released behavior. Do not change the version 2 algorithm or pinned component versions after release without a new layout version. Generated geometry is not a content-generator version change and does not alter released naming catalogs.
+Version 1 helper modules remain for released behavior. Version 2 saved models keep their geometry. Future algorithm changes require another layout version. Generated geometry is not a content-generator version change and does not alter released naming catalogs.
 
 ## Libraries and build
 
@@ -41,6 +47,6 @@ Generation runs in a same-origin module worker. Progress messages name the curre
 
 ## Verification
 
-`tests/organic-planner.test.mjs` covers partial overlap dissolution, crossing nodes, preserved source and bridge identities, street circuits, bearing diversity, plot access, exact footprint clearance, acyclic downhill drainage, byte-stable replay, resolution invariance, casing order, real worker-message execution and cancellation. Regional tests cover retained source layers, exhausted/deselected layers, coastlines with holes, ocean-only selections and fantasy distance scales.
+`tests/organic-planner.test.mjs` covers partial overlap dissolution, crossing nodes, preserved source and bridge identities, street circuits, bearing diversity, plot access, exact footprint clearance, acyclic downhill drainage, byte-stable replay, resolution invariance, casing order, real worker-message execution and cancellation. `tests/village-planner.test.mjs` checks peninsula street occupancy, curved junction-to-junction geometry, connected narrow alleys, five domestic forms, building area variation, exact clearance and multiple seeded layouts. Regional tests cover retained source layers, exhausted/deselected layers, coastlines with holes, ocean-only selections and fantasy distance scales.
 
 The elevation field is a cartographic planning surface. It does not model erosion, flooding over time or a three-dimensional geological simulation. Generated channels retain downstream elevation controls. District boundaries still use the app's raster partitioner, seeded from the growth centers. Entire imported street geometries are preserved rather than reshaped into medieval routes.
