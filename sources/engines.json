@@ -1,0 +1,5 @@
+{
+  "mapgen4": {"repository":"https://github.com/redblobgames/mapgen4","commit":"c1d8cb018a11a8b9e17d59233c36c176429d37eb","license":"Apache-2.0","changes":"map.ts: local seeded PRNG and inline clamp; algorithms unchanged"},
+  "probabletrain": {"repository":"https://github.com/ProbableTrain/MapGenerator","commit":"f487e4cee321d105d5b0e14258363fa8b4d004ef","license":"LGPL-3.0-only","changes":"Unmodified Tensor, BasisField and Vector modules; app controls field sampling and tracing"},
+  "settlemaker": {"package":"settlemaker","version":"4.0.0","license":"GPL-3.0-only","changes":"Unmodified registry package, integrity pinned in package-lock.json"}
+}

@@ -12,6 +12,13 @@ export const recommendations=type=>({
 export function normalizeProfile(input={}) {
   const p={type:'town',ancestry:'human',secondary:'',secondaryPercent:25,wealth:'mixed',ages:'mixed',householdSize:null,districtMode:'suggested',districtCount:0,assignBusinesses:true,features:[],landFeatures:[],environment:[],resources:[],industries:[],...input};
   const check=(ok,message)=>{if(!ok)throw new Error(message);};
+  if(p.procedural!==undefined) {
+    check(p.procedural&&typeof p.procedural==='object'&&!Array.isArray(p.procedural),'Choose valid generated terrain settings.');
+    const {raininess=.9,windAngle=null}=p.procedural;
+    check(Number.isFinite(raininess)&&raininess>=.2&&raininess<=2,'Rainfall must be from 0.2 to 2.');
+    check(windAngle===null||Number.isFinite(windAngle)&&windAngle>=0&&windAngle<360,'Wind direction must be from 0 to less than 360 degrees.');
+    p.procedural={raininess,windAngle};
+  }
   check(Object.hasOwn(settlementTypes,p.type),'Choose the settlement type this area should represent.');
   check(Object.hasOwn(ancestries,p.ancestry),'Choose a supported primary ancestry.');
   check(!p.secondary||Object.hasOwn(ancestries,p.secondary)&&p.secondary!==p.ancestry,'Choose a different secondary ancestry.');

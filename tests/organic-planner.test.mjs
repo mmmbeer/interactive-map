@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Worker as NodeWorker } from 'node:worker_threads';
-import { convertArea } from '../public/js/world-maps/model.js';
+import { convertArea as convert } from '../public/js/world-maps/model.js';
+const convertArea=(data,options)=>convert(data,{...options,layoutVersion:3});
 import { buildStreetGraph } from '../public/js/world-maps/planner/topology.js';
 import { shapeGeometry, intersect, subtract, area, buffer, line } from '../public/js/world-maps/planner/geometry.js';
 import { drawRoads } from '../public/js/world-maps/road-render.js';
@@ -106,7 +107,7 @@ test('worker output matches direct generation and cancellation terminates the wo
   }
   globalThis.Worker=BrowserWorker;
   try {
-    const args={...options,settlement:{type:'hamlet'}},stages=[];
+    const args={...options,layoutVersion:3,settlement:{type:'hamlet'}},stages=[];
     const actual=await generateInWorker({elements:[]},args,{onProgress:s=>stages.push(s)});
     assert.equal(JSON.stringify(actual.map),JSON.stringify(convertArea({elements:[]},args).map));assert.ok(stages.length>=8);
     const abort=new AbortController(),promise=generateInWorker({elements:[]},args,{signal:abort.signal});abort.abort(new DOMException('Cancelled','AbortError'));

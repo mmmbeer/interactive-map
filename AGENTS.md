@@ -2,7 +2,7 @@
 
 - This is a static HTML, CSS and ES module website for Cloudflare Pages.
 - Keep every script at or below 500 lines. The build also checks HTML and CSS limits. Split responsibilities into small files.
-- Keep the UI dependency-free. The versioned layout planner may use the pinned, locally bundled geometry/noise libraries in scripts/planner-vendor.mjs. Do not add a framework, CDN runtime import or backend.
+- Keep the UI dependency-free. The versioned layout planner may use the pinned, locally bundled procedural engines and geometry/noise libraries in scripts/planner-vendor.mjs. Do not add a framework, CDN runtime import or backend.
 - Source lives in `public/`. `dist/` is committed. Run `npm test` and `npm run build` after changes and commit the matching build.
 - Follow `docs/adding-maps.md` when given another map in a work chat.
 - Use the supplied image as the map. Save stable location ids, geometry, category/type, district and generation inputs. Generate text from those inputs when read. Never randomize coordinates on page load.

@@ -152,3 +152,7 @@ Imported open land keeps its mapped use: parks, gardens, meadows, grassland and 
 Proposed rural plots must have usable width and a reasonably compact shape after excluding water, roads, buildings and existing land uses. If no suitable parcel exists, the importer reports the missing feature instead of filling a thin leftover strip.
 
 Saved real-world imports receive the terrain correction when opened. Edited locations, authored overrides and custom name or description templates stay intact. The original import remains recoverable. Geometry, location ids and published map catalogs are unchanged.
+
+## Procedural geography and settlements
+
+New regional imports run the [version 4 engine pipeline](docs/procedural-engines.md): Mapgen4 climate and drainage, SettleMaker medieval settlements and building blocks, and ProbableTrain tensor fields for constrained street growth. Generation stays local and seeded. See that document for replay, source-layer retention, limitations and the combined distribution licenses.

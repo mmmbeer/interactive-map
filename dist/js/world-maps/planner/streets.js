@@ -1,3 +1,4 @@
+import { fieldAlignment } from './tensor-streets.js';
 import { Delaunay } from '../../vendor/planner.js';
 import { MinHeap } from '../settlement-grid.js';
 import { distance, project, length } from './geometry.js';
@@ -13,7 +14,7 @@ function route(state,start,goal) {
     const [d,i]=heap.pop();if(d!==cost[i])continue;if(i===goal)break;
     for(const j of links[i]) {
       const span=distance(points[i],points[j]),slope=Math.abs(elevations[j]-elevations[i]);
-      const next=d+span*(1+slope*8+(state.used.has(i<j?`${i}:${j}`:`${j}:${i}`)?-.18:0));
+      const next=d+span*(1+slope*8+fieldAlignment(state,points[i],points[j])*2+(state.used.has(i<j?`${i}:${j}`:`${j}:${i}`)?-.18:0));
       if(next>=cost[j]-1e-8)continue;cost[j]=next;previous[j]=i;heap.push([next,j]);
     }
   }

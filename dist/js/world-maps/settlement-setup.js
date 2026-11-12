@@ -16,6 +16,10 @@ export function settlementSetupHTML() {
       <label class="world-checkbox"><input type="checkbox" name="assignBusinesses" checked> Generate a mix of shops and workshops</label></fieldset><fieldset><legend>Land the system may generate</legend><p>Add missing land uses on suitable clear ground. Retained parcels stay in place. Water, roads and building footprints stay clear.</p><div class="world-feature-checks">${checks('settlementLand',landFeatures)}</div>
       <button type="button" class="button quiet" id="world-suggest-features">Use suggestions for this settlement</button>
     </fieldset>
+    <details><summary>Generated terrain</summary><p>Rainfall and prevailing wind guide generated rivers and woodland. Retained map features stay fixed.</p>
+      <label>Rainfall<select name="proceduralRain"><option value="0.45">Dry</option><option value="0.9" selected>Temperate</option><option value="1.4">Wet</option></select></label>
+      <label>Wind from<select name="proceduralWind"><option value="">Choose from seed</option><option value="90">North</option><option value="180">East</option><option value="270">South</option><option value="0">West</option></select></label>
+    </details>
     <details><summary>Residents and ancestry</summary><fieldset><legend>Residents</legend>
       <label>Primary ancestry<select name="primaryAncestry">${options(ancestries)}</select></label>
       <div class="world-coordinates"><label>Secondary ancestry<select name="secondaryAncestry"><option value="">None</option>${options(ancestries)}</select></label><label>Secondary share (%)<input name="secondaryPercent" type="number" min="1" max="49" value="25" step="1"></label></div>
@@ -32,7 +36,7 @@ export function settlementSetupHTML() {
 export function readSettlementSetup(form) {
   const value=name=>form.elements[name].value;
   const selected=name=>[...form.querySelectorAll(`input[name="${name}"]:checked`)].map(e=>e.value);
-  return normalizeProfile({type:value('settlementType'),ancestry:value('primaryAncestry'),secondary:value('secondaryAncestry'),secondaryPercent:value('secondaryAncestry')?Number(value('secondaryPercent')):25,wealth:value('livingStandards'),ages:value('ageMix'),householdSize:value('householdSize')?Number(value('householdSize')):null,districtMode:value('districtMode'),districtCount:Number(value('districtCount')),assignBusinesses:form.elements.assignBusinesses.checked,features:selected('settlementFeature'),landFeatures:selected('settlementLand'),environment:selected('settlementEnvironment'),industries:value('settlementIndustry')?[value('settlementIndustry')]:[],resources:value('settlementResource')?[value('settlementResource')]:[]});
+  return normalizeProfile({procedural:{raininess:Number(form.elements.proceduralRain?.value||.9),windAngle:form.elements.proceduralWind?.value?Number(form.elements.proceduralWind.value):null},type:value('settlementType'),ancestry:value('primaryAncestry'),secondary:value('secondaryAncestry'),secondaryPercent:value('secondaryAncestry')?Number(value('secondaryPercent')):25,wealth:value('livingStandards'),ages:value('ageMix'),householdSize:value('householdSize')?Number(value('householdSize')):null,districtMode:value('districtMode'),districtCount:Number(value('districtCount')),assignBusinesses:form.elements.assignBusinesses.checked,features:selected('settlementFeature'),landFeatures:selected('settlementLand'),environment:selected('settlementEnvironment'),industries:value('settlementIndustry')?[value('settlementIndustry')]:[],resources:value('settlementResource')?[value('settlementResource')]:[]});
 }
 export function suggestSettlementFeatures(form) {
   const suggested=recommendations(form.elements.settlementType.value);

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { convertArea } from '../public/js/world-maps/model.js';
+import { convertArea as convert } from '../public/js/world-maps/model.js';
+const convertArea=(data,options)=>convert(data,{...options,layoutVersion:3});
 import { peninsulaSource, peninsulaOptions } from './fixtures/peninsula-village.mjs';
 import { shapeGeometry, area, length, distance, intersect, subtract, rectangle, setPrecision } from '../public/js/world-maps/planner/geometry.js';
 import { trimUnoccupiedStreets } from '../public/js/world-maps/planner/occupancy.js';
