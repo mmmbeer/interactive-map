@@ -1,4 +1,5 @@
 import { sourceGroup, sourceGroups } from './source-selection.js';
+import { generateEngineLayout } from './planner/pipeline-v4.js';
 import { generateOrganicLayout } from './planner/pipeline.js';
 const layers=['water','woodland','openland','majorRoads','roads','cityStreets','paths','buildings'];
 export function layoutDecisions(map,selection) {
@@ -9,15 +10,15 @@ export function layoutDecisions(map,selection) {
     return [group,{source:kept,mode:kept?'mapped':'generated',reason}];
   }));
 }
-export function generateLayout(map,selection,profile,onProgress) {
+export function generateLayout(map,selection,profile,onProgress,version=4) {
   const warnings=[],decisions=layoutDecisions(map,selection),needs=group=>decisions[group]?.mode==='generated';
   const availableTrees=map.worldImport.mappedTreeCount||0;
   if(availableTrees&&selection.groups.includes('woodland'))decisions.woodland={source:availableTrees,mode:'mapped',reason:'mapped'};
-  const planner=generateOrganicLayout(map,needs,profile,warnings,onProgress);
+  const planner=(version===3?generateOrganicLayout:generateEngineLayout)(map,needs,profile,warnings,onProgress);
   for(const [key,d] of Object.entries(decisions)) {
     d.generated=map.locations.filter(p=>p.worldStyle?.origin==='generated'&&sourceGroup(p)===key).length;
     d.label=sourceGroups[key].label;
   }
-  map.worldImport.procedural={version:3,elevation:'warped-simplex-drainage-v2',decisions,warnings,planner};
+  map.worldImport.procedural={version,elevation:version===3?'warped-simplex-drainage-v2':'mapgen4-climate-v1',decisions,warnings,planner};
   return map;
 }

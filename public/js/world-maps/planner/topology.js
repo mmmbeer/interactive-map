@@ -39,13 +39,13 @@ export function buildStreetGraph(state,refined=false) {
   const routes=[...retained.map(p=>({id:p.id,points:p.shape.points,width:p.shape.width,origin:p.worldStyle?.origin==='generated'?'generated':'mapped',group:p.worldStyle?.sourceGroup||'cityStreets',role:p.worldStyle?.roadClass,bridge:!!p.worldStyle?.bridge})),...state.routes];
   if(!routes.length)return {version:2,nodes:[],edges:[],components:0};
   const ordinary=routes.filter(r=>!r.bridge),noded=ordinary.length?lines(union(ordinary.map(r=>line(r.points)))):[];
-  const pins=new Map(routes.filter(r=>r.bridge||r.role==='alley').flatMap(r=>[r.points[0],r.points.at(-1)]).map(p=>[pointKey(roundPoint(p,state.precision)),p]));
+  const pins=new Map(routes.filter(r=>r.bridge||r.role==='alley'||r.role==='connector').flatMap(r=>[r.points[0],r.points.at(-1)]).map(p=>[pointKey(roundPoint(p,state.precision)),p]));
   const routeIndex=spatialIndex(state.map.width/32);
   for(const r of ordinary)for(let i=1;i<r.points.length;i++) {
     const a=r.points[i-1],b=r.points[i];
     routeIndex.add({route:r,a,b},[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1])]);
   }
-  const atomic=[],nodes=new Map();
+  const atomic=[],nodes=new Map(),atomicPairs=new Set();
   const add=points=>{
     for(let i=1;i<points.length;i++) {
       const a=points[i-1],b=points[i],cuts=[a,b,...[...pins.values()].filter(p=>distance(p,project(p,a,b))<state.precision*2)].sort((p,q)=>distance(a,p)-distance(a,q));
@@ -53,6 +53,8 @@ export function buildStreetGraph(state,refined=false) {
         const pair=[cuts[j-1],cuts[j]],owners=nearestRoute(pair,routeIndex,state.precision*4);
         if(!owners.length||distance(...pair)<state.precision)continue;
         const keys=pair.map(p=>pointKey(roundPoint(p,state.precision)));
+        const pairKey=[...keys].sort().join('|');
+        if(state.layoutVersion===4&&atomicPairs.has(pairKey))continue;atomicPairs.add(pairKey);
         const edge={points:pair,keys,owners,visited:false};atomic.push(edge);
         keys.forEach((k,j)=>{if(!nodes.has(k))nodes.set(k,{point:pair[j],edges:[]});nodes.get(k).edges.push(edge);});
       }
@@ -72,7 +74,7 @@ export function buildStreetGraph(state,refined=false) {
     }
     const chosen=first.owners[0],mapped=[...owners].filter(r=>r.origin==='mapped');
     // Synthetic streets can bend while junctions and imported geometry stay fixed.
-    if(!mapped.length&&!refined)path=smooth(path,state,chosen.width);
+    if(!mapped.length&&!refined&&!state.keepStreetGeometry)path=smooth(path,state,chosen.width);
     if(path[0][0]>path.at(-1)[0]||path[0][0]===path.at(-1)[0]&&path[0][1]>path.at(-1)[1])path.reverse();
     const id=stableId('edge',path.map(p=>p.map(v=>Math.round(v*state.map.measurement.metersPerPixel*100))));
     let streetIds=mapped.map(r=>r.id).sort(compare);
@@ -90,7 +92,11 @@ export function buildStreetGraph(state,refined=false) {
     return buildStreetGraph(state,true);
   }
   edges.sort((a,b)=>compare(a.id,b.id));
-  const used=new Map();for(const e of edges)for(const [key,point] of [[e.from,e.points[0]],[e.to,e.points.at(-1)]])if(!used.has(key))used.set(key,{id:stableId('node',point.map(v=>Math.round(v*state.map.measurement.metersPerPixel*100))),point,edges:[]});
+  const used=new Map();for(const e of edges)for(const [key,raw] of [[e.from,e.points[0]],[e.to,e.points.at(-1)]])if(!used.has(key)) {
+    const point=state.layoutVersion===4?roundPoint(raw,state.precision):raw;
+    const identity=point.map(v=>Math.round(v*state.map.measurement.metersPerPixel*(state.layoutVersion===4?1e5:100)));
+    used.set(key,{id:stableId('node',identity),point,edges:[]});
+  }
   for(const e of edges){used.get(e.from).edges.push(e.id);used.get(e.to).edges.push(e.id);e.from=used.get(e.from).id;e.to=used.get(e.to).id;}
   let components=0;const seen=new Set(),byId=new Map(edges.map(e=>[e.id,e])),byNode=new Map([...used.values()].map(n=>[n.id,n]));
   for(const n of used.values())if(!seen.has(n.id)){components++;const todo=[n.id];while(todo.length){const id=todo.pop();if(seen.has(id))continue;seen.add(id);for(const key of byNode.get(id).edges){const e=byId.get(key);todo.push(e.from,e.to);}}}

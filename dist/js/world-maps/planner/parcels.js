@@ -9,7 +9,7 @@ export function planBlocks(state,graph) {
   const {map,unit}=state;
   const water=union(map.locations.filter(p=>p.category==='water').map(p=>shapeGeometry(p.shape)));
   state.land=subtract(state.land,water);
-  const roads=union(graph.edges.map(e=>buffer(line(e.points),e.width/2+unit*2)));
+  const roads=union(graph.edges.map(e=>buffer(line(e.points),e.width/2+(state.physicalEngine?0:unit*2))));
   const sourceBuildings=map.locations.filter(p=>p.worldStyle?.kind==='building'&&p.worldStyle?.origin!=='generated');
   const obstacles=union([...sourceBuildings.map(p=>buffer(shapeGeometry(p.shape),unit)),...state.reservations.map(r=>r.geometry),...map.locations.filter(p=>p.category==='terrain').map(p=>shapeGeometry(p.shape))]);
   const buildable=subtract(subtract(state.land,roads),obstacles),blocks=polygons(buildable).filter(s=>area(shapeGeometry(s))>unit*unit*40);

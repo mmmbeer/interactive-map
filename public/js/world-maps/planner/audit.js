@@ -23,7 +23,10 @@ export function auditFootprints(state) {
   }
   if(rejected.size) {
     map.locations=map.locations.filter(p=>!rejected.has(p.id));state.buildingCount-=rejected.size;
-    for(const p of state.parcels)if(rejected.has(p.building))delete p.building;
+    for(const p of state.parcels){
+      if(p.buildings)p.buildings=p.buildings.filter(id=>!rejected.has(id));
+      if(rejected.has(p.building)){if(p.buildings?.length)p.building=p.buildings[0];else delete p.building;}
+    }
     state.warnings.push(`${rejected.size} constrained building footprints were left open after the final clearance check.`);
   }
   return {repaired,rejected:rejected.size};

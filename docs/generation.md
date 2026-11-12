@@ -395,3 +395,7 @@ Social templates can use `{item}` for a complete noun phrase such as “the gran
 Commercial sections have separate purposes. Livelihood names the trade and its customers. Supplies identifies materials, sourcing and the route. Workshop tradition describes labels and practices. Stock lists the available items. Commissions combines the current job, its selected customer and a workflow-appropriate preference. Do not draw a second customer for the same commission or repeat the work task in livelihood. Building descriptions retain the base engine’s physical details and history. Authored overrides and custom templates still take precedence.
 
 Numeric coordinates, array order, enabled prose fields and unrelated geographic additions do not affect matching. Changes to the map seed, relevant household inputs, demographic constraints, available residents or working locations can change assignments. Pins preserve deliberate relationships. A resident's identity is anchored to its household slot, so rerolling a workplace does not rename that resident. Local variations preserve the original generation identity. Generated community records are never written to compact map source.
+
+## Regional geometry
+
+Regional imports use the [layout version 4 procedural engine pipeline](procedural-engines.md). It runs pinned Mapgen4, SettleMaker and ProbableTrain code independently of the released naming and story generators. Existing saves retain their geometry. An explicit layoutVersion of 3 replays the previous layout planner.

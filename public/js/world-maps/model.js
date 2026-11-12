@@ -53,7 +53,7 @@ function linkStreets(map) {
     if(best)p.context={street:best.id};
   }
 }
-export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={},sourceSelection,survey=false,regional=false,reinterpret=true,onProgress}) {
+export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={},sourceSelection,survey=false,regional=false,reinterpret=true,onProgress,layoutVersion=4}) {
   const area=(regional?checkRegion:checkArea)(bounds),plan=regional?regionPlan(bounds):null,project=imageProjection(bounds,width,height),locations=[],coasts=[],trees=[],mappedDistricts=[];
   const mpp=area.width/width,visualScale=width/4096;
   const map={schemaVersion:2,id,generationId:`world-${hash(JSON.stringify(canonicalBounds(bounds))).toString(16)}`,name,subtitle:'A real place, reimagined',description:'Fantasy artwork derived from OpenStreetMap geometry. Building uses and stories are fictional. © OpenStreetMap contributors, ODbL 1.0.',
@@ -109,7 +109,8 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
     if(sourceSelection||regional)selection=selectSource(stitched,regional?{...sourceSelection,version:2,groups:(sourceSelection?.groups||plan.groups).filter(k=>plan.groups.includes(k))}:sourceSelection);
     if(regional) {
       const profile=normalizeProfile(settlement);applyRegionScale(stitched,profile,reinterpret);
-      generateLayout(stitched,selection,profile,onProgress);
+      if(![3,4].includes(layoutVersion))throw new Error('Choose a supported layout version.');
+      generateLayout(stitched,selection,profile,onProgress,layoutVersion);
     }
     linkStreets(stitched);enrichSettlement(stitched,settlement,mappedDistricts);
   }

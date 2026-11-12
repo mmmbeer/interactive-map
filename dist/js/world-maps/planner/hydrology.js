@@ -31,7 +31,7 @@ export function drainage(state) {
   state.elevations=[...filled];state.drainage={downstream,flow,order};return state.drainage;
 }
 export function generateDrainage(state,needs) {
-  const {downstream,flow}=drainage(state);if(!needs('water'))return;
+  const {downstream,flow}=state.drainage||drainage(state);if(!needs('water'))return;
   const {points,unit}=state,space=blockers(state.map,{roads:true});
   const candidates=points.map((_,i)=>i).filter(i=>state.dry[i]&&flow[i]>7&&downstream[i]>=0)
     .sort((a,b)=>flow[b]-flow[a]||a-b);

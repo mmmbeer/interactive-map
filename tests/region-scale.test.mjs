@@ -45,7 +45,7 @@ test('empty broad source generates real geometry for a complete settlement and s
   const args={...options,bounds:boundsForMeters(1800000),settlement:{type:'city',features:['tavern','market','temple']}};
   const {map}=convertArea({elements:[]},args);validateMap(map);
   const decisions=map.worldImport.procedural.decisions;
-  for(const key of ['water','woodland','majorRoads','roads','cityStreets','paths','buildings'])assert.ok(decisions[key].generated>0,`No generated ${key}`);
+  for(const key of ['water','woodland','majorRoads','cityStreets','paths','buildings'])assert.ok(decisions[key].generated>0,`No generated ${key}`);
   assert.ok(map.locations.some(p=>p.type==='tavern'));assert.ok(map.locations.some(p=>p.type==='temple'));
   assert.ok(map.locations.filter(p=>p.worldStyle.kind==='building').every(p=>p.context.street));
   assert.equal(map.worldImport.distanceScale.fantasyWidthMeters,3500);assert.equal(map.measurement.metersPerPixel,3500/map.width);

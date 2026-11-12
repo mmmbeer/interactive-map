@@ -5,6 +5,7 @@ import { versionAssets } from './release-assets.mjs';
 const root=resolve(import.meta.dirname,'..');
 execFileSync(process.execPath,[resolve(root,'scripts/planner-vendor.mjs')],{stdio:'inherit'});
 execFileSync(process.execPath,[resolve(root,'scripts/validate.mjs')],{stdio:'inherit'});
+execFileSync(process.execPath,[resolve(root,'scripts/package-procedural-source.mjs')],{stdio:'inherit'});
 await rm(resolve(root,'dist'),{recursive:true,force:true});
 await mkdir(resolve(root,'dist'),{recursive:true});
 await cp(resolve(root,'public'),resolve(root,'dist'),{recursive:true});
