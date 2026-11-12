@@ -47,8 +47,9 @@ async function route() {
     const entry = record ? record.map : maps.find(map => map.id === mapId);
     if (!entry) throw new Error(mapId.startsWith('local-') ? 'This local map is not stored in this browser. Restore its atlas backup from the collection.' : 'This map is not in the atlas. Return to the collection to choose another.');
     root.innerHTML = `<div class="loading-screen">${icon('compass')}<p>Unfolding ${escape(entry.name)}…</p></div>`;
-    const source = numberSites(record ? record.map : await loadJSON(entry.data, signal));
-    validateMap(source);
+    const rawSource=record ? record.map : await loadJSON(entry.data,signal);
+    validateMap(rawSource);
+    const source = numberSites(rawSource);
     const oldDraft = record ? {} : readDraft(source);
     const draft = {map:source,stale:oldDraft.local ? oldDraft.map : oldDraft.stale};
     let generationSettings=source.generator ? readSettings(draft.map,location.href,record ? undefined : {getItem:()=>null}) : null;

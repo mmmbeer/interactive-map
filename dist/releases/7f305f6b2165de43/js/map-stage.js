@@ -6,21 +6,22 @@ import { MapLabels } from './map-labels.js';
 import { boundsFor, fillShape } from './geometry.js';
 import { categories, icon, escape } from './ui.js';
 import { buildSpatialIndex, hitTest } from './spatial.js';
+import { prepareOverlay } from './map-canvas.js';
 export class MapStage {
   constructor(element, data, callbacks, signal) {
     this.el = element; this.data = data; this.callbacks = callbacks;
     this.pointers = new Map(); this.visible = () => true; this.markers = true;
     this.index = data.localIndexes ? {
       cells:new Map(data.localIndexes.cells.map(([cell,ids])=>[cell,ids.map(id=>data.locations[data.localIndexes.byId[id]]).filter(Boolean)])),
-      cellSize:data.localIndexes.cellSize,featured:data.locations.filter(p=>p.featured)
+      cellSize:data.localIndexes.cellSize,featured:data.locations.filter(p=>p.featured),
+      large:(data.localIndexes.large||[]).map(id=>data.locations[data.localIndexes.byId[id]]).filter(Boolean)
     } : buildSpatialIndex(data.locations);
     element.innerHTML = `<div class="map-world"><img class="map-image" src="${escape(data.image)}" width="${data.width}" height="${data.height}" alt="${escape(data.name)} city map" draggable="false"><canvas class="map-overlay" aria-hidden="true"></canvas><div class="map-pins"></div></div><div class="map-load-error" hidden><p>The map image could not be loaded.</p><button class="button" type="button">Reload image</button></div>`;
     this.world = element.querySelector('.map-world');
     this.world.style.width = `${data.width}px`; this.world.style.height = `${data.height}px`;
     this.canvas = element.querySelector('canvas');
-    this.canvas.width = data.width; this.canvas.height = data.height;
-    this.context = this.canvas.getContext('2d');
-    this.baseCanvas=document.createElement('canvas');this.baseCanvas.className='map-overlay';this.baseCanvas.width=data.width;this.baseCanvas.height=data.height;this.canvas.before(this.baseCanvas);
+    this.context = prepareOverlay(this.canvas,data.width,data.height);
+    this.baseCanvas=document.createElement('canvas');this.baseCanvas.className='map-overlay';prepareOverlay(this.baseCanvas,data.width,data.height);this.canvas.before(this.baseCanvas);
     this.pins = element.querySelector('.map-pins');
     this.pins.innerHTML = data.locations.filter(p => p.featured).map(p => `<button class="map-pin" data-id="${escape(p.id)}" aria-label="${escape(p.name)}: ${categories[p.category].singular}" style="left:${p.x}px;top:${p.y}px;--category:${categories[p.category].color}">${icon(categories[p.category].icon)}</button>`).join('');
     this.pinEls = [...this.pins.children];
@@ -54,7 +55,7 @@ export class MapStage {
     element.addEventListener('focusin', e => {
       const pin = e.target.closest('.map-pin,.site-number');
       if (!pin || this.pointers.size) return;
-      const place = data.locations.find(p => p.id === pin.dataset.id);
+      const place = this.placeIndex.get(pin.dataset.id);
       this.center(place.x, place.y);this.highlight(place);
     }, {signal});
     element.addEventListener('focusout',()=>this.highlight(null),{signal});
@@ -128,8 +129,17 @@ export class MapStage {
     this.render();
   }
   render(animate = false) {
-    if (!this.w) return;
+    if (!this.w || this.destroyed) return;
     this.constrain();
+    this.animateFrame ||= animate;
+    if(this.renderFrame!==undefined)return;
+    this.renderFrame=requestAnimationFrame(()=>{
+      this.renderFrame=undefined;
+      const animate=this.animateFrame;this.animateFrame=false;
+      this.draw(animate);
+    });
+  }
+  draw(animate = false) {
     if (animate && this.hasRendered && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       this.world.classList.add('navigating');
       clearTimeout(this.navigationTimer);
@@ -236,7 +246,6 @@ export class MapStage {
   filter(predicate, showAll = false, district = '') {
     this.hoveredDistrict=null;this.districtFilter=district;this.districtLayer.draw(this.scale,district);
     this.visible = predicate; this.showAll=showAll;
-    this.pinEls.forEach(el => el.hidden = !this.markers || !predicate(this.data.locations.find(p=>p.id===el.dataset.id)));
     this.streetLayer.draw(this.scale,predicate);this.layoutLabels();
     this.drawSites();this.highlight(null);
   }
@@ -279,10 +288,12 @@ export class MapStage {
     }
   }
   highlight(place) {
+    if(this.highlightReady && this.hovered===place && this.highlightedSelection===this.selected && this.highlightedScale===this.scale)return;
+    this.highlightReady=true;this.highlightedSelection=this.selected;this.highlightedScale=this.scale;
     this.hovered=place;
     this.pinEls.forEach(el=>el.classList.toggle('hovered',el.dataset.id===place?.id));
     const ctx = this.context;
-    ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    ctx.clearRect(0,0,this.data.width,this.data.height);
     for (const p of [this.selected,place]) {
       if (!p) continue;
       ctx.save();ctx.shadowColor=categories[p.category].color;ctx.shadowBlur=5/this.scale;
@@ -296,6 +307,11 @@ export class MapStage {
     this.highlight(null);this.layoutLabels();
     this.pinEls.forEach(el=>el.classList.toggle('selected',el.dataset.id===place?.id));
   }
-  destroy() { clearTimeout(this.navigationTimer); this.resizeObserver.disconnect(); this.callbacks.hover(null); }
+  destroy() {
+    this.destroyed=true;cancelAnimationFrame(this.renderFrame);clearTimeout(this.navigationTimer);
+    this.resizeObserver.disconnect();this.callbacks.hover(null);
+    // Release GPU/bitmap memory immediately when switching maps or remounting edits.
+    for(const canvas of [this.canvas,this.baseCanvas,this.streetLayer.canvas,this.districtLayer.canvas])canvas.width=canvas.height=0;
+  }
 }
 

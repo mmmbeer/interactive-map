@@ -1,6 +1,7 @@
 import { check } from './generation/validate.js';
 import { districtColors } from './district-colors.js';
 import { contains, traceShape } from './geometry.js';
+import { prepareOverlay } from './map-canvas.js';
 export function hitTestDistrict(districts,x,y,{enabled=true,object=null}={}) {
   if(!enabled || object)return null;
   return districts.find(d=>(d.boundaries||[]).some(shape=>contains({shape},x,y))) || null;
@@ -22,8 +23,7 @@ export class DistrictLayer {
     this.districts=(data.districtAreas || data.districts || []).filter(d=>typeof d==='object' && d.boundaries?.length);
     const palette=districtColors(this.districts);this.districts=this.districts.map(d=>({...d,...palette.get(d.id)}));
     this.canvas=document.createElement('canvas');this.canvas.className='map-district-overlay';
-    this.canvas.width=data.width;this.canvas.height=data.height;world.querySelector('.map-image').after(this.canvas);
-    this.ctx=this.canvas.getContext('2d');
+    this.ctx=prepareOverlay(this.canvas,data.width,data.height);world.querySelector('.map-image').after(this.canvas);
   }
   draw(scale,selected='',hovered='') {
     if(this.lastScale===scale && this.lastSelected===selected && this.lastEnabled===this.enabled && this.lastHovered===hovered)return;

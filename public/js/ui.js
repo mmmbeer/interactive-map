@@ -58,11 +58,7 @@ export function toast(message) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('visible'), 3500);
 }
-export async function loadJSON(path, signal) {
-  const response = await fetch(path, { signal });
-  if (!response.ok) throw new Error(`Could not load ${path} (${response.status}).`);
-  return response.json();
-}
+export { loadJSON } from './map-data.js';
 export function categoryBadge(category) {
   const item = categories[category];
   return `<span class="category-badge" style="--category:${item.color}">${icon(item.icon)}${item.singular}</span>`;

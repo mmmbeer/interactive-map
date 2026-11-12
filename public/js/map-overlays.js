@@ -1,18 +1,18 @@
 import { traceShape } from './geometry.js';
 import { isGeography } from './site-index.js';
+import { prepareOverlay } from './map-canvas.js';
 export class StreetLayer {
   constructor(world,data) {
-    this.enabled=true;this.streets=data.locations.filter(p=>p.category==='street');
+    this.enabled=true;this.data=data;this.streets=data.locations.filter(p=>p.category==='street');
     this.canvas=document.createElement('canvas');this.canvas.className='map-street-overlay';
-    this.canvas.width=data.width;this.canvas.height=data.height;world.querySelector('.map-overlay').before(this.canvas);
-    this.ctx=this.canvas.getContext('2d');
+    this.ctx=prepareOverlay(this.canvas,data.width,data.height);world.querySelector('.map-overlay').before(this.canvas);
   }
   draw(scale,visible=()=>true) {
     if(this.lastScale===scale && this.lastVisible===visible && this.lastEnabled===this.enabled)return;
     this.lastScale=scale;this.lastVisible=visible;this.lastEnabled=this.enabled;
     this.canvas.classList.toggle('layer-off',!this.enabled);
     const ctx=this.ctx;if(!this.enabled)return;
-    ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    ctx.clearRect(0,0,this.data.width,this.data.height);
     ctx.lineCap='round';ctx.lineJoin='round';
     for(const p of this.streets) {
       if(!visible(p))continue;
