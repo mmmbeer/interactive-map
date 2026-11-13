@@ -6,12 +6,14 @@ import { catalogFor, versionFor } from './generation/config.js';
 import { validateGeography } from './generation/geography-validation.js';
 import { check, validateGenerator, validateSettings, validateResolvedSettings } from './generation/validate.js';
 import { boundsFor, ringContains } from './geometry.js';
+import { validateMapLimits, relativeAssetPath } from './map-limits.js';
 export const categoryKeys = ['landmark','tavern','shop','workshop','temple','guild','harbor','home','street','water','terrain'];
 const slug = value => typeof value==='string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 const number = value => typeof value==='number' && Number.isFinite(value);
 const text = value => typeof value==='string' && value.trim().length>0;
 export function validateMap(map) {
   check(map && typeof map==='object' && !Array.isArray(map),'Map must be an object.');
+  validateMapLimits(map);
   if(map.settlementSettings!==undefined)normalizeSettings(map,map.settlementSettings);
   if(map.generationId!==undefined)check(slug(map.generationId),'Invalid generation identity.');
   if(map.nextSiteNumber!==undefined)check(Number.isSafeInteger(map.nextSiteNumber) && map.nextSiteNumber>0,'Invalid next site number.');
@@ -22,8 +24,7 @@ export function validateMap(map) {
   check(slug(map.id),'Map id must be a lowercase hyphenated slug.');
   for (const key of ['name','subtitle','description','image','thumbnail','region','theme']) check(text(map[key]),`Missing map ${key}.`);
   for(const key of ['image','thumbnail']) {
-    const path=map[key];
-    check(!path.includes('\\') && !path.split('/').includes('..') && !path.startsWith('/') && !/^[a-z]+:/i.test(path),`${key} must be a local relative asset path.`);
+    check(relativeAssetPath(map[key]),`${key} must be a local relative asset path.`);
   }
   if(map.directoryScope!==undefined) check(['all','highlights'].includes(map.directoryScope),'Directory scope must be all or highlights.');
   if(map.tags!==undefined) check(Array.isArray(map.tags) && map.tags.every(text),'Tags must be a list of text values.');
@@ -50,7 +51,8 @@ export function validateMap(map) {
     }
   }
   check(Array.isArray(map.locations) && map.locations.length,'A map needs at least one location.');
-  const ids = new Set(),siteNumbers=new Set();
+  const ids = new Set(),siteNumbers=new Set(),catalogs=new Map();
+  if(catalog)catalogs.set(versionFor(map),catalog);
   for (const p of map.locations) {
     if(p?.siteNumber!==undefined) {
       check(Number.isSafeInteger(p.siteNumber) && p.siteNumber>0 && !siteNumbers.has(p.siteNumber),'Invalid or duplicate site number.');
@@ -101,7 +103,9 @@ export function validateMap(map) {
     if(p.labelMinScale!==undefined) check(number(p.labelMinScale) && p.labelMinScale>=0,`${prefix}: invalid minimum label scale.`);
     check(p.featured===undefined || typeof p.featured==='boolean',`${prefix}: featured must be a boolean.`);
     if (catalog) {
-      const localCatalog = catalogFor(map,p);
+      const version=versionFor(map,p);
+      if(!catalogs.has(version))catalogs.set(version,catalogFor(map,p));
+      const localCatalog = catalogs.get(version);
       if(p.type!==undefined) check(text(p.type) && Object.hasOwn(localCatalog.types,p.type),`${prefix}: unknown type.`);
       const type=localCatalog.types[p.type || p.category];
       if (['street','water','terrain'].includes(p.category)) check(versionFor(map,p)===2,`${prefix}: geography requires generator 2.`);

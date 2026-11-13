@@ -1,11 +1,12 @@
 import { normalizeSettings } from '../generation/settlement-settings.js';
 import { validateMap } from '../map-contract.js';
-export const MAX_FILE=40*1024*1024,MAX_PIXELS=24000000;
+import { MAX_MAP_EDGE, MAX_MAP_PIXELS } from '../map-limits.js';
+export const MAX_FILE=40*1024*1024,MAX_PIXELS=MAX_MAP_PIXELS;
 export async function decodeImage(blob) {
   if(blob.size>MAX_FILE)throw new Error('Choose an image smaller than 40 MB.');
   if(!['image/png','image/jpeg','image/webp'].includes(blob.type))throw new Error('Choose a PNG, JPEG or WebP image.');
   const image=await createImageBitmap(blob);
-  if(image.width*image.height>MAX_PIXELS || image.width>8192 || image.height>8192) {
+  if(image.width*image.height>MAX_PIXELS || image.width>MAX_MAP_EDGE || image.height>MAX_MAP_EDGE) {
     image.close();throw new Error('Choose a map up to 24 million pixels with each side at most 8192 pixels.');
   }
   return image;

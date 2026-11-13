@@ -13,13 +13,16 @@ export function validateGeography(map) {
       check(target.category===groups[key],`${p.id}: ${key} reference has the wrong category.`);
     }
   }
-  const visited = new Set(), active = new Set();
+  const depths = new Map(), active = new Set();
   function visit(p) {
-    if (visited.has(p.id)) return;
+    if (depths.has(p.id)) return depths.get(p.id);
     check(!active.has(p.id),`${p.id}: cyclic geographic context.`);
+    check(active.size<32,`${p.id}: geographic context is too deeply linked.`);
     active.add(p.id);
-    for (const id of Object.values(p.context || {})) visit(index.get(id));
-    active.delete(p.id);visited.add(p.id);
+    let depth=1;
+    for (const id of Object.values(p.context || {}))depth=Math.max(depth,1+visit(index.get(id)));
+    check(depth<=32,`${p.id}: geographic context is too deeply linked.`);
+    active.delete(p.id);depths.set(p.id,depth);return depth;
   }
   map.locations.forEach(visit);
 }

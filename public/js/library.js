@@ -4,8 +4,6 @@ import { validateMap } from './map-contract.js';
 import { MapStage } from './map-stage.js';
 import { tooltipHTML } from './places.js';
 
-import { openWorldImport } from './world-maps/dialog.js';
-import { openMapUpload } from './local-maps/upload.js';
 import { readLocalMap, hydrateLocalMap } from './local-maps/store.js';
 
 export function renderLibrary(root, maps, signal) {
@@ -74,10 +72,19 @@ export function renderLibrary(root, maps, signal) {
       toast('The map preview could not load.');
     }
   }
-  on(root,'click',e=>{
+  on(root,'click',async e=>{
     const button=e.target.closest('button');if(!button)return;
-    if(button.id==='world-import')openWorldImport(id=>{location.hash=`map/${id}`;},signal);
-    if(button.id==='upload-map')openMapUpload(id=>{location.hash=`map/${id}`;},signal);
+    if(['world-import','upload-map'].includes(button.id)) {
+      if(button.disabled)return;
+      button.disabled=true;
+      try {
+        const module=await (button.id==='world-import'?import('./world-maps/dialog.js'):import('./local-maps/upload.js'));
+        if(signal.aborted)return;
+        (module.openWorldImport || module.openMapUpload)(id=>{location.hash=`map/${id}`;},signal);
+      } catch {if(!signal.aborted)toast('The map tools could not load. Reload the atlas and try again.');}
+      finally {button.disabled=false;}
+      return;
+    }
     if(button.dataset.map)choose(maps.find(m=>m.id===button.dataset.map));
     if(button.id==='guide-toggle'){
       const guide=root.querySelector('#field-guide');guide.hidden=!guide.hidden;

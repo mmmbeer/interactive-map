@@ -11,6 +11,7 @@ import { MapStage } from './map-stage.js';
 import { openSettlementSettings } from './settlement-dialog.js';
 import { ancestries } from './generation/settlement-pools-v1.js';
 import { matches, searchPlaces } from './spatial.js';
+import { DirectorySearch } from './directory-search.js';
 export class AtlasViewer {
   constructor(root,data,options={}) {
     this.localMap=options.localMap;this.onSave=options.onSave;this.onRestore=options.onRestore;this.onBackup=options.onBackup;this.onDelete=options.onDelete;
@@ -18,6 +19,7 @@ export class AtlasViewer {
     this.generationSettings=options.generationSettings;this.onGenerationChange=options.onGenerationChange;
     this.root=root;this.data=data;this.numbers=siteNumbers(data.locations);this.controller=new AbortController();this.signal=this.controller.signal;
     this.generationSource=options.generationSource || this.source;
+    this.directorySearch=new DirectorySearch(this.generationSource,this.signal);
     this.filters={query:'',category:'',district:''};this.scope=data.directoryScope || 'highlights';this.limit=45;
     root.innerHTML=viewerHTML(data);
     if (this.source.generator && this.onGenerationChange) {
@@ -115,9 +117,23 @@ export class AtlasViewer {
       this.root.querySelector('#results-count').textContent='Searching places…';
       this.root.querySelector('#random-place').disabled=true;
     }
-    const results=await searchPlaces(places,filters,{signal:this.signal,current:()=>this.searchVersion===version});
+    let results,predicate;
+    try {
+      if(filters.query) {
+        const ids=await this.directorySearch.query(filters);
+        if(!ids)return;
+        results=places.filter(p=>ids.has(p.id));predicate=p=>ids.has(p.id);
+      } else {
+        this.directorySearch.cancel();
+        results=await searchPlaces(places,filters,{signal:this.signal,current:()=>this.searchVersion===version});
+        predicate=p=>matches(p,filters);
+      }
+    } catch(error) {
+      if(!this.signal.aborted&&this.searchVersion===version){this.root.querySelector('#results-count').textContent='Search unavailable. Edit your search to retry.';toast(error.message);}
+      return;
+    }
     if(!results || this.signal.aborted || this.searchVersion!==version)return;
-    this.predicate=p=>matches(p,filters);
+    this.predicate=predicate;
     this.results=results;
     this.limit=45;this.renderList();
     this.root.querySelector('#place-list').scrollTop=0;
