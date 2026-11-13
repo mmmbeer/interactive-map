@@ -2,9 +2,14 @@ import { integrationSearchTerms } from './integrations/config.js';
 import { boundsFor, contains } from './geometry.js';
 // Image-space indexing keeps thousands of building hit areas inexpensive to query.
 export function buildSpatialIndex(locations, cellSize = 32) {
-  const cells = new Map();
+  if(!Number.isFinite(cellSize)||cellSize<=0)throw new Error('Invalid spatial cell size.');
+  const cells = new Map(),large=[];
   for (const place of locations) {
     const [x,y,w,h] = boundsFor(place);
+    const columns=Math.floor((x+w)/cellSize)-Math.floor(x/cellSize)+1;
+    const rows=Math.floor((y+h)/cellSize)-Math.floor(y/cellSize)+1;
+    // Large water/terrain polygons belong in one fallback list, not thousands of cells.
+    if(!Number.isFinite(columns*rows)||columns*rows>64){large.push(place);continue;}
     for (let gx=Math.floor(x/cellSize);gx<=Math.floor((x+w)/cellSize);gx++) {
       for (let gy=Math.floor(y/cellSize);gy<=Math.floor((y+h)/cellSize);gy++) {
         const key=`${gx},${gy}`;
@@ -13,7 +18,7 @@ export function buildSpatialIndex(locations, cellSize = 32) {
       }
     }
   }
-  return {cells,cellSize,featured:locations.filter(p=>p.featured)};
+  return {cells,cellSize,large,featured:locations.filter(p=>p.featured)};
 }
 export function hitTest(index,locations,x,y,scale=1,predicate=()=>true,markers=true,pinVisible=()=>true) {
   if (markers) {
@@ -26,13 +31,13 @@ export function hitTest(index,locations,x,y,scale=1,predicate=()=>true,markers=t
     if (nearest) return nearest;
   }
   const candidates=index.cells.get(`${Math.floor(x/index.cellSize)},${Math.floor(y/index.cellSize)}`)||[];
-  return candidates.filter(p=>{
-    if (!predicate(p)) return false;
-    return contains(p,x,y);
-  }).sort((a,b)=>{
-    const area=p=>{ const b=boundsFor(p); return b[2]*b[3]; };
-    return area(a)-area(b);
-  })[0]||null;
+  let nearest=null,smallest=Infinity;
+  for(const group of [candidates,index.large||[]])for(const p of group) {
+    if(!predicate(p)||!contains(p,x,y))continue;
+    const b=boundsFor(p),area=b[2]*b[3];
+    if(area<smallest){nearest=p;smallest=area;}
+  }
+  return nearest;
 }
 const searchCache = new WeakMap();
 const normalizeSearch=value=>String(value).toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
