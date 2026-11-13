@@ -28,7 +28,11 @@ export class WorldView {
       if(move){const size=256*2**this.zoom;this.center[0]+=move[0]/size;this.center[1]+=move[1]/size;this.draw();}
     });
     this.observer=new ResizeObserver(()=>this.draw());this.observer.observe(element);
-    signal.addEventListener('abort',()=>{this.observer.disconnect();cancelAnimationFrame(this.frame);this.tiles.clear();},{once:true});this.draw();
+    signal.addEventListener('abort',()=>{
+      this.destroyed=true;this.observer.disconnect();cancelAnimationFrame(this.frame);
+      for(const img of this.tiles.values()){img.onload=img.onerror=null;img.remove();}
+      this.tiles.clear();
+    },{once:true});this.draw();
   }
   gestureValue() {const pts=[...this.pointers.values()];return {x:pts.reduce((s,p)=>s+p[0],0)/pts.length,y:pts.reduce((s,p)=>s+p[1],0)/pts.length,distance:pts.length===2?Math.hypot(pts[0][0]-pts[1][0],pts[0][1]-pts[1][1]):0};}
   gesture() {this.last=this.gestureValue();}
@@ -49,6 +53,10 @@ export class WorldView {
   setBasemap(value) {this.basemap=value;for(const img of this.tiles.values()){img.onload=img.onerror=null;img.remove();}this.tiles.clear();this.draw();}
   bounds() {return areaBounds(this.center,this.zoom,this.frameRect);}
   draw() {
+    if(this.destroyed||this.frame!==undefined)return;
+    this.frame=requestAnimationFrame(()=>{this.frame=undefined;this.render();});
+  }
+  render() {
     const w=this.el.clientWidth,h=this.el.clientHeight;if(!w||!h)return;
     const size=256*2**this.zoom;
     this.center[0]=clamp(this.center[0],0,1);this.center[1]=clamp(this.center[1],Math.min(.5,h/size/2),Math.max(.5,1-h/size/2));

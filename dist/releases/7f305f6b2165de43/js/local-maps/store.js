@@ -29,7 +29,7 @@ export function localIndexes(map) {
   map.locations.forEach((p,i)=>{
     byId[p.id]=i;(categories[p.category] ||= []).push(p.id);(districts[p.district] ||= []).push(p.id);
   });
-  return {version:1,cellSize,cells:[...spatial.cells].map(([cell,places])=>[cell,places.map(p=>p.id)]),byId,categories,districts};
+  return {version:2,cellSize,cells:[...spatial.cells].map(([cell,places])=>[cell,places.map(p=>p.id)]),large:spatial.large.map(p=>p.id),byId,categories,districts};
 }
 export async function saveLocalMap(map,image,thumbnail,initialMap=map,{create=false}={}) {
   map=numberSites(map);initialMap=numberSites(initialMap);
@@ -42,7 +42,7 @@ export async function saveLocalMap(map,image,thumbnail,initialMap=map,{create=fa
 export async function readLocalMap(id) {
   const record=await transaction('readonly',store=>store.get(id));
   const upgraded=upgradeLocalTerrain(upgradeLocalWater(record));
-  if(upgraded!==record){validateMap(upgraded.map);upgraded.indexes=localIndexes(upgraded.map);}
+  if(upgraded && (upgraded!==record || upgraded.indexes?.version!==2)){validateMap(upgraded.map);upgraded.indexes=localIndexes(upgraded.map);}
   return upgraded;
 }
 export function upgradeLocalWater(record) {

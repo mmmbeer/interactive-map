@@ -10,6 +10,8 @@ Use **Real-world map** to open a world-map modal, select a square, landscape or 
 
 ## Run and build
 
+Before continuing development or uploading changes, read [the delivery workflow and current checkpoints](docs/work-delivery.md). Keep each GitHub connector request at or below 1 MiB and save progress after each focused change.
+
 Requires Node.js 22 or newer. The UI remains plain ES modules. The layout planner uses pinned geometry and sampling libraries bundled locally, with no CDN requests or generation service.
 
 ```sh
