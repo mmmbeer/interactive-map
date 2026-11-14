@@ -4,6 +4,12 @@ The saved map stores geometry, identifiers and configuration. `materializeMap(so
 
 ## Visitor settlement settings
 
+Open **Regenerate** in a map's header to preview a new local variation. **Names, residents and stories** keeps artwork, geometry, location IDs, authored overrides and generation rules. Choose a new seed or use the current seed to reproduce its content. Ancestry and settlement type can also change. Saving always creates a separate map in the collection, including when starting from an existing local variation. The source map is unchanged. Export the new map's atlas backup to move it to another device.
+
+Real-world imports with saved bounds also offer **Layout and generated content**. This runs layout planner v4 in a cancellable worker using retained source geometry and saved settlement choices. It replaces previously generated roads, buildings, terrain and districts, then renders matching artwork and a thumbnail. It does not download the source region again. It cannot restore source features excluded during the original import. Mapped tree points were not stored in older imports, so decoration is procedural. Generated site IDs, edits on replaced generated sites and their links can change. Authored text on retained source features stays literal. The original map remains available with all its edits.
+
+Layout regeneration keeps the map's existing physical scale. It is not available for raster maps such as Dragonsgate or Grayhaven because their artwork fixes the layout. Use content regeneration on those maps. Previewing or cancelling creates no saved record. A saved regeneration gets its own immutable starting snapshot for **Restore**.
+
 Open **Settlement** in the map header to select Human (the default), Orc, Elf, Dwarf, Halfling, Dragonborn, Gnome, Goblin, Tiefling, Half-elf or Half-orc. **As authored** restores the map's demographic inheritance and released naming catalogs. **Reset to Human** restores Human naming and the map's published or draft seed when you apply it.
 
 The seed accepts 1 to 128 characters, including `0`. **New seed** prepares a new random seed. Nothing regenerates until you apply the settings. The same map source, ancestry and seed reproduce the same generated content. Changing these settings preserves ids, geometry, authored overrides, enabled fields and geographic references. The current view, filters, layers and selected site survive an applied change.

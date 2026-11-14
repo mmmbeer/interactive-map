@@ -34,7 +34,7 @@ function roadMeters(t) {
   const given=parseFloat(t.width);if(Number.isFinite(given)&&given>0)return Math.min(35,given);
   return {motorway:16,trunk:12,primary:10,secondary:8,tertiary:7,residential:6,service:4,footway:2,path:2,steps:2,track:3}[t.highway]||5;
 }
-function linkStreets(map) {
+export function linkStreets(map) {
   const size=map.width/24,bins=new Map(),roads=map.locations.filter(p=>p.category==='street');
   const roadIds=new Set(roads.map(r=>r.id));
   for(const r of roads)for(let i=1;i<r.shape.points.length;i++) {

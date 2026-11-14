@@ -1,5 +1,15 @@
 # Small GitHub deliveries
 
+## Map regeneration checkpoint, 2026-11-13
+
+Local branch `feat/map-regeneration` adds explicit content regeneration for generated maps and offline layout regeneration for saved real-world imports. Both preview first and save a separate local variation. Source maps and local originals are preserved. See `docs/generation.md` for user behavior and limits.
+
+Validation: 308 tests pass, including six regeneration tests. Production build passes with matching committed distribution. Browser checks covered content regeneration on Dragonsgate, separate collection entries for original and copy, imported layout preview, matching saved artwork and geometry, and dialog scrolling at increased browser zoom.
+
+The starting local tree matched verified remote main `3fcb4023188fa3fb1234c44e149025f1964a7e13` exactly (`69aaba7fc3c86713df7554652be43b52cdd9c51d`). The local recovery history has different commit SHAs. No GitHub upload or merge was requested or performed for this feature. Inspect the current remote head before delivery.
+
+The rebuilt corresponding-source archive is 12,712,526 bytes. It is a new blob because application source changed. Do not send it through the GitHub connector: base64 plus JSON exceeds the 1 MiB project request budget. Prepare an authenticated Git transfer or a separately reviewed artifact-layout change before uploading the complete release. Preserve the required source and licenses. Do not merge a source-only checkpoint without its matching distribution and archive.
+
 User preference recorded 2026-11-13: split security and performance work into small, recoverable activities. Limit GitHub upload sizes. Carry this workflow into future sessions.
 
 ## Resume before doing new work
