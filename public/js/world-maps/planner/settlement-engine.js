@@ -73,14 +73,17 @@ export function planPhysicalSettlement(state,needs,onProgress) {
   state.routeMetrics={engine:'settlemaker',candidateSites:model.districts.length,acceptedRoutes:state.routes.length};
 }
 export function importPhysicalBuildings(state,graph) {
-  const {map,unit,precision}=state,index=spatialIndex(state.extent/24);
+  const {map,unit,precision}=state,index=spatialIndex(state.extent/24),mpp=map.measurement.metersPerPixel;
   for(const p of map.locations.filter(p=>p.category==='water'||p.category==='street'||p.worldStyle?.kind==='building'||p.category==='terrain'&&p.worldStyle?.origin!=='generated'))index.add(p,boundsFor(p));
-  const inside=buffer(state.land,-unit*.5),plots=[];let built=0,rejected=0;const rejectionReasons={land:0,collision:0,access:0};
+  // Upstream footprints are in metres. A visual drawing unit grows with the
+  // settlement's extent and must not turn small city houses into invalid lots.
+  const inside=buffer(state.land,-.225/mpp),plots=[];let built=0,rejected=0;const rejectionReasons={area:0,land:0,collision:0,access:0};
   for(const b of state.physicalBuildings) {
     const roof=outlineEngineRoof(state,b),shape=polygons(buffer(shapeGeometry(roof.shape),-.12/map.measurement.metersPerPixel))[0];
     if(!shape){rejected++;continue;}
     const geometry=shapeGeometry(shape),box=boundsFor({shape}),at=interior(geometry);
-    if(!at||area(geometry)<unit*unit*25||area(subtract(geometry,inside))>precision**2*8){rejected++;rejectionReasons.land++;continue;}
+    if(area(geometry)*mpp*mpp<5){rejected++;rejectionReasons.area++;continue;}
+    if(!at||area(subtract(geometry,inside))>precision**2*8){rejected++;rejectionReasons.land++;continue;}
     if([...index.query(box)].some(p=>area(intersect(geometry,shapeGeometry(p.shape)))>precision**2*8)){rejected++;rejectionReasons.collision++;continue;}
     let nearest;
     for(const e of graph.edges)for(let i=1;i<e.points.length;i++) {

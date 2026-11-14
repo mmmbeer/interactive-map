@@ -29,7 +29,12 @@ export function generateEngineLayout(map,needs,profile,warnings,onProgress) {
   run('terrain-constraints','Finding dry routes…',()=>updateRoadSpace(state));
   run('founding-and-growth','Choosing settlement ground…',()=>planAnchors(state));
   const physical=canPlanSettlement(state,needs);
-  if(physical)run('medieval-physical-plan','Growing medieval streets and plots…',()=>planPhysicalSettlement(state,needs,onProgress));
+  if(physical) {
+    // The physical engine fits metre-sized lots. Keep downstream clearance,
+    // parcel buffers and repairs in those units even on a broad cutout.
+    state.unit=.45/map.measurement.metersPerPixel;
+    run('medieval-physical-plan','Growing medieval streets and plots…',()=>planPhysicalSettlement(state,needs,onProgress));
+  }
   else {
     run('street-direction-field','Following terrain and retained streets…',()=>createStreetField(state));
     run('approved-crossings','Choosing river crossings…',()=>planCrossings(state,needs));
@@ -64,5 +69,5 @@ export function generateEngineLayout(map,needs,profile,warnings,onProgress) {
     anchors:state.anchors.map(({index,...a})=>a),quarters:state.quarters,streets:graph,
     blocks:state.blocks.map(({geometry,...b})=>b),parcels:state.parcels.map(({geometry,edgePoints,...p})=>p),
     climate:state.climate,drainage:{channels:state.channels,conditioned:true,samples:state.points.map((point,i)=>({point,elevation:state.elevations[i],downstream:state.drainage.downstream[i]}))},
-    metrics:{...state.routeMetrics,blocks:state.blocks.length,parcels:state.parcels.length,buildings:state.buildingCount||0,components:graph.components,...audit}}));
+    metrics:{...state.routeMetrics,blocks:state.blocks.length,parcels:state.parcels.length,buildingTarget:state.buildingTarget||0,buildings:state.buildingCount||0,components:graph.components,...audit}}));
 }
