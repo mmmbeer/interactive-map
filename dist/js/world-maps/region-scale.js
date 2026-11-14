@@ -45,6 +45,6 @@ export function applyRegionScale(map,profile,reinterpret=true) {
   map.worldImport.distanceScale={version:1,reinterpreted:resized,sourceWidthMeters:plan.sourceWidthMeters,fantasyWidthMeters:width};
   map.measurement.metersPerPixel=width/map.width;
   if(resized)for(const p of map.locations)if(p.category==='street'&&p.shape.kind==='polyline') {
-    p.worldStyle.sourceWidth=p.shape.width;p.shape.width=regionRoadWidth(p.worldStyle?.sourceGroup,map.width,map.worldImport.settings.roadWidth||1);
+    p.worldStyle.sourceWidth ??= p.shape.width;p.shape.width=regionRoadWidth(p.worldStyle?.sourceGroup,map.width,map.worldImport.settings.roadWidth||1);
   }
 }

@@ -40,6 +40,9 @@ executed when existing streets prevent using its complete settlement plan.
 8. Accept physical building footprints inside dry ground. The host applies a
    12 cm inset to remove coincident-boundary slivers. Detached roof wing cuts
    remain inside the upstream envelope and do not move buildings or enlarge them.
+   Minimum footprint area is 5 square metres, independent of the map's drawing
+   scale and export dimensions. Area rejections are counted separately from
+   footprints rejected for crossing the land boundary.
 9. Independently audit actual footprint collisions, then prune unused generated
    routes. Keep mapped geometry and its identifiers intact.
 10. Use native settlement greens and fields. If native fields do not fit the
@@ -75,6 +78,13 @@ Raininess is 0.2 to 2. Wind angle is a flow direction in degrees, clockwise on
 screen from east. Null chooses the direction from the seed. The wizard labels
 it as the direction the wind comes from. Retained water is never regenerated
 when these controls change. Regeneration requires an explicit new preview.
+
+Regional imports default to rebuilding roads, buildings and content in the
+regeneration dialog. Names-only regeneration explicitly keeps the layout fixed.
+Changing the settlement type on a reinterpreted geographic shape reapplies its
+fantasy distance scale; real-distance imports keep their existing calibration.
+The preview lists actual buildings, homes, businesses, road segments and alleys
+separately, with a building target and a warning when fewer than 60% fit.
 
 ## Limits and diagnostics
 

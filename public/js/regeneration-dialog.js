@@ -4,6 +4,7 @@ import { settlementTypes } from './generation/economy-settlements.js';
 import { normalizeSettings, applySettings } from './generation/settlement-settings.js';
 import { materializeMap } from './generation/locations.js';
 import { regenerateContent } from './local-maps/regeneration.js';
+import { defaultRegenerationMode, regenerationSummary } from './regeneration-summary.js';
 
 function newSeed() {return Array.from(crypto.getRandomValues(new Uint32Array(4)),n=>n.toString(16).padStart(8,'0')).join('');}
 export function openRegeneration(viewer) {
@@ -13,7 +14,7 @@ export function openRegeneration(viewer) {
   dialog.innerHTML=`<form>
     <header><div><span class="eyebrow">NEW LOCAL VARIATION</span><h2 id="regeneration-title">Regenerate map</h2></div><button type="button" class="icon-button" data-close aria-label="Close regeneration">${icon('close')}</button></header>
     <p>Preview a new variation of ${escape(viewer.source.name)}. Saving creates a separate map on this device. Your current map stays available in the collection.</p>
-    <label for="regeneration-mode">What to regenerate</label><select id="regeneration-mode" name="mode" aria-describedby="regeneration-help"><option value="content">Names, residents and stories</option><option value="layout" ${layout?'':'disabled'}>Layout and generated content</option></select>
+    <label for="regeneration-mode">What to regenerate</label><select id="regeneration-mode" name="mode" aria-describedby="regeneration-help"><option value="layout" ${layout?'selected':'disabled'}>Rebuild roads, buildings and content</option><option value="content" ${layout?'':'selected'}>Names and stories only (same layout)</option></select>
     <p id="regeneration-help"></p>
     <label for="regeneration-ancestry">Settlement ancestry</label><select id="regeneration-ancestry" name="ancestry"><option value="original" ${current.ancestry==='original'?'selected':''}>As authored</option>${Object.entries(ancestries).map(([key,label])=>`<option value="${key}" ${current.ancestry===key?'selected':''}>${escape(label)}</option>`).join('')}</select>
     <label for="regeneration-settlement">Settlement type</label><select id="regeneration-settlement" name="settlementType"><option value="original">As authored</option>${Object.entries(settlementTypes).map(([key,p])=>`<option value="${key}" ${current.settlementType===key?'selected':''}>${escape(p.label)}</option>`).join('')}</select>
@@ -25,12 +26,13 @@ export function openRegeneration(viewer) {
   </form>`;
   document.body.append(dialog);
   const form=dialog.querySelector('form'),status=dialog.querySelector('[role=status]'),preview=dialog.querySelector('.regeneration-preview'),canvas=dialog.querySelector('canvas'),summary=dialog.querySelector('[data-summary]'),save=form.querySelector('[type=submit]');
+  form.elements.mode.value=defaultRegenerationMode(viewer.source);
   let result,job,busy=false,saving=false;
   const message=text=>{status.textContent=text;};
   function help() {
     dialog.querySelector('#regeneration-help').textContent=form.elements.mode.value==='layout'
       ? 'Rebuild generated roads, buildings, terrain and districts with the latest planner. Retained real-world geometry is reused offline. Generated sites and their links may change. Mapped tree points are replaced with procedural decoration.'
-      : `Keep artwork, shapes, location IDs and authored text. Regenerate names, residents and stories from the selected seed.${layout?'':' Layout regeneration is available for real-world imports with saved bounds.'}`;
+      : `Regenerate names, residents and stories. The number of roads and buildings stays the same, including when you change settlement type.${layout?' Choose rebuild to grow a village into a city or metropolis.':' Layout regeneration is available for real-world imports with saved bounds.'}`;
   }
   function buttons() {
     form.querySelectorAll('input,select,button').forEach(el=>el.disabled=busy);
@@ -60,8 +62,8 @@ export function openRegeneration(viewer) {
       job.signal.throwIfAborted();
       const data=materializeMap(applySettings(next.map,settings));
       const names=data.locations.filter(p=>!['water','terrain','street'].includes(p.category)&&!p.overrides?.name).slice(0,4).map(p=>p.name);
-      const warnings=next.map.worldImport?.planning?.warnings||[];
-      summary.innerHTML=`<p>${next.map.locations.length.toLocaleString()} mapped features · ${next.map.districts.length} ${next.map.districts.length===1?'district':'districts'}. Authored overrides stay as written on retained sites.</p><ul>${names.map(name=>`<li>${escape(name)}</li>`).join('')}</ul>${form.elements.mode.value==='layout'?warnings.map(w=>`<p>${escape(w)}</p>`).join(''):''}`;
+      const counts=regenerationSummary(next.map),rebuilding=form.elements.mode.value==='layout';
+      summary.innerHTML=`<p>${counts.buildings.toLocaleString()} buildings (${counts.homes.toLocaleString()} homes, ${counts.businesses.toLocaleString()} shops and workshops) · ${counts.roads.toLocaleString()} road segments · ${counts.alleys.toLocaleString()} alleys · ${next.map.districts.length} districts.</p><p>${rebuilding&&counts.target?`Building target: about ${counts.target.toLocaleString()}. `:''}${rebuilding?'Authored overrides stay as written on retained sites.':'Layout unchanged. Settlement type affects stories and occupations only.'}</p><ul>${names.map(name=>`<li>${escape(name)}</li>`).join('')}</ul>${rebuilding?counts.warnings.map(w=>`<p>${escape(w)}</p>`).join(''):''}`;
       result={...next,settings,layout:form.elements.mode.value==='layout'};preview.hidden=false;message('Preview ready. Save to create a separate local map.');
     } catch(error) {if(!job.signal.aborted)message(error.message);}
     finally {busy=false;if(dialog.isConnected)buttons();}

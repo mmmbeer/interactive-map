@@ -3,7 +3,7 @@ import { validateMap } from '../map-contract.js';
 import { numberSites } from '../site-index.js';
 import { normalizeProfile } from './settlement-profile.js';
 import { normalizeSourceSelection } from './source-selection.js';
-import { regionPlan } from './region-scale.js';
+import { regionPlan, applyRegionScale } from './region-scale.js';
 import { generateLayout } from './procedural-layout.js';
 import { enrichSettlement } from './settlement-enrichment.js';
 import { linkStreets } from './model.js';
@@ -32,6 +32,9 @@ export function regenerateLayout(source,settings,onProgress) {
   if(map.locationAliases)map.locationAliases=Object.fromEntries(Object.entries(map.locationAliases).filter(([,id])=>retained.has(id)));
   const mapped=profile.districtMode==='mapped'?map.districts.filter(d=>d.boundaries?.length):[];
   map.districts=[{id:'imported-area',name:'Imported area'}];
+  // A geographic shape reinterpreted as a metropolis needs the metropolis's
+  // physical scale. Preserve real-distance maps and their retained geometry.
+  if(world.distanceScale?.reinterpreted)applyRegionScale(map,profile,true);
   delete world.procedural;delete world.planning;
   generateLayout(map,selection,profile,onProgress,4);
   linkStreets(map);
