@@ -1,0 +1,122 @@
+import { imageProjection, clipRing, clipLines, checkArea, checkRegion, ringArea } from './geo.js';
+import { coordinates, polygons, featureKind } from './osm.js';
+import { coastalWater } from './coast.js';
+import { ringContains, distanceToPath } from '../geometry.js';
+import { validateMap } from '../map-contract.js';
+import { enrichSettlement } from './settlement-enrichment.js';
+import { reconcileWater } from './water.js';
+import { selectSource } from './source-selection.js';
+import { regionPlan, sourceAllowed, sourceClass, applyRegionScale, canonicalBounds, regionRoadWidth } from './region-scale.js';
+import { normalizeProfile } from './settlement-profile.js';
+import { generateLayout } from './procedural-layout.js';
+import { numberSites } from '../site-index.js';
+export function hash(value) {let n=2166136261;for(const c of String(value)){n^=c.charCodeAt(0);n=Math.imul(n,16777619);}return n>>>0;}
+function anchor(points,holes=[]) {
+  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),top=Math.min(...ys),w=Math.max(...xs)-left,h=Math.max(...ys)-top;
+  const center=[left+w/2,top+h/2],inside=([x,y])=>ringContains(points,x,y)&&!holes.some(r=>ringContains(r,x,y));
+  if(inside(center))return center;
+  for(let y=1;y<10;y++)for(let x=1;x<10;x++){const p=[left+w*x/10,top+h*y/10];if(inside(p))return p;}
+  return points[0];
+}
+function buildingUse(t) {
+  if(['pub','bar','restaurant','cafe'].includes(t.amenity)||['hotel','guest_house','hostel'].includes(t.tourism))return ['tavern','tavern'];
+  if(t.amenity==='place_of_worship')return ['temple','temple'];
+  if(t.shop)return ['shop','shop'];if(t.craft)return ['workshop','workshop'];
+  return ['home','home'];
+}
+function terrainType(t) {
+  if(t.natural==='wetland')return 'marsh';
+  if(t.natural==='beach')return 'beach';
+  if(['forest','orchard'].includes(t.landuse)||t.natural==='wood')return 'forest';
+  return 'field';
+}
+function roadMeters(t) {
+  const given=parseFloat(t.width);if(Number.isFinite(given)&&given>0)return Math.min(35,given);
+  return {motorway:16,trunk:12,primary:10,secondary:8,tertiary:7,residential:6,service:4,footway:2,path:2,steps:2,track:3}[t.highway]||5;
+}
+export function linkStreets(map) {
+  const size=map.width/24,bins=new Map(),roads=map.locations.filter(p=>p.category==='street');
+  const roadIds=new Set(roads.map(r=>r.id));
+  for(const r of roads)for(let i=1;i<r.shape.points.length;i++) {
+    const a=r.shape.points[i-1],b=r.shape.points[i],steps=Math.min(100,Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/size)));
+    for(let j=0;j<=steps;j++) {
+      const key=`${Math.floor((a[0]+(b[0]-a[0])*j/steps)/size)},${Math.floor((a[1]+(b[1]-a[1])*j/steps)/size)}`;
+      if(!bins.has(key))bins.set(key,new Set());bins.get(key).add(r);
+    }
+  }
+  for(const p of map.locations.filter(p=>p.worldStyle?.kind==='building')) {
+    if(p.worldStyle.layoutVersion>=3&&roadIds.has(p.context?.street))continue;
+    const x=Math.floor(p.x/size),y=Math.floor(p.y/size),candidates=new Set();
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const r of bins.get(`${x+dx},${y+dy}`)||[])candidates.add(r);
+    let best,distance=size*2;
+    for(const r of candidates){const d=distanceToPath(r.shape.points,p.x,p.y);if(d<distance){best=r;distance=d;}}
+    if(best)p.context={street:best.id};
+  }
+}
+export function convertArea(data,{bounds,width,height,id,name,seed='world-map',settings={},settlement={},sourceSelection,survey=false,regional=false,reinterpret=true,onProgress,layoutVersion=4}) {
+  const area=(regional?checkRegion:checkArea)(bounds),plan=regional?regionPlan(bounds):null,project=imageProjection(bounds,width,height),locations=[],coasts=[],trees=[],mappedDistricts=[];
+  const mpp=area.width/width,visualScale=width/4096;
+  const map={schemaVersion:2,id,generationId:`world-${hash(JSON.stringify(canonicalBounds(bounds))).toString(16)}`,name,subtitle:'A real place, reimagined',description:'Fantasy artwork derived from OpenStreetMap geometry. Building uses and stories are fictional. © OpenStreetMap contributors, ODbL 1.0.',
+    image:`local/${id}/map`,thumbnail:`local/${id}/thumbnail`,width,height,theme:'Dragonsgate ink',region:'Your atlas',directoryScope:'all',tags:['world import','fantasy'],
+    generator:{version:2,detailsVersion:2,socialVersion:1,proseVersion:1,seed,defaults:{demographics:{race:'human'}}},
+    measurement:{metersPerPixel:mpp,unit:'m'},districts:[{id:'imported-area',name:'Imported area'}],locations,
+    worldImport:{version:1,bounds,projection:'web-mercator',dataTimestamp:data.osm3s?.timestamp_osm_base||null,attribution:'© OpenStreetMap contributors',license:'https://opendatacommons.org/licenses/odbl/1-0/',source:'https://www.openstreetmap.org/copyright',settings,
+      artwork:{version:3,distribution:'warped-fractal-v1',symbols:'Kenney Cartography Pack (2020)',symbolLicense:'CC0-1.0',symbolSource:'https://kenney.nl/assets/cartography-pack'}}};
+  if(plan)map.worldImport.regionPlan=plan;
+  if(data.preparedSource){map.worldImport.preparedSource=structuredClone(data.preparedSource);map.worldImport.dataTimestamp=data.preparedSource.snapshot;map.worldImport.attribution='© OpenStreetMap contributors · Natural Earth · Protomaps';map.description+=' Prepared geometry: Protomaps/OpenStreetMap and Natural Earth, March 2026 snapshot.';}
+  const elements=(data.elements||[]).filter(e=>!plan||sourceAllowed(e.tags,plan));
+  const represented=new Set();
+  for(const e of elements)if(e.type==='relation'&&polygons(e).length&&featureKind(e.tags))for(const member of e.members||[])if(member.type==='way'&&(member.role==='outer'||member.role==='inner'||!member.role))represented.add(member.ref);
+  let currentName,currentClass;
+  const add=(key,category,type,shape,visual)=>{
+    const points=shape.points;if(!points?.length)return;
+    const [x,y]=shape.kind==='polygon'?anchor(points,shape.holes):points[Math.floor(points.length/2)];
+    locations.push({id:key,category,type,district:'imported-area',x,y,shape,worldStyle:{...visual,...(plan?{sourceGroup:currentClass}:{}),...(currentName?{sourceName:currentName}:{})}});
+  };
+  for(const e of [...elements].sort((a,b)=>a.type.localeCompare(b.type)||a.id-b.id)) {
+    currentName=e.tags?.name;currentClass=sourceClass(e.tags);
+    const t=e.tags||{},kind=featureKind(t),key=`osm-${e.type}-${e.id}`;
+    if(e.tags?.place&&['neighbourhood','quarter','suburb'].includes(e.tags.place)||e.tags?.boundary==='administrative') {
+      const boundaries=polygons(e).map(p=>({kind:'polygon',points:clipRing(p.points.map(p=>project(...p)),width,height)})).filter(p=>p.points.length>=3);
+      if(boundaries.length)mappedDistricts.push({name:e.tags.name||`Neighborhood ${mappedDistricts.length+1}`,boundaries});
+      continue;
+    }
+    if(!kind||(e.type==='way'&&represented.has(e.id)))continue;
+    if(kind==='tree'){if(Number.isFinite(e.lon)&&Number.isFinite(e.lat))trees.push(project(e.lon,e.lat));continue;}
+    if(kind==='coast'){coasts.push(coordinates(e.geometry).map(p=>project(...p)));continue;}
+    if(kind==='road'||kind==='river') {
+      const road=kind==='road',meters=road?roadMeters(t):({river:18,canal:10,stream:3}[t.waterway]||2);
+      const stroke=Math.min(Math.min(width,height)/10,Math.max(visualScale*1.5,meters/mpp*(road?(settings.roadWidth||1):1)));
+      // Reserve room for the wider fantasy stroke before regional rescaling.
+      const finalStroke=road&&plan?.reinterpret&&reinterpret?regionRoadWidth(currentClass,width,settings.roadWidth||1):stroke;
+      const pad=Math.max(stroke,finalStroke)/2+.01;
+      const type=road?(t.bridge==='yes'?'bridge':['path','footway','track','steps'].includes(t.highway)?'trail':'street'):(['stream','canal'].includes(t.waterway)?t.waterway:'river');
+      clipLines(coordinates(e.geometry).map(p=>project(...p)),width,height,pad).forEach((points,i)=>add(`${key}-${i}`,road?'street':'water',type,{kind:'polyline',width:stroke,points},{kind,bridge:t.bridge==='yes'}));
+      continue;
+    }
+    for(const [i,polygon] of polygons(e).entries()) {
+      const points=clipRing(polygon.points.map(p=>project(...p)),width,height);if(points.length<3)continue;
+      const holes=polygon.holes.map(r=>clipRing(r.map(p=>project(...p)),width,height)).filter(r=>r.length&&r.every(([x,y])=>ringContains(points,x,y)));
+      const category=kind==='building'?buildingUse(t)[0]:kind==='water'?'water':'terrain';
+      const type=kind==='building'?buildingUse(t)[1]:kind==='water'?(['sea','pond','river','canal','stream'].includes(t.water)?t.water:t.waterway==='riverbank'?'river':'lake'):terrainType(t);
+      add(`${key}-${i}`,category,type,{kind:'polygon',points,...(holes.length?{holes}:{})},{kind,landuse:t.landuse||t.leisure||t.natural||'',area:Math.abs(ringArea(points))});
+    }
+  }
+  currentName=undefined;currentClass='coast';
+  coastalWater(coasts,width,height).forEach((shape,i)=>add(`coastal-water-${i}`,'water','sea',{kind:'polygon',...shape},{kind:'water'}));
+  if(!locations.length&&!regional)throw new Error('No mapped features found in this selection. Choose a built-up area or a larger selection.');
+  if(locations.length>12000)throw new Error('More than 12,000 features found. Select a smaller area.');
+  const stitched=reconcileWater(map);let selection;
+  if(regional)stitched.worldImport.mappedTreeCount=trees.filter(([x,y])=>x>=0&&y>=0&&x<=width&&y<=height).length;
+  if(!survey) {
+    if(sourceSelection||regional)selection=selectSource(stitched,regional?{...sourceSelection,version:2,groups:(sourceSelection?.groups||plan.groups).filter(k=>plan.groups.includes(k))}:sourceSelection);
+    if(regional) {
+      const profile=normalizeProfile(settlement);applyRegionScale(stitched,profile,reinterpret);
+      if(![3,4].includes(layoutVersion))throw new Error('Choose a supported layout version.');
+      generateLayout(stitched,selection,profile,onProgress,layoutVersion);
+    }
+    linkStreets(stitched);enrichSettlement(stitched,settlement,mappedDistricts);
+  }
+  if(regional&&!survey&&!stitched.locations.length)throw new Error('No usable land or mapped features were found. Choose a region with visible land.');
+  if(!survey||!regional||stitched.locations.length)validateMap(stitched);return {map:numberSites(stitched),trees:(selection&&!selection.groups.includes('woodland')?[]:trees).filter(([x,y])=>x>=0&&y>=0&&x<=width&&y<=height)};
+}

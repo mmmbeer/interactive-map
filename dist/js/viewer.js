@@ -17,6 +17,7 @@ export class AtlasViewer {
     this.localMap=options.localMap;this.onSave=options.onSave;this.onRestore=options.onRestore;this.onBackup=options.onBackup;this.onDelete=options.onDelete;
     this.staleDraft=options.stale;this.source=options.source || data;this.published=options.published || this.source;this.onChange=options.onChange;
     this.generationSettings=options.generationSettings;this.onGenerationChange=options.onGenerationChange;
+    this.onRegenerate=options.onRegenerate;
     this.root=root;this.data=data;this.numbers=siteNumbers(data.locations);this.controller=new AbortController();this.signal=this.controller.signal;
     this.generationSource=options.generationSource || this.source;
     this.directorySearch=new DirectorySearch(this.generationSource,this.signal);
@@ -29,6 +30,11 @@ export class AtlasViewer {
       button.title=`${label} settlement. Seed: ${this.generationSettings.seed}`;
       button.innerHTML=`${icon('dice')}<span>Settlement: ${escape(label)}</span>`;
       root.querySelector('.header-actions').prepend(button);
+      if(this.onRegenerate) {
+        const regenerate=document.createElement('button');regenerate.id='regenerate-map';regenerate.className='button quiet';
+        regenerate.title='Regenerate map';regenerate.setAttribute('aria-label','Regenerate map');
+        regenerate.innerHTML=`${icon('dice')}<span>Regenerate</span>`;root.querySelector('.header-actions').prepend(regenerate);
+      }
     }
     if(options.localMap || options.local || options.stale) {
       const note=document.createElement('div');note.className='local-draft-note';
@@ -94,6 +100,10 @@ export class AtlasViewer {
       'open-travel':()=>this.travel.open(),
       'open-guide':()=>openGuide(this),
       'settlement-settings':()=>openSettlementSettings(this),
+      'regenerate-map':async()=>{
+        try {const {openRegeneration}=await import('./regeneration-dialog.js');if(!this.signal.aborted&&!document.querySelector('.regeneration-dialog'))openRegeneration(this);}
+        catch(error){if(!this.signal.aborted)toast(error.message);}
+      },
       'toggle-districts':()=>target.setAttribute('aria-pressed',this.stage.toggleDistricts()),
       'open-directory':()=>this.openDirectory(),'show-more':()=>{this.limit+=45;this.renderList();},
       'random-place':()=>{if(this.results.length)this.select(this.results[Math.floor(Math.random()*this.results.length)],true);},

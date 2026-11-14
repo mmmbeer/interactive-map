@@ -11,5 +11,11 @@
 .settlement-dialog .settlement-note{border-top:1px solid var(--line);padding-top:14px;font-size:11px}
 .settlement-dialog .settlement-error{min-height:20px;color:var(--sunflower-gold);margin-bottom:12px}
 .settlement-dialog footer{display:flex;justify-content:space-between;gap:10px}
+.regeneration-dialog{width:min(620px,calc(100vw - 24px))}
+.regeneration-dialog footer{flex-wrap:wrap}
+.regeneration-preview{margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:6px}
+.regeneration-preview canvas{width:100%;height:auto;display:block}
+.regeneration-preview canvas[hidden]{display:none}
+.regeneration-preview ul{padding-left:20px;font-size:12px;line-height:1.8}
 @media(max-width:1040px){.atlas-header .header-actions .button span{display:none}.atlas-header .header-actions .button{gap:0}}
 @media(max-width:420px){.settlement-dialog{padding:18px}.settlement-dialog footer .button{padding:10px;font-size:11px}.seed-input .button{padding:10px}.seed-input .button span{display:none}}

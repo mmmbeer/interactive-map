@@ -6,7 +6,7 @@ import { validateMap } from '../map-contract.js';
 import { enrichSettlement } from './settlement-enrichment.js';
 import { reconcileWater } from './water.js';
 import { selectSource } from './source-selection.js';
-import { regionPlan, sourceAllowed, sourceClass, applyRegionScale, canonicalBounds } from './region-scale.js';
+import { regionPlan, sourceAllowed, sourceClass, applyRegionScale, canonicalBounds, regionRoadWidth } from './region-scale.js';
 import { normalizeProfile } from './settlement-profile.js';
 import { generateLayout } from './procedural-layout.js';
 import { numberSites } from '../site-index.js';
@@ -34,7 +34,7 @@ function roadMeters(t) {
   const given=parseFloat(t.width);if(Number.isFinite(given)&&given>0)return Math.min(35,given);
   return {motorway:16,trunk:12,primary:10,secondary:8,tertiary:7,residential:6,service:4,footway:2,path:2,steps:2,track:3}[t.highway]||5;
 }
-function linkStreets(map) {
+export function linkStreets(map) {
   const size=map.width/24,bins=new Map(),roads=map.locations.filter(p=>p.category==='street');
   const roadIds=new Set(roads.map(r=>r.id));
   for(const r of roads)for(let i=1;i<r.shape.points.length;i++) {
@@ -86,7 +86,10 @@ export function convertArea(data,{bounds,width,height,id,name,seed='world-map',s
     if(kind==='coast'){coasts.push(coordinates(e.geometry).map(p=>project(...p)));continue;}
     if(kind==='road'||kind==='river') {
       const road=kind==='road',meters=road?roadMeters(t):({river:18,canal:10,stream:3}[t.waterway]||2);
-      const stroke=Math.min(Math.min(width,height)/10,Math.max(visualScale*1.5,meters/mpp*(road?(settings.roadWidth||1):1))),pad=stroke/2+.01;
+      const stroke=Math.min(Math.min(width,height)/10,Math.max(visualScale*1.5,meters/mpp*(road?(settings.roadWidth||1):1)));
+      // Reserve room for the wider fantasy stroke before regional rescaling.
+      const finalStroke=road&&plan?.reinterpret&&reinterpret?regionRoadWidth(currentClass,width,settings.roadWidth||1):stroke;
+      const pad=Math.max(stroke,finalStroke)/2+.01;
       const type=road?(t.bridge==='yes'?'bridge':['path','footway','track','steps'].includes(t.highway)?'trail':'street'):(['stream','canal'].includes(t.waterway)?t.waterway:'river');
       clipLines(coordinates(e.geometry).map(p=>project(...p)),width,height,pad).forEach((points,i)=>add(`${key}-${i}`,road?'street':'water',type,{kind:'polyline',width:stroke,points},{kind,bridge:t.bridge==='yes'}));
       continue;
