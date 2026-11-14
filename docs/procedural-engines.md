@@ -104,8 +104,11 @@ See `public/js/vendor/procedural-NOTICES.txt` and `public/licenses/GPL-3.0.txt`.
 
 The production build packages complete installed engine/dependency source,
 host JavaScript, build scripts, upstream notices, provenance, and locked package
-inputs at `public/licenses/procedural-source.tar.gz`. The preview links to both
+inputs in checksum-verified 512 KiB parts under `public/licenses/procedural-source/`.
+`public/licenses/source.html` assembles one complete archive for download. The preview links to both
 notices and source. Unpack the archive, run `npm ci`, then
 `node scripts/planner-vendor.mjs` to rebuild the procedural bundles. Downloaded
 archives contain source for the exact release, including the modified Mapgen4
 adapter. `sources/engines.json` identifies upstream commits and modifications.
+
+The original `procedural-source.tar.gz` remains a frozen source snapshot for the unchanged vendored engines and their embedded source URL. The source download page provides the complete current host and engine source. Parts have content-specific names and a SHA-256 manifest so mixed or incomplete downloads fail verification.

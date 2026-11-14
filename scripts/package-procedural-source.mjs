@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { gzipSync,gunzipSync } from 'node:zlib';
+import { readSourceParts,writeSourceParts } from './source-parts.mjs';
 
 export async function packageProceduralSource(root) {
 const out=resolve(root,'public/licenses');
@@ -21,13 +22,13 @@ execFileSync('tar',['--sort=name','--format=gnu','--mtime=@0','--owner=0','--gro
   '--exclude=*.map','--exclude=node_modules/settlemaker/dist','--exclude=node_modules/settlemaker/docs','-cf',resolve(temp,'source.tar'),
   'public/js','scripts','sources/engines.json','sources/mapgen4','sources/probabletrain','sources/jsts-2.12.1-EDL.txt','package.json','package-lock.json','LICENSE','AGENTS.md','docs/procedural-engines.md',
   ...dependencies.map(name=>'node_modules/'+name)],{cwd:root,env:{...process.env,LC_ALL:'C'}});
-const tar=await readFile(resolve(temp,'source.tar')),archive=resolve(out,'procedural-source.tar.gz');
+const tar=await readFile(resolve(temp,'source.tar')),directory=resolve(out,'procedural-source');
 // gzip implementations can emit different bytes for identical tar contents.
 // Keep a valid committed encoding when it contains exactly the rebuilt source.
-let matches=false;
-try { matches=gunzipSync(await readFile(archive)).equals(tar); }
-catch(error) { if(error.code!=='ENOENT'&&!error.code?.startsWith('Z_'))throw error; }
-if(!matches)await writeFile(archive,gzipSync(tar,{level:9}));
+let previous;
+try {previous=await readSourceParts(directory);if(!gunzipSync(previous).equals(tar))previous=null;}
+catch(error) {if(error.code&&error.code!=='ENOENT'&&!error.code.startsWith('Z_'))throw error;previous=null;}
+await writeSourceParts(directory,previous||gzipSync(tar,{level:9}));
 } finally { await rm(temp,{recursive:true,force:true}); }
 console.log('Packaged procedural corresponding source and build instructions.');
 }

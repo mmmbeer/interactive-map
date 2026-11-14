@@ -1,4 +1,10 @@
 export function generateInWorker(raw,options,{signal,onProgress}={}) {
+  return runWorker({raw,options},{signal,onProgress});
+}
+export function regenerateInWorker(map,settings,{signal,onProgress}={}) {
+  return runWorker({task:'regenerate',map,settings},{signal,onProgress});
+}
+function runWorker(message,{signal,onProgress}) {
   return new Promise((resolve,reject)=>{
     signal?.throwIfAborted();
     const worker=new Worker(new URL('./generation-worker.js',import.meta.url),{type:'module'});
@@ -11,6 +17,6 @@ export function generateInWorker(raw,options,{signal,onProgress}={}) {
     };
     worker.onerror=event=>{cleanup();reject(new Error(event.message||'Map generation failed. Try a smaller region.'));};
     worker.onmessageerror=()=>{cleanup();reject(new Error('The generated map could not be transferred. Try a smaller region.'));};
-    try{worker.postMessage({raw,options});}catch(error){cleanup();reject(error);}
+    try{worker.postMessage(message);}catch(error){cleanup();reject(error);}
   });
 }

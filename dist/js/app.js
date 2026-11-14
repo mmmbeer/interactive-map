@@ -89,6 +89,16 @@ async function route() {
       viewer?.destroy();previousURLs.forEach(url=>URL.revokeObjectURL(url));
       viewer = new AtlasViewer(root, data, {source:next,generationSource:snapshot,published:source,onChange:mount,local:next!==source,stale:draft.stale,generationSettings:settings,onGenerationChange,
         localMap:Boolean(record),
+        onRegenerate:async(map,settings,files,signal)=>{
+          const owner=viewer,{saveRegeneration}=await import('./local-maps/regeneration.js');
+          const saved=await saveRegeneration(map,next,settings,{record,files,signal});
+          saveSettings(saved.map,settings);
+          if(!owner.signal.aborted) {
+            history.replaceState(null,'',settingsURL(location.href,settings));
+            location.hash=`#map/${saved.id}`;
+          }
+          return saved;
+        },
         onSave:saveEdit,
         onRestore:record ? async()=>{const map=numberSites(upgradeWorldWater(record.initialMap),record.map);record=await saveLocalMap(map,record.image,record.thumbnail,record.initialMap);return record.map;} : null,
         onBackup:record ? ()=>exportBackup(record,generationSettings) : null,

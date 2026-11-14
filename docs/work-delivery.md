@@ -1,5 +1,23 @@
 # Small GitHub deliveries
 
+## Regeneration recovery and bounds fix, 2026-11-13
+
+Recovered the prior regeneration implementation and verified main at `3fcb4023188fa3fb1234c44e149025f1964a7e13`. Uploaded regeneration and the road bounds fix as separate source checkpoints. The final delivery also includes the complete matching distribution and checksum-verified source parts. The original monolithic vendor-source archive is reused unchanged from main.
+
+Reproduced the reported prepared-road error using a major route crossing an image edge in an 11 km region. Fantasy road rescaling widened its stroke beyond the original clipping margin. Source conversion now reserves the larger of the source width and final fantasy width before clipping. Validation stays strict. Regression coverage includes horizontal, vertical and diagonal edge crossings, three image formats and three road-width settings, full conversion and conversion without fantasy scaling.
+
+## Map regeneration checkpoint, 2026-11-13
+
+Local branch `feat/map-regeneration` adds explicit content regeneration for generated maps and offline layout regeneration for saved real-world imports. Both preview first and save a separate local variation. Source maps and local originals are preserved. See `docs/generation.md` for user behavior and limits.
+
+Validation: 308 tests pass, including six regeneration tests. Production build passes with matching committed distribution. Browser checks covered content regeneration on Dragonsgate, separate collection entries for original and copy, imported layout preview, matching saved artwork and geometry, and dialog scrolling at increased browser zoom.
+
+The starting local tree matched verified remote main `3fcb4023188fa3fb1234c44e149025f1964a7e13` exactly (`69aaba7fc3c86713df7554652be43b52cdd9c51d`). The local recovery history has different commit SHAs. The user subsequently authorized pushing and merging this feature. Inspect the current remote head before delivery.
+
+The initial rebuilt corresponding-source archive exceeded the 1 MiB request budget. Direct Git reads work, but direct pushes lack authentication. A separate packaging activity now emits complete source as checksum-verified 512 KiB parts with content-specific filenames. `licenses/source.html` verifies and assembles one archive in the browser. No source or license content is removed. The unchanged vendored bundles retain their original frozen source archive and embedded source URL. Current host and engine source is available from the new download page.
+
+Upload each unique part once and reuse its SHA for `public/` and `dist/`. Reuse all unchanged vendor and map blobs from remote main. Do not upload the obsolete monolithic intermediate archive from the local recovery commits. Construct remote recovery commits from the final verified trees instead. The transfer planner must report no blocked blobs before publication. Source-only checkpoint commits must not be merged without the matching complete distribution.
+
 User preference recorded 2026-11-13: split security and performance work into small, recoverable activities. Limit GitHub upload sizes. Carry this workflow into future sessions.
 
 ## Resume before doing new work

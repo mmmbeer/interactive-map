@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { regionPlan, tileCoverage, sourceClass, canonicalBounds } from '../public/js/world-maps/region-scale.js';
+import { normalizeProfile } from '../public/js/world-maps/settlement-profile.js';
+import { applyRegionScale, regionPlan, tileCoverage, sourceClass, canonicalBounds } from '../public/js/world-maps/region-scale.js';
 import { checkRegion, checkArea } from '../public/js/world-maps/geo.js';
 import { selectedTiles } from '../public/js/world-maps/prepared.js';
 import { convertArea } from '../public/js/world-maps/model.js';
@@ -109,4 +110,35 @@ test('replacing a stitched mapped water layer removes obsolete fragment aliases'
   const survey=convertArea(data,{...options,survey:true}).map;assert.ok(Object.keys(survey.locationAliases||{}).length);
   const {map}=convertArea(data,{...options,sourceSelection:{version:2,groups:regionPlan(options.bounds).groups.filter(k=>k!=='water')}});
   validateMap(map);assert.deepEqual(map.locationAliases,{});
+});
+
+
+test('edge-crossing prepared roads remain inside the image after fantasy width scaling',()=>{
+  const bounds={west:0,south:0,east:.1,north:.1};
+  for(const [width,height] of [[900,600],[600,900],[2048,2048]])for(const roadWidth of [.5,1,3]) {
+    const geometry=points=>points.map(([lon,lat])=>({lon,lat}));
+    const data={elements:[
+      {type:'way',id:'prepared-roads-35184421991630-36978caeb36aae62-0',tags:{highway:'primary'},geometry:geometry([[-.01,.05],[.11,.05]])},
+      {type:'way',id:2,tags:{highway:'primary'},geometry:geometry([[.04,-.01],[.04,.11]])},
+      {type:'way',id:3,tags:{highway:'primary'},geometry:geometry([[-.01,-.01],[.11,.11]])}
+    ]};
+    const args={...options,bounds,width,height,settings:{roadWidth},settlement:{type:'hamlet'}};
+    const survey=convertArea(data,{...args,survey:true}).map;
+    // Isolate source conversion and scale handling from the settlement planner.
+    const scaled=structuredClone(survey);
+    applyRegionScale(scaled,normalizeProfile({type:'hamlet'}));
+    validateMap(scaled);
+    assert.equal(scaled.locations.length,3);
+    for(const road of scaled.locations) {
+      assert.ok(road.shape.width>road.worldStyle.sourceWidth);
+      assert.deepEqual(road.shape.points,survey.locations.find(p=>p.id===road.id).shape.points);
+    }
+    if(width===900&&roadWidth===1) {
+      const map=convertArea(data,args).map;validateMap(map);
+      for(const road of scaled.locations)assert.deepEqual(map.locations.find(p=>p.id===road.id).shape,road.shape);
+    }
+    const unscaled=convertArea(data,{...args,survey:true,reinterpret:false}).map;
+    applyRegionScale(unscaled,normalizeProfile({type:'hamlet'}),false);validateMap(unscaled);
+    assert.equal(unscaled.worldImport.distanceScale.reinterpreted,false);
+  }
 });
