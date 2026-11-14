@@ -38,13 +38,13 @@ export function sourceClass(tags={}) {
 }
 export const sourceAllowed=(tags,plan)=>plan.groups.includes(sourceClass(tags));
 export const settlementWidths={hamlet:450,village:850,farming_village:1200,town:1800,city:3500,metropolis:6500,port:2800,mining_outpost:700,forest_hold:1100,fortress:1000,monastery:700,academy:1100,caravan_stop:650,undercity:1600};
+export const regionRoadWidth=(group,width,roadWidth=1)=>(({majorRoads:19,roads:12,cityStreets:8,paths:4})[group]||8)*width/4096*roadWidth;
 export function applyRegionScale(map,profile,reinterpret=true) {
   const plan=map.worldImport.regionPlan;
   const resized=plan.reinterpret&&reinterpret,width=resized?settlementWidths[profile.type]:plan.sourceWidthMeters;
   map.worldImport.distanceScale={version:1,reinterpreted:resized,sourceWidthMeters:plan.sourceWidthMeters,fantasyWidthMeters:width};
   map.measurement.metersPerPixel=width/map.width;
   if(resized)for(const p of map.locations)if(p.category==='street'&&p.shape.kind==='polyline') {
-    const pixels=({majorRoads:19,roads:12,cityStreets:8,paths:4})[p.worldStyle?.sourceGroup]||8;
-    p.worldStyle.sourceWidth=p.shape.width;p.shape.width=pixels*map.width/4096*(map.worldImport.settings.roadWidth||1);
+    p.worldStyle.sourceWidth=p.shape.width;p.shape.width=regionRoadWidth(p.worldStyle?.sourceGroup,map.width,map.worldImport.settings.roadWidth||1);
   }
 }
